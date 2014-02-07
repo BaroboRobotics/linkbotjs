@@ -1,0 +1,68 @@
+#!/bin/bash
+
+##
+## Automate building and testing for continuous feedback while developing.
+##
+
+# This is a reminder: Don't set -e. It's ok if these commands bomb; they'll
+# just get run again.
+set +e
+
+coffee () {
+    command coffee -l -c -o build $@ 2>&1 | tee errors.err
+}
+
+karmaPID=
+
+startkarma() {
+    karma start &
+    karmaPID=$!
+}
+
+## Process watched dir ($w) and changed file ($f)
+process () {
+    w=$1
+    f=$2
+    case $w in
+        ./src/|./test/)
+            coffee $w$f
+            ;;
+        ./build/)
+            karma run > errors.err 2>&1
+            ;;
+        ./)
+            case $f in
+                auto)
+                    kill $karmaPID
+                    exec ./auto
+                    ;;
+                karma.conf.js)
+                    kill $karmaPID
+                    sleep 0.5
+                    startkarma
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+rebuild () {
+    mkdir build
+    coffee $(ack-grep -f --coffee src test)
+}
+
+## main starts here
+
+trap "rm -f errors.err" EXIT
+cd $(git root)
+[ -d build ] || rebuild
+startkarma
+
+# Watch recursively at top directory. Ignore vim auxiliary files. Google
+# 'vim 4913' if the second part of the exclude pattern seems odd.
+inotifywait -qmr . -e close_write \
+            --exclude '/\..*\.sw.$|/[0-9]*$' \
+            --format '%w %f' \
+    | while read w f; do
+        process $w $f
+    done
