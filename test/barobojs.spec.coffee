@@ -1,7 +1,7 @@
-define(['robotManager'], (robotMgr) ->
+define(['barobojs'], (barobojs) ->
     describe "RobotJS RobotManager", ->
         it "has specified interface", ->
-            methods = Object.getOwnPropertyNames(robotMgr)
+            methods = Object.getOwnPropertyNames(barobojs)
             expect(methods).toEqual(
                 [ 'reactimate'
                   'deactimate'
