@@ -12,6 +12,10 @@ coffee () {
     command coffee -l -c -o build $@ 2>&1 | tee errors.err
 }
 
+docco () {
+    command docco -l linear -o build/docs $@
+}
+
 karmaPID=
 
 startkarma() {
@@ -24,7 +28,10 @@ process () {
     w=$1
     f=$2
     case $w in
-        ./src/|./test/)
+        ./src/)
+            coffee $w$f && docco $w$f
+            ;;
+        ./test/)
             coffee $w$f
             ;;
         ./build/)
@@ -34,6 +41,7 @@ process () {
             case $f in
                 auto)
                     kill $karmaPID
+                    sleep 0.5
                     exec ./auto
                     ;;
                 karma.conf.js)
