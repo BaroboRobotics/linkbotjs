@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>BaroboJS API</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="public/stylesheets/normalize.css" />
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="page">
+
+      <div class="header">
+        
+          
+          <h1 id="barobojs-api">BaroboJS API</h1>
+
+          
+        
+
+        
+      </div>
+
+      
+        
+        <h2 id="controlling-robots">Controlling Robots</h2>
+<p>This API has four robot control methods. <em>connect</em> returns a Robot
+object, documented elsewhere [where?].</p>
+
+        
+      
+        
+        <h3 id="the-methods">The methods</h3>
+
+        
+          <div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">reactimate</span> = <span class="hljs-params">(connections, model)</span> -&gt;</span>
+<span class="hljs-function"><span class="hljs-title">deactimate</span> = <span class="hljs-params">(connections)</span> -&gt;</span>
+<span class="hljs-function"><span class="hljs-title">scan</span> = -&gt;</span>
+<span class="hljs-function"><span class="hljs-title">connect</span> = <span class="hljs-params">(id)</span> -&gt;</span></pre></div>
+        
+      
+        
+        <h2 id="integrating-with-barobolab">Integrating with BaroboLab</h2>
+
+        
+      
+        
+        <h2 id="including-the-api-in-your-code">Including the API in your code</h2>
+<p>This module can be used by requirejs/AMD. In its absence, the methods can
+be accessed from the global Barobo object.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">if</span> define?
+    define(
+        <span class="hljs-attribute">reactimate</span>: reactimate
+        <span class="hljs-attribute">deactimate</span>: deactimate
+        <span class="hljs-attribute">scan</span>: scan
+        <span class="hljs-attribute">connect</span>: connect
+    )
+<span class="hljs-keyword">else</span>
+    <span class="hljs-property">@Barobo</span> =
+        <span class="hljs-attribute">reactimate</span>: reactimate
+        <span class="hljs-attribute">deactimate</span>: deactimate
+        <span class="hljs-attribute">scan</span>: scan
+        <span class="hljs-attribute">connect</span>: connect</pre></div>
+        
+      
+      <div class="fleur">h</div>
+    </div>
+  </div>
+</body>
+</html>
