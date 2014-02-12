@@ -9,7 +9,7 @@
 set +e
 
 coffee () {
-    command coffee -l -c -o build $@ 2>&1 | tee errors.err
+    command coffee -b -l -c -o build $@ 2>&1 | tee errors.err
 }
 
 docco () {
