@@ -9,6 +9,8 @@ RobotBridge ?= {}
     'stop'
     'wheelConnect'
     'wheelDisconnect'
+    'scan'
+    'connect'
 ]
 RobotBridge.button ?= {}
 RobotBridge.button.connect ?= ->
@@ -94,7 +96,7 @@ deactimate = (connections) ->
         RobotBridge.wheelDisconnect(act) for act in actions().wheel
         actions().wheel = []
 
-scan = RobotBridge?.scan
+scan = -> RobotBridge.scan()
 
 connect = (id) ->
     RobotBridge.connect(id)
