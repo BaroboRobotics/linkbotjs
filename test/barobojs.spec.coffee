@@ -195,4 +195,20 @@ describe "BaroboJS", ->
             expect(RobotBridge.wheelDisconnect).toHaveBeenCalled()
 
     describe "scan", ->
+        it "calls RobotBridge's scan", ->
+            spyOn(RobotBridge, "scan")
+            scan()
+            expect(RobotBridge.scan).toHaveBeenCalled()
+
     describe "connect", ->
+        beforeEach ->
+            spyOn(RobotBridge, "connect")
+
+        it "calls RobotBridge's connect", ->
+            connect(0)
+            expect(RobotBridge.connect).toHaveBeenCalledWith(0)
+
+        it "returns a Linkbot", ->
+            r = connect(23)
+            expect(r).toEqual(jasmine.any(Linkbot))
+            expect(r._id).toBe(23)
