@@ -8,9 +8,11 @@ RobotBridge ?= {}
     'move'
     'stop'
     'wheelConnect'
+    'wheelDisconnect'
 ]
 RobotBridge.button ?= {}
 RobotBridge.button.connect ?= ->
+RobotBridge.button.disconnect ?= ->
 
 
 @Barobo =
@@ -84,16 +86,13 @@ reactimate = (connections, model = {}) ->
                 actions().wheel.push(act)
 
 deactimate = (connections) ->
-    if connections['button']?
+    if connections.indexOf('button') >=0
         RobotBridge.button.disconnect(act) for act in actions().button
+        actions().button = []
 
-    if connections['wheel']?
+    if connections.indexOf('wheel') >= 0
         RobotBridge.wheelDisconnect(act) for act in actions().wheel
-
-    actions(
-        button: []
-        wheel: []
-    )
+        actions().wheel = []
 
 scan = RobotBridge?.scan
 
