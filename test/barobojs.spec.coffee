@@ -86,7 +86,7 @@ describe "BaroboJS", ->
                 ).toHaveBeenCalledWith(actions().button[0])
             actions().button[0]()
 
-        it "button lets the Bridge pass through events", ->
+        it "button lets the RobotBridge pass through events", ->
             reactimate({
                 button: (r, m, e) -> [r, e]
             })
@@ -126,7 +126,7 @@ describe "BaroboJS", ->
             actions().wheel[0]()
             actions().wheel[1]()
 
-        it "wheel lets the Bridge pass through events", ->
+        it "wheel lets the RobotBridge pass through events", ->
             reactimate({
                 wheel: (r, m, e) -> [r, e]
             })
@@ -160,7 +160,7 @@ describe "BaroboJS", ->
             deactimate(['button'])
             expect(actions().button).toEqual([])
 
-        it "button disconnects the Bridge slot", ->
+        it "button disconnects the RobotBridge slot", ->
             actions().button.push(->)
             deactimate(['button'])
             expect(RobotBridge.button.disconnect).toHaveBeenCalled()
@@ -180,7 +180,7 @@ describe "BaroboJS", ->
             expect(actions().wheel).toEqual([])
 
 
-        it "wheel disconnects the Bridge slot", ->
+        it "wheel disconnects the RobotBridge slot", ->
             actions().wheel.push(->)
             deactimate(['wheel'])
             expect(RobotBridge.wheelDisconnect).toHaveBeenCalled()
