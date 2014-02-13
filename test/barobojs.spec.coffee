@@ -146,5 +146,53 @@ describe "BaroboJS", ->
             expect(ee.distance).toBe(10)
 
     describe "deactimate", ->
+        beforeEach ->
+            actions(
+                button: []
+                wheel: []
+            )
+            spyOn(RobotBridge.button, 'disconnect')
+            spyOn(RobotBridge, 'wheelDisconnect')
+
+        it "button cleans up the actions() register", ->
+            actions().button.push(->)
+            actions().button.push(->)
+            deactimate(['button'])
+            expect(actions().button).toEqual([])
+
+        it "button disconnects the Bridge slot", ->
+            actions().button.push(->)
+            deactimate(['button'])
+            expect(RobotBridge.button.disconnect).toHaveBeenCalled()
+            expect(RobotBridge.wheelDisconnect).not.toHaveBeenCalled()
+
+        it "deactimates buttons which are reactimated", ->
+            reactimate({
+                button: ->
+            })
+            deactimate(['button'])
+            expect(actions().button).toEqual([])
+            expect(RobotBridge.button.disconnect).toHaveBeenCalled()
+
+        it "wheel cleans up the actions() register", ->
+            actions().wheel.push(->)
+            deactimate(['wheel'])
+            expect(actions().wheel).toEqual([])
+
+
+        it "wheel disconnects the Bridge slot", ->
+            actions().wheel.push(->)
+            deactimate(['wheel'])
+            expect(RobotBridge.wheelDisconnect).toHaveBeenCalled()
+            expect(RobotBridge.button.disconnect).not.toHaveBeenCalled()
+
+        it "deactimates wheels which are reactimated", ->
+            reactimate({
+                wheel: (->)
+            })
+            deactimate(['wheel'])
+            expect(actions().wheel).toEqual([])
+            expect(RobotBridge.wheelDisconnect).toHaveBeenCalled()
+
     describe "scan", ->
     describe "connect", ->
