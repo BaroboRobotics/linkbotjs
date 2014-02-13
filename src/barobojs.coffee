@@ -1,5 +1,17 @@
 # BaroboJS API
 
+RobotBridge ?= {}
+(RobotBridge[m] ?= ->) for m in [
+    'angularSpeed'
+    'disconnect'
+    'linearSpeed'
+    'move'
+    'stop'
+]
+RobotBridge.button ?= {}
+RobotBridge.button.connect ?= ->
+
+
 @Barobo =
     reactimate: reactimate
     deactimate: deactimate
@@ -10,27 +22,24 @@ class Linkbot
     _wheelRadius: 1.75
     constructor: (@_id) ->
 
-    color: (r, g, b) -> RobotBridge.color(_id, r, g, b)
+    color: (r, g, b) -> RobotBridge.color(@_id, r, g, b)
 
-    angularSpeed: (s1, s2, s3) ->
-        if s2?
-            RobotBridge.angularSpeed(_id, s1, s2, s3)
-        else
-            RobotBridge.angularSpeed(_id, s1, s1, s1)
+    angularSpeed: (s1, s2 = s1, s3 = s1) ->
+        RobotBridge.angularSpeed(@_id, s1, s2, s3)
 
-    linearSpeed: (s1, s2, s3) ->
-        angSpeeds = arguments.map((s) -> s / @_wheelRadius)
-        @angularSpeed(angSpeeds...)
+    linearSpeed: (s1, s2 = s1, s3 = s1) ->
+        [l1, l2, l3] = (s / @_wheelRadius for s in [s1, s2, s3])
+        @angularSpeed(l1, l2, l3)
 
-    move: (r1, r2, r3) -> RobotBridge.move(_id, r1, r2, r3)
+    move: (r1, r2, r3) -> RobotBridge.move(@_id, r1, r2, r3)
 
-    stop: -> RobotBridge.stop(_id)
+    stop: -> RobotBridge.stop(@_id)
 
-    # **disconnect** nulls out _id, making the object unusable. Let me know
+    # **disconnect** nulls out @_id, making the object unusable. Let me know
     # if that's weird.
     disconnect: ->
-        RobotBridge.disconnect(_id)
-        _id = null
+        RobotBridge.disconnect(@_id)
+        @_id = null
 
 # Robot Management Methods
 
