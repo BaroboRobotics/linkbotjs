@@ -7,6 +7,7 @@ RobotBridge ?= {}
     'linearSpeed'
     'move'
     'stop'
+    'wheelConnect'
 ]
 RobotBridge.button ?= {}
 RobotBridge.button.connect ?= ->
@@ -43,43 +44,56 @@ class Linkbot
 
 # Robot Management Methods
 
-actions =
+actions = (meh) ->
+    actions.actions = meh if meh?
+    actions.actions
+
+actions(
     button: []
     wheel: []
+)
 
-buttonAction = (callback) ->
+# These actions wrap the slot registered with the Bridge's signal, bringing
+# it back to javascript land.
+buttonAction = (callback, model) ->
     (robID, btnID) -> callback(robID, model, { button: btnID })
 
-wheelAction = (callback) ->
-    (robID, direction) ->
-        callback(robID, model, { clockwise: (direction == 1) })
+wheelAction = (callback, model) ->
+    (robID, clockwise, distance) ->
+        callback(robID, model, {
+            clockwise: clockwise
+            distance: distance
+        })
 
-reactimate = (connections, model) ->
+reactimate = (connections, model = {}) ->
 
     if connections.button?
-        act = buttonAction(connections.button)
+        act = buttonAction(connections.button, model)
         RobotBridge.button.connect(act)
-        actions.button.push(act)
+        actions().button.push(act)
 
     if connections.wheel?
         if typeof(connections.wheel) == "function"
-            act = wheelAction(connections.wheel)
+            act = wheelAction(connections.wheel, model)
             RobotBridge.wheelConnect(0, act)
-            actions.wheel.push(act)
+            actions().wheel.push(act)
         else
             for own distance, callback of connections.wheel
-                act = wheelAction(callback)
-                RobotBridge.wheelConnect(distance, act)
-                actions.wheel.push(act)
+                act = wheelAction(callback, model)
+                RobotBridge.wheelConnect(parseInt(distance), act)
+                actions().wheel.push(act)
 
 deactimate = (connections) ->
     if connections['button']?
-        RobotBridge.button.disconnect(act) for act in actions.button
-        actions.button = []
+        RobotBridge.button.disconnect(act) for act in actions().button
 
     if connections['wheel']?
-        RobotBridge.wheelDisconnect(act) for act in actions.wheel
-        actions.wheel = []
+        RobotBridge.wheelDisconnect(act) for act in actions().wheel
+
+    actions(
+        button: []
+        wheel: []
+    )
 
 scan = RobotBridge?.scan
 
