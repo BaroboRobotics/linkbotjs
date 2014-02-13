@@ -35,6 +35,7 @@ process () {
             coffee $w$f
             ;;
         ./build/)
+            clear
             karma run > errors.err 2>&1
             ;;
         ./)
