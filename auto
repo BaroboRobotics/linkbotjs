@@ -61,6 +61,7 @@ process () {
 rebuild () {
     mkdir build
     coffee $(ack-grep -f --coffee src test)
+    docco $(find doc)
 }
 
 ## main starts here
