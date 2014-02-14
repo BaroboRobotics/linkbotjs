@@ -29,7 +29,10 @@ process () {
     f=$2
     case $w in
         ./src/)
-            coffee $w$f && docco $w$f
+            coffee $w$f
+            ;;
+        ./doc/)
+            docco $w$f
             ;;
         ./test/)
             coffee $w$f
