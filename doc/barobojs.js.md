@@ -1,4 +1,4 @@
-# BaroboJS API
+# LinkbotJS API
 
 This API has four methods for managing robots, and a
 <a href="#linkbot">Linkbot class</a>
@@ -11,7 +11,7 @@ for controlling individual robots. The four management methods are
 Obtain a Linkbot object with
 <a id="connect">**connect**</a>:
 
-    var linkbot = Barobo.connect(id);
+    var linkbot = LinkbotMgr.connect(id);
 
 Now you can use the following class to control that robot.
 
@@ -33,15 +33,15 @@ Linkbot control methods are
 
 <a id=angSpeed></a>
 **angularSpeed**
-sets motor speed, in radians per second. This is treated as a magnitude:
-only use positive values. [Explain three arguments. Which are which?]
+sets motor speed, in radians per second. This is treated as a magnitude.
+Only use positive values. [Explain three arguments. Which are which?]
 
     linkbot.angularSpeed(1, 2, 1);
 
     /* bad: negative numbers */
     /* linkbot.angularSpeed(-1, 1, 2) */
 
-If you only pass one argument, BaroboJS will use that speed for all the
+If you only pass one argument, LinkbotJS will use that speed for all the
 motors.
 
     /* same as linkbot.angularSpeed(1,1,1) */
@@ -64,115 +64,118 @@ is an emergency stop!
 <a id=disconnect></a>
 **disconnect**
 relinquishes control of the robot. It also invalidates the object it is
-executed on by nulling out its id attribute. Let me know if that's weird.
+executed on by nulling out the id attribute. Let me know if that's weird.
 
     linkbot.disconnect();
 
 Those five methods are it for the Linkbot class!
 
-## Robot Management Methods
+## LinkbotMgr Methods
 
-Recall that there are four methods: **scan**, **connect**,
-**reactimate**, and **deactimate**.
+Recall that there are four LinkbotMgr methods:
+<a href="#scan">scan</a>,
+<a href="#connect">connect</a>,
+<a href="#reactimate">reactimate</a>, and
+<a href="#deactimate">deactimate</a>.
+
 
 <a id=scan></a>
 **scan** returns a list of ids.
 
+    var availIds = LinkbotMgr.scan();
 
 <a id=connect></a>
-**connect** is straightforward, though RobotBridge might throw something
-nasty.
+**connect** is straightforward, though it might throw an error if the
+connection fails. As mentioned above, it returns a <a
+href="#linkbot">Linkbot</a> object.
 
-    connect = function(id) {
-      RobotBridge.connect(id);
-      return new Linkbot(id);
-    };
+    var linkbot;
+    try {
+        linkbot = LinkbotMgr.connect(id);
+    } catch(/* TODO */) {
+    }
 
 <a id=reactimate></a>
 **reactimate** is a funny word that means, "Do certain things based on
-robot activity." Let's talk about this for a second.
+robot activity." I'll show an example of its use, then explain what's going
+on.
 
-### Aside: reactimate
+    var handleClick = function(robot, data, event) {
+      if (robot === data.myRobot) {
+        data.mine += 1;
+      } else {
+        data.other += 1;
+      }
+    };
 
-Here's a small example.
-
-    var appData, robot;
-
-    robot = Barobo.connect();
-
-    appData = {
+    var appData = {
       mine: 0,
-      bobs: 0,
-      myId: robot._id
+      other: 0,
+      myRobot: LinkbotMgr.connect(id)
     };
 
-    Barobo.reactimate({
-      button: function(robotID, data, event) {
-        if (robotID === data.myID && event.button === 1) {
-          return data.mine += 1;
-        } else {
-          return data.bobs += 1;
-        }
-      }
-    }, appData);
+    LinkbotMgr.reactimate({ button: handleClick }, appData);
 
-What's happening here is a callback is being registered for button
-events. The callback gets information on the robot that triggered the
-event, as well as the event itself. It also gets access to the value
-passed as the second argument to reactimate. This lets you write pure
-functions, hooray! That should let you play nicely with frameworks like
-Angular or Serenade.
+What's happening here is a callback is being registered for button events.
 
-### Reactimate connections
-These are the actions you can attach callbacks to.
-robotActions = [ 'button', 'wheel' ]
+Reactimate's first argument is a connection map. The keys are events to act
+upon, and the values can be callbacks or, in some cases, a collection of
+callbacks. (See <a href="#wheel">wheel</a>, for example.)
 
-You've already seen an example of *button*. Here's a *wheel* example.
+As demonstrated by handleClick, callbacks receive three arguments. The
+first is the robot object corresponding to the robot that triggered the
+event. The second is the second argument to reactimate (appData, in this
+case). The third argument is an object containing information about the
+event itself.
 
-```
-    /* TODO: Wheel example */
-```
-
-    var reactimate;
-
-    reactimate = function(connections, model) {
-      if (connections.button != null) {
-        if (internal.buttonAction != null) {
-          RobotBridge.button.disconnect(internal.buttonAction);
-        }
-        internal.buttonAction = function(robID, btnID) {
-          return connections.button(robID, model, {
-            button: btnID
-          });
-        };
-        RobotBridge.button.connect(internal.buttonAction);
-      }
-      if (connections.wheel != null) {
-        if (internal.wheelAction != null) {
-          RobotBridge.wheel.disconnect(internal.wheelAction);
-        }
-        internal.wheelAction = function(robID, wheelID, direction) {
-          return internal.handleWheel(robID, wheelID, direction, model);
-        };
-        return RobotBridge.wheel.connect(internal.wheelAction);
-      }
-    };
+This example only uses the 'button' connection. See the section on <a
+href="#connections">connections</a>, below, for a list of available
+connections and descriptions of event-information objects.
 
 <a id=deactimate></a>
-**deactimate** takes an Array of connections to stop caring about, and
-promptly stops caring about them.
+**deactimate** takes a variable number of connections to stop caring about,
+and promptly stops caring about them.
 
-    deactimate = function(connections) {
-      if ((connections['button'] != null) && (internal.wheelAction != null)) {
-        RobotBridge.button.disconnect(internal.wheelAction);
-        internal.buttonAction = null;
-      }
-      if ((connections['wheel'] != null) && (internal.wheelAction != null)) {
-        RobotBridge.wheel.disconnect(internal.wheelAction);
-        return internal.wheelAction = null;
-      }
-    };
+    /* banish buttons actions */
+    deactimate('button');
 
-## Integrating with BaroboLab
+    /* or, ignore button *and* wheel events. */
+    deactimate('button', 'wheel');
+
+<a id="connections"></a>
+### Reactimate connections
+
+<dl>
+<a id="button"></a>
+<dt>button</dt>
+<dd>
+See [reactimate](#reactimate) for a usage example. The event object that
+callbacks receive will be of form `{ buttonID: int }`
+</dd>
+<a id="wheel"></a>
+<dt>wheel</dt>
+<dd>
+wheel events are more complicated because you can specify how many degrees
+to wait before an event is triggered. To support this, the connection value
+can be a map:
+
+    LinkbotMgr.reactimate({ wheel: { 20: scrollEvent } });
+
+However, if you just want events as frequently as possible, you can pass a
+single function instead of a map:
+
+    /* these are identical */
+    LinkbotMgr.reactimate({ wheel: moveEvent });
+    LinkbotMgr.reactimate({ wheel: { 0 : moveEvent }});
+
+Keys are expected to be (positive) magnitudes. The event object that
+callbacks receive will be of form `{ wheelID: int, distance: double }`.
+'distance' will be positive if the motion was clockwise.
+</dd>
+</dl>
 
 ## Including the API in your code
+
+Eventual support of require.js is planned, but for now, include linkbot.js
+before your application code, and LinkbotMgr will be available at the
+global scope.
