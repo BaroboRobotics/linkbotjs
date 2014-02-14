@@ -13,7 +13,7 @@ coffee () {
 }
 
 docco () {
-    command docco -l linear -o build/docs $@
+    command docco -l linear -o build/doc $@
 }
 
 karmaPID=
