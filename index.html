@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>BaroboJS API</title>
+  <title>LinkbotJS API</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <link rel="stylesheet" media="all" href="public/stylesheets/normalize.css" />
   <link rel="stylesheet" media="all" href="docco.css" />
@@ -14,8 +14,19 @@
       <div class="header">
         
           
-          <h1 id="barobojs-api">BaroboJS API</h1>
+          <h1 id="linkbotjs-api">LinkbotJS API</h1>
+<p>This API has four methods for managing robots, and a
+<a href="#linkbot">Linkbot class</a>
+for controlling individual robots. The four management methods are
+<a href="#scan">scan</a>,
+<a href="#connect">connect</a>,
+<a href="#reactimate">reactimate</a>, and
+<a href="#deactimate">deactimate</a>.</p>
+<p>Obtain a Linkbot object with
+<a id="connect"><strong>connect</strong></a>:</p>
 
+          
+            <div class='highlight'><pre><span class="hljs-keyword">var</span> linkbot = LinkbotMgr.connect(id);</pre></div>
           
         
 
@@ -24,46 +35,195 @@
 
       
         
-        <h2 id="controlling-robots">Controlling Robots</h2>
-<p>This API has four robot control methods. <em>connect</em> returns a Robot
-object, documented elsewhere [where?].</p>
+        <p>Now you can use the following class to control that robot.</p>
+<p><a id="linkbot"></a></p>
+<h2 id="linkbot-class">Linkbot Class</h2>
+<p>Linkbot control methods are
+<a href="#color">color</a>,
+<a href="#angSpeed">angularSpeed</a>,
+<a href="#move">move</a>,
+<a href="#stop">stop</a>, and
+<a href="#disconnect">disconnect</a>.</p>
+<p><a id="color"></a>
+<strong>color</strong> sets the robot’s LED. Inputs are <em>r</em>, <em>g</em>, <em>b</em>, with values
+0–255.</p>
 
+        
+          <div class='highlight'><pre>linkbot.color(<span class="hljs-number">255</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>); <span class="hljs-comment">// Set LED to red.</span></pre></div>
         
       
         
-        <h3 id="the-methods">The methods</h3>
+        <p><a id=angSpeed></a>
+<strong>angularSpeed</strong>
+sets motor speed, in radians per second. This is treated as a magnitude.
+Only use positive values. [Explain three arguments. Which are which?]</p>
 
         
-          <div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">reactimate</span> = <span class="hljs-params">(connections, model)</span> -&gt;</span>
-<span class="hljs-function"><span class="hljs-title">deactimate</span> = <span class="hljs-params">(connections)</span> -&gt;</span>
-<span class="hljs-function"><span class="hljs-title">scan</span> = -&gt;</span>
-<span class="hljs-function"><span class="hljs-title">connect</span> = <span class="hljs-params">(id)</span> -&gt;</span></pre></div>
+          <div class='highlight'><pre>linkbot.angularSpeed(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>);
+
+<span class="hljs-comment">/* bad: negative numbers */</span>
+<span class="hljs-comment">/* linkbot.angularSpeed(-1, 1, 2) */</span></pre></div>
         
       
         
-        <h2 id="integrating-with-barobolab">Integrating with BaroboLab</h2>
+        <p>If you only pass one argument, LinkbotJS will use that speed for all the
+motors.</p>
 
+        
+          <div class='highlight'><pre><span class="hljs-comment">/* same as linkbot.angularSpeed(1,1,1) */</span>
+linkbot.angularSpeed(<span class="hljs-number">1</span>);</pre></div>
         
       
         
-        <h2 id="including-the-api-in-your-code">Including the API in your code</h2>
-<p>This module can be used by requirejs/AMD. In its absence, the methods can
-be accessed from the global Barobo object.</p>
+        <p><a id=move></a>
+<strong>move</strong>
+runs the motors the specified number of radians. The speed they move at is
+controlled by <a href="#angSpeed">angularSpeed</a>, above. Positive values
+move the motor clockwise.</p>
 
         
-          <div class='highlight'><pre><span class="hljs-keyword">if</span> define?
-    define(
-        <span class="hljs-attribute">reactimate</span>: reactimate
-        <span class="hljs-attribute">deactimate</span>: deactimate
-        <span class="hljs-attribute">scan</span>: scan
-        <span class="hljs-attribute">connect</span>: connect
-    )
-<span class="hljs-keyword">else</span>
-    <span class="hljs-property">@Barobo</span> =
-        <span class="hljs-attribute">reactimate</span>: reactimate
-        <span class="hljs-attribute">deactimate</span>: deactimate
-        <span class="hljs-attribute">scan</span>: scan
-        <span class="hljs-attribute">connect</span>: connect</pre></div>
+          <div class='highlight'><pre>linkbot.move(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span>);</pre></div>
+        
+      
+        
+        <p><a id=stop></a>
+<strong>stop</strong>
+is an emergency stop!</p>
+
+        
+          <div class='highlight'><pre>linkbot.stop();</pre></div>
+        
+      
+        
+        <p><a id=disconnect></a>
+<strong>disconnect</strong>
+relinquishes control of the robot. It also invalidates the object it is
+executed on by nulling out the id attribute. Let me know if that’s weird.</p>
+
+        
+          <div class='highlight'><pre>linkbot.disconnect();</pre></div>
+        
+      
+        
+        <p>Those five methods are it for the Linkbot class!</p>
+<h2 id="linkbotmgr-methods">LinkbotMgr Methods</h2>
+<p>Recall that there are four LinkbotMgr methods:
+<a href="#scan">scan</a>,
+<a href="#connect">connect</a>,
+<a href="#reactimate">reactimate</a>, and
+<a href="#deactimate">deactimate</a>.</p>
+<p><a id=scan></a>
+<strong>scan</strong> returns a list of ids.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> availIds = LinkbotMgr.scan();</pre></div>
+        
+      
+        
+        <p><a id=connect></a>
+<strong>connect</strong> is straightforward, though it might throw an error if the
+connection fails. As mentioned above, it returns a <a
+href="#linkbot">Linkbot</a> object.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> linkbot;
+<span class="hljs-keyword">try</span> {
+    linkbot = LinkbotMgr.connect(id);
+} <span class="hljs-keyword">catch</span>(<span class="hljs-comment">/* TODO */</span>) {
+}</pre></div>
+        
+      
+        
+        <p><a id=reactimate></a>
+<strong>reactimate</strong> is a funny word that means, “Do certain things based on
+robot activity.” I’ll show an example of its use, then explain what’s going
+on.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> handleClick = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(robot, data, event)</span> {</span>
+  <span class="hljs-keyword">if</span> (robot === data.myRobot) {
+    data.mine += <span class="hljs-number">1</span>;
+  } <span class="hljs-keyword">else</span> {
+    data.other += <span class="hljs-number">1</span>;
+  }
+};
+
+<span class="hljs-keyword">var</span> appData = {
+  mine: <span class="hljs-number">0</span>,
+  other: <span class="hljs-number">0</span>,
+  myRobot: LinkbotMgr.connect(id)
+};
+
+LinkbotMgr.reactimate({ button: handleClick }, appData);</pre></div>
+        
+      
+        
+        <p>What’s happening here is a callback is being registered for button events.</p>
+<p>Reactimate’s first argument is a connection map. The keys are events to act
+upon, and the values can be callbacks or, in some cases, a collection of
+callbacks. (See <a href="#wheel">wheel</a>, for example.)</p>
+<p>As demonstrated by handleClick, callbacks receive three arguments. The
+first is the robot object corresponding to the robot that triggered the
+event. The second is the second argument to reactimate (appData, in this
+case). The third argument is an object containing information about the
+event itself.</p>
+<p>This example only uses the ‘button’ connection. See the section on <a
+href="#connections">connections</a>, below, for a list of available
+connections and descriptions of event-information objects.</p>
+<p><a id=deactimate></a>
+<strong>deactimate</strong> takes a variable number of connections to stop caring about,
+and promptly stops caring about them.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-comment">/* banish buttons actions */</span>
+deactimate(<span class="hljs-string">'button'</span>);
+
+<span class="hljs-comment">/* or, ignore button *and* wheel events. */</span>
+deactimate(<span class="hljs-string">'button'</span>, <span class="hljs-string">'wheel'</span>);</pre></div>
+        
+      
+        
+        <p><a id="connections"></a></p>
+<h3 id="reactimate-connections">Reactimate connections</h3>
+<p><dl>
+<a id="button"></a></p>
+<p><dt>button</dt></p>
+<p><dd>
+See <a href="#reactimate">reactimate</a> for a usage example. The event object that
+callbacks receive will be of form <code>{ buttonID: int }</code>
+</dd>
+<a id="wheel"></a></p>
+<p><dt>wheel</dt></p>
+<p><dd>
+wheel events are more complicated because you can specify how many degrees
+to wait before an event is triggered. To support this, the connection value
+can be a map:</p>
+
+        
+          <div class='highlight'><pre>LinkbotMgr.reactimate({ wheel: { <span class="hljs-number">20</span>: scrollEvent } });</pre></div>
+        
+      
+        
+        <p>However, if you just want events as frequently as possible, you can pass a
+single function instead of a map:</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-comment">/* these are identical */</span>
+LinkbotMgr.reactimate({ wheel: moveEvent });
+LinkbotMgr.reactimate({ wheel: { <span class="hljs-number">0</span> : moveEvent }});</pre></div>
+        
+      
+        
+        <p>Keys are expected to be (positive) magnitudes. The event object that
+callbacks receive will be of form <code>{ wheelID: int, distance: double }</code>.
+‘distance’ will be positive if the motion was clockwise.
+</dd>
+</dl></p>
+<h2 id="including-the-api-in-your-code">Including the API in your code</h2>
+<p>Eventual support of require.js is planned, but for now, include linkbot.js
+before your application code, and LinkbotMgr will be available at the
+global scope.</p>
+
         
       
       <div class="fleur">h</div>
