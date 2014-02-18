@@ -60,7 +60,7 @@ process () {
 
 rebuild () {
     mkdir build
-    coffee $(ack-grep -f --coffee src test)
+    coffee $(find src test -name '*.coffee')
     docco $(find doc)
 }
 
