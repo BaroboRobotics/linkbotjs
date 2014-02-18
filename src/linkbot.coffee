@@ -1,6 +1,6 @@
 # BaroboJS API
 
-RobotBridge ?= {}
+RobotBridge = (if RobotBridge? then RobotBridge else {})
 (RobotBridge[m] ?= ->) for m in [
     'angularSpeed'
     'disconnect'
@@ -15,7 +15,6 @@ RobotBridge ?= {}
 RobotBridge.button ?= {}
 RobotBridge.button.connect ?= ->
 RobotBridge.button.disconnect ?= ->
-
 
 @Barobo =
     reactimate: reactimate
