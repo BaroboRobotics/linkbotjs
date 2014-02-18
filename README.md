@@ -1,11 +1,11 @@
-# Developer Documentation for BaroboJS
+# Developer Documentation for LinkbotJS
 
-This document is for BaroboJS maintainers. Documentation for users is found
+This document is for LinkbotJS maintainers. Documentation for users is found
 elsewhere [where?].
 
 ## If your life depends on it
 
-Compile src/barobojs.coffee to javascript with
+Compile src/linkbot.coffee to javascript with
 [coffee](http://coffeescript.org/).
 
 ## Testing
@@ -19,7 +19,8 @@ These things can be installed with npm, which is available on
 Debian/Ubuntu. Use `sudo npm install -g $tool`.
 
 I have a [cheatsheet for
-Jasmine](https://workflowy.com/shared/d23cf9f1-acb7-4596-6b17-e022b8c0f393/)!
+Jasmine](https://workflowy.com/shared/d23cf9f1-acb7-4596-6b17-e022b8c0f393/),
+since the docs read like a short story.
 
 ## Development automation
 
