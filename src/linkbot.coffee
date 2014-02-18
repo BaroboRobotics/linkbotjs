@@ -1,7 +1,7 @@
 # BaroboJS API
 
-RobotBridge = (if RobotBridge? then RobotBridge else {})
-(RobotBridge[m] ?= ->) for m in [
+BaroboBridge = (if BaroboBridge? then BaroboBridge else {})
+(BaroboBridge[m] ?= ->) for m in [
     'angularSpeed'
     'disconnect'
     'linearSpeed'
@@ -12,11 +12,11 @@ RobotBridge = (if RobotBridge? then RobotBridge else {})
     'scan'
     'connect'
 ]
-RobotBridge.button ?= {}
-RobotBridge.button.connect ?= ->
-RobotBridge.button.disconnect ?= ->
+BaroboBridge.button ?= {}
+BaroboBridge.button.connect ?= ->
+BaroboBridge.button.disconnect ?= ->
 
-@Barobo =
+@Linkbots =
     reactimate: reactimate
     deactimate: deactimate
     scan: scan
@@ -26,23 +26,23 @@ class Linkbot
     _wheelRadius: 1.75
     constructor: (@_id) ->
 
-    color: (r, g, b) -> RobotBridge.color(@_id, r, g, b)
+    color: (r, g, b) -> BaroboBridge.color(@_id, r, g, b)
 
     angularSpeed: (s1, s2 = s1, s3 = s1) ->
-        RobotBridge.angularSpeed(@_id, s1, s2, s3)
+        BaroboBridge.angularSpeed(@_id, s1, s2, s3)
 
     linearSpeed: (s1, s2 = s1, s3 = s1) ->
         [l1, l2, l3] = (s / @_wheelRadius for s in [s1, s2, s3])
         @angularSpeed(l1, l2, l3)
 
-    move: (r1, r2, r3) -> RobotBridge.move(@_id, r1, r2, r3)
+    move: (r1, r2, r3) -> BaroboBridge.move(@_id, r1, r2, r3)
 
-    stop: -> RobotBridge.stop(@_id)
+    stop: -> BaroboBridge.stop(@_id)
 
     # **disconnect** nulls out @_id, making the object unusable. Let me know
     # if that's weird.
     disconnect: ->
-        RobotBridge.disconnect(@_id)
+        BaroboBridge.disconnect(@_id)
         @_id = null
 
 # Robot Management Methods
@@ -72,31 +72,31 @@ reactimate = (connections, model = {}) ->
 
     if connections.button?
         act = buttonAction(connections.button, model)
-        RobotBridge.button.connect(act)
+        BaroboBridge.button.connect(act)
         actions().button.push(act)
 
     if connections.wheel?
         if typeof(connections.wheel) == "function"
             act = wheelAction(connections.wheel, model)
-            RobotBridge.wheelConnect(0, act)
+            BaroboBridge.wheelConnect(0, act)
             actions().wheel.push(act)
         else
             for own distance, callback of connections.wheel
                 act = wheelAction(callback, model)
-                RobotBridge.wheelConnect(parseInt(distance), act)
+                BaroboBridge.wheelConnect(parseInt(distance), act)
                 actions().wheel.push(act)
 
 deactimate = (connections) ->
     if connections.indexOf('button') >=0
-        RobotBridge.button.disconnect(act) for act in actions().button
+        BaroboBridge.button.disconnect(act) for act in actions().button
         actions().button = []
 
     if connections.indexOf('wheel') >= 0
-        RobotBridge.wheelDisconnect(act) for act in actions().wheel
+        BaroboBridge.wheelDisconnect(act) for act in actions().wheel
         actions().wheel = []
 
-scan = -> RobotBridge.scan()
+scan = -> BaroboBridge.scan()
 
 connect = (id) ->
-    RobotBridge.connect(id)
+    BaroboBridge.connect(id)
     new Linkbot(id)

@@ -1,7 +1,7 @@
-describe "BaroboJS", ->
+describe "LinkbotJS", ->
 
     it "has specified interface", ->
-        methods = Object.getOwnPropertyNames(Barobo)
+        methods = Object.getOwnPropertyNames(Linkbots)
         expect(methods).toEqual(
             [ 'reactimate'
               'deactimate'
@@ -36,22 +36,22 @@ describe "BaroboJS", ->
 
         describe "angularSpeed", ->
             beforeEach ->
-                spyOn(RobotBridge, 'angularSpeed')
+                spyOn(BaroboBridge, 'angularSpeed')
 
-            it "calls through to RobotBridge", ->
+            it "calls through to BaroboBridge", ->
                 x.angularSpeed(3)
-                expect(RobotBridge.angularSpeed).toHaveBeenCalled()
+                expect(BaroboBridge.angularSpeed).toHaveBeenCalled()
 
             it "uses sole argument for all wheels", ->
                 x.angularSpeed(4)
                 expect(
-                    RobotBridge.angularSpeed
+                    BaroboBridge.angularSpeed
                 ).toHaveBeenCalledWith(x._id,4,4,4)
 
             it "uses all 3 arguments if supplied", ->
                 x.angularSpeed(1,2,3)
                 expect(
-                    RobotBridge.angularSpeed
+                    BaroboBridge.angularSpeed
                 ).toHaveBeenCalledWith(x._id,1,2,3)
 
         describe "linearSpeed", ->
@@ -73,8 +73,8 @@ describe "BaroboJS", ->
                 button: []
                 wheel: []
             )
-            spyOn(RobotBridge.button, 'connect')
-            spyOn(RobotBridge, 'wheelConnect')
+            spyOn(BaroboBridge.button, 'connect')
+            spyOn(BaroboBridge, 'wheelConnect')
             model = fuzz: "baz"
 
         it "button passes the model through", ->
@@ -82,11 +82,11 @@ describe "BaroboJS", ->
                 button: (r, m, e) -> expect(m).toBe(model)
             }, model)
             expect(
-                RobotBridge.button.connect
+                BaroboBridge.button.connect
                 ).toHaveBeenCalledWith(actions().button[0])
             actions().button[0]()
 
-        it "button lets the RobotBridge pass through events", ->
+        it "button lets the BaroboBridge pass through events", ->
             reactimate({
                 button: (r, m, e) -> [r, e]
             })
@@ -99,7 +99,7 @@ describe "BaroboJS", ->
                 wheel: (r, m, e) ->
             })
             expect(
-                RobotBridge.wheelConnect
+                BaroboBridge.wheelConnect
             ).toHaveBeenCalledWith(0, actions().wheel[0])
 
         it "wheel can take an object", ->
@@ -109,9 +109,9 @@ describe "BaroboJS", ->
                     20: (r, m, e) ->
                 }
             })
-            expect(RobotBridge.wheelConnect.calls[0].args).toEqual(
+            expect(BaroboBridge.wheelConnect.calls[0].args).toEqual(
                 [10, actions().wheel[0]])
-            expect(RobotBridge.wheelConnect.calls[1].args).toEqual(
+            expect(BaroboBridge.wheelConnect.calls[1].args).toEqual(
                 [20, actions().wheel[1]])
 
         it "wheel passes the model through", ->
@@ -126,7 +126,7 @@ describe "BaroboJS", ->
             actions().wheel[0]()
             actions().wheel[1]()
 
-        it "wheel lets the RobotBridge pass through events", ->
+        it "wheel lets the BaroboBridge pass through events", ->
             reactimate({
                 wheel: (r, m, e) -> [r, e]
             })
@@ -151,8 +151,8 @@ describe "BaroboJS", ->
                 button: []
                 wheel: []
             )
-            spyOn(RobotBridge.button, 'disconnect')
-            spyOn(RobotBridge, 'wheelDisconnect')
+            spyOn(BaroboBridge.button, 'disconnect')
+            spyOn(BaroboBridge, 'wheelDisconnect')
 
         it "button cleans up the actions() register", ->
             actions().button.push(->)
@@ -160,11 +160,11 @@ describe "BaroboJS", ->
             deactimate(['button'])
             expect(actions().button).toEqual([])
 
-        it "button disconnects the RobotBridge slot", ->
+        it "button disconnects the BaroboBridge slot", ->
             actions().button.push(->)
             deactimate(['button'])
-            expect(RobotBridge.button.disconnect).toHaveBeenCalled()
-            expect(RobotBridge.wheelDisconnect).not.toHaveBeenCalled()
+            expect(BaroboBridge.button.disconnect).toHaveBeenCalled()
+            expect(BaroboBridge.wheelDisconnect).not.toHaveBeenCalled()
 
         it "deactimates buttons which are reactimated", ->
             reactimate({
@@ -172,7 +172,7 @@ describe "BaroboJS", ->
             })
             deactimate(['button'])
             expect(actions().button).toEqual([])
-            expect(RobotBridge.button.disconnect).toHaveBeenCalled()
+            expect(BaroboBridge.button.disconnect).toHaveBeenCalled()
 
         it "wheel cleans up the actions() register", ->
             actions().wheel.push(->)
@@ -180,11 +180,11 @@ describe "BaroboJS", ->
             expect(actions().wheel).toEqual([])
 
 
-        it "wheel disconnects the RobotBridge slot", ->
+        it "wheel disconnects the BaroboBridge slot", ->
             actions().wheel.push(->)
             deactimate(['wheel'])
-            expect(RobotBridge.wheelDisconnect).toHaveBeenCalled()
-            expect(RobotBridge.button.disconnect).not.toHaveBeenCalled()
+            expect(BaroboBridge.wheelDisconnect).toHaveBeenCalled()
+            expect(BaroboBridge.button.disconnect).not.toHaveBeenCalled()
 
         it "deactimates wheels which are reactimated", ->
             reactimate({
@@ -192,21 +192,21 @@ describe "BaroboJS", ->
             })
             deactimate(['wheel'])
             expect(actions().wheel).toEqual([])
-            expect(RobotBridge.wheelDisconnect).toHaveBeenCalled()
+            expect(BaroboBridge.wheelDisconnect).toHaveBeenCalled()
 
     describe "scan", ->
-        it "calls RobotBridge's scan", ->
-            spyOn(RobotBridge, "scan")
+        it "calls BaroboBridge's scan", ->
+            spyOn(BaroboBridge, "scan")
             scan()
-            expect(RobotBridge.scan).toHaveBeenCalled()
+            expect(BaroboBridge.scan).toHaveBeenCalled()
 
     describe "connect", ->
         beforeEach ->
-            spyOn(RobotBridge, "connect")
+            spyOn(BaroboBridge, "connect")
 
-        it "calls RobotBridge's connect", ->
+        it "calls BaroboBridge's connect", ->
             connect(0)
-            expect(RobotBridge.connect).toHaveBeenCalledWith(0)
+            expect(BaroboBridge.connect).toHaveBeenCalledWith(0)
 
         it "returns a Linkbot", ->
             r = connect(23)
