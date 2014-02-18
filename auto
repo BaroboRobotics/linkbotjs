@@ -67,7 +67,6 @@ rebuild () {
 ## main starts here
 
 trap "rm -f errors.err" EXIT
-cd $(git root)
 [ -d build ] || rebuild
 startkarma
 
