@@ -1,7 +1,6 @@
 ## Developer Documentation for LinkbotJS
 
-This document is for LinkbotJS maintainers. Documentation for users is found
-elsewhere [where?].
+This document is for LinkbotJS maintainers. Here's a link to [user docs](http://baroborobotics.github.io/LinkbotJS/).
 
 ### If your life depends on it
 
