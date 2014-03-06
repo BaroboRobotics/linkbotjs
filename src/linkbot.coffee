@@ -17,8 +17,6 @@ BaroboBridge.button.connect ?= ->
 BaroboBridge.button.disconnect ?= ->
 
 @Linkbots =
-    reactimate: reactimate
-    deactimate: deactimate
     scan: scan
     connect: connect
 
@@ -45,6 +43,33 @@ class Linkbot
         BaroboBridge.disconnect(@_id)
         @_id = null
 
+    reactimate: (connections, model = {}) ->
+        if connections.button?
+            act = buttonAction(connections.button, model)
+            BaroboBridge.button.connect(@_id, act)
+            actions().button.push(act)
+
+        if connections.wheel?
+            if typeof(connections.wheel) == "function"
+                act = wheelAction(connections.wheel, model)
+                BaroboBridge.wheelConnect(@_id, 0, act)
+                actions().wheel.push(act)
+            else
+                for own distance, callback of connections.wheel
+                    act = wheelAction(callback, model)
+                    BaroboBridge.wheelConnect(@_id, parseInt(distance), act)
+                    actions().wheel.push(act)
+
+    deactimate: (connections) ->
+        if connections.indexOf('button') >=0
+            BaroboBridge.button.disconnect(@_id, act) for act in actions().button
+            actions().button = []
+
+        if connections.indexOf('wheel') >= 0
+            BaroboBridge.wheelDisconnect(@_id, act) for act in actions().wheel
+            actions().wheel = []
+
+
 # Robot Management Methods
 
 actions = (meh) ->
@@ -67,33 +92,6 @@ wheelAction = (callback, model) ->
             clockwise: clockwise
             distance: distance
         })
-
-reactimate = (connections, model = {}) ->
-
-    if connections.button?
-        act = buttonAction(connections.button, model)
-        BaroboBridge.button.connect(act)
-        actions().button.push(act)
-
-    if connections.wheel?
-        if typeof(connections.wheel) == "function"
-            act = wheelAction(connections.wheel, model)
-            BaroboBridge.wheelConnect(0, act)
-            actions().wheel.push(act)
-        else
-            for own distance, callback of connections.wheel
-                act = wheelAction(callback, model)
-                BaroboBridge.wheelConnect(parseInt(distance), act)
-                actions().wheel.push(act)
-
-deactimate = (connections) ->
-    if connections.indexOf('button') >=0
-        BaroboBridge.button.disconnect(act) for act in actions().button
-        actions().button = []
-
-    if connections.indexOf('wheel') >= 0
-        BaroboBridge.wheelDisconnect(act) for act in actions().wheel
-        actions().wheel = []
 
 scan = -> BaroboBridge.scan()
 
