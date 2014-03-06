@@ -9,11 +9,11 @@
 set +e
 
 coffee () {
-    command coffee -l -c -o build $@ 2>&1 | tee errors.err
+    command coffee -b -c -o build $@ 2>&1 | tee errors.err
 }
 
 docco () {
-    command docco -l linear -o build/docs $@
+    command docco -l linear -o build/doc $@
 }
 
 karmaPID=
@@ -29,12 +29,16 @@ process () {
     f=$2
     case $w in
         ./src/)
-            coffee $w$f && docco $w$f
+            coffee $w$f
+            ;;
+        ./doc/)
+            docco $w$f
             ;;
         ./test/)
             coffee $w$f
             ;;
         ./build/)
+            clear
             karma run > errors.err 2>&1
             ;;
         ./)
@@ -56,13 +60,13 @@ process () {
 
 rebuild () {
     mkdir build
-    coffee $(ack-grep -f --coffee src test)
+    coffee $(find src test -name '*.coffee')
+    docco $(find doc -name '*.md')
 }
 
 ## main starts here
 
 trap "rm -f errors.err" EXIT
-cd $(git root)
 [ -d build ] || rebuild
 startkarma
 

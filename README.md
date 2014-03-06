@@ -1,6 +1,7 @@
 ## Developer Documentation for LinkbotJS
 
-This document is for LinkbotJS maintainers. Here's a link to [user docs](http://baroborobotics.github.io/LinkbotJS/).
+This document is for LinkbotJS maintainers. Here's a link to [user
+docs](http://baroborobotics.github.io/LinkbotJS/).
 
 ### If your life depends on it
 
@@ -18,7 +19,8 @@ These things can be installed with npm, which is available on
 Debian/Ubuntu. Use `sudo npm install -g $tool`.
 
 I have a [cheatsheet for
-Jasmine](https://workflowy.com/shared/d23cf9f1-acb7-4596-6b17-e022b8c0f393/)!
+Jasmine](https://workflowy.com/shared/d23cf9f1-acb7-4596-6b17-e022b8c0f393/),
+since the docs read like a short story.
 
 ### Development automation
 
