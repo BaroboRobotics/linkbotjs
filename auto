@@ -9,7 +9,7 @@
 set +e
 
 coffee () {
-    command coffee -b -l -c -o build $@ 2>&1 | tee errors.err
+    command coffee -b -c -o build $@ 2>&1 | tee errors.err
 }
 
 docco () {
@@ -61,7 +61,7 @@ process () {
 rebuild () {
     mkdir build
     coffee $(find src test -name '*.coffee')
-    docco $(find doc)
+    docco $(find doc -name '*.md')
 }
 
 ## main starts here
