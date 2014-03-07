@@ -11,12 +11,11 @@ Compile src/linkbot.coffee to javascript with
 ### Testing
 
 Unit tests are runnable with
-[Karma](http://karma-runner.github.io/0.10/index.html) and
-[Jasmine](http://jasmine.github.io/). You'll also need the [RequireJS
-adapter](https://npmjs.org/package/karma-requirejs).
+[Karma](http://karma-runner.github.io/0.10/index.html) and use
+[Jasmine](http://jasmine.github.io/).
 
-These things can be installed with npm, which is available on
-Debian/Ubuntu. Use `sudo npm install -g $tool`.
+Karma can be installed with npm, which is available on Debian/Ubuntu. Use
+`sudo npm install -g $tool`. (Jasmine is included with Karma.)
 
 I have a [cheatsheet for
 Jasmine](https://workflowy.com/shared/d23cf9f1-acb7-4596-6b17-e022b8c0f393/),
