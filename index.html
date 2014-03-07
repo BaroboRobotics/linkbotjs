@@ -15,18 +15,17 @@
         
           
           <h1 id="linkbotjs-api">LinkbotJS API</h1>
-<p>This API has four methods for managing robots, and a
+<p>This API has two methods for managing robots, and a
 <a href="#linkbot">Linkbot class</a>
-for controlling individual robots. The four management methods are
-<a href="#scan">scan</a>,
-<a href="#connect">connect</a>,
-<a href="#reactimate">reactimate</a>, and
-<a href="#deactimate">deactimate</a>.</p>
-<p>Obtain a Linkbot object with
+for controlling individual robots. The two management methods are
+<a href="#scan">scan</a> and
+<a href="#connect">connect</a>. They are found on the LinkbotManager object,
+described below.</p>
+<p>To get started, obtain a Linkbot object with
 <a id="connect"><strong>connect</strong></a>:</p>
 
           
-            <div class='highlight'><pre><span class="hljs-keyword">var</span> linkbot = LinkbotMgr.connect(id);</pre></div>
+            <div class='highlight'><pre><span class="hljs-keyword">var</span> linkbot = LinkbotManager.connect(id);</pre></div>
           
         
 
@@ -42,8 +41,10 @@ for controlling individual robots. The four management methods are
 <a href="#color">color</a>,
 <a href="#angSpeed">angularSpeed</a>,
 <a href="#move">move</a>,
-<a href="#stop">stop</a>, and
-<a href="#disconnect">disconnect</a>.</p>
+<a href="#stop">stop</a>,
+<a href="#disconnect">disconnect</a>,
+<a href="#reactimate">reactimate</a>, and
+<a href="#deactimate">deactimate</a>.</p>
 <p><a id="color"></a>
 <strong>color</strong> sets the robot’s LED. Inputs are <em>r</em>, <em>g</em>, <em>b</em>, with values
 0–255.</p>
@@ -105,39 +106,9 @@ executed on by nulling out the id attribute. Let me know if that’s weird.</p>
         
       
         
-        <p>Those five methods are it for the Linkbot class!</p>
-<h2 id="linkbotmgr-methods">LinkbotMgr Methods</h2>
-<p>Recall that there are four LinkbotMgr methods:
-<a href="#scan">scan</a>,
-<a href="#connect">connect</a>,
-<a href="#reactimate">reactimate</a>, and
-<a href="#deactimate">deactimate</a>.</p>
-<p><a id=scan></a>
-<strong>scan</strong> returns a list of ids.</p>
-
-        
-          <div class='highlight'><pre><span class="hljs-keyword">var</span> availIds = LinkbotMgr.scan();</pre></div>
-        
-      
-        
-        <p><a id=connect></a>
-<strong>connect</strong> is straightforward, though it might throw an error if the
-connection fails. As mentioned above, it returns a <a
-href="#linkbot">Linkbot</a> object.</p>
-
-        
-          <div class='highlight'><pre><span class="hljs-keyword">var</span> linkbot;
-<span class="hljs-keyword">try</span> {
-    linkbot = LinkbotMgr.connect(id);
-} <span class="hljs-keyword">catch</span>(<span class="hljs-comment">/* TODO */</span>) {
-}</pre></div>
-        
-      
-        
         <p><a id=reactimate></a>
-<strong>reactimate</strong> is a funny word that means, “Do certain things based on
-robot activity.” I’ll show an example of its use, then explain what’s going
-on.</p>
+<strong>reactimate</strong> connects robot actions to application behavior. I’ll show an
+example of its use, then explain what’s going on.</p>
 
         
           <div class='highlight'><pre><span class="hljs-keyword">var</span> handleClick = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(robot, data, event)</span> {</span>
@@ -151,14 +122,16 @@ on.</p>
 <span class="hljs-keyword">var</span> appData = {
   mine: <span class="hljs-number">0</span>,
   other: <span class="hljs-number">0</span>,
-  myRobot: LinkbotMgr.connect(id)
+  myRobot: LinkbotManager.connect(id)
 };
 
-LinkbotMgr.reactimate({ button: handleClick }, appData);</pre></div>
+myRobot.reactimate({ button: handleClick }, appData);</pre></div>
         
       
         
-        <p>What’s happening here is a callback is being registered for button events.</p>
+        <p>[I don’t like this demo. It was originally written when reactimate
+wasn’t a member of the Linkbot class, and it shows.]</p>
+<p>What’s happening here is a callback is being registered for button events.</p>
 <p>Reactimate’s first argument is a connection map. The keys are events to act
 upon, and the values can be callbacks or, in some cases, a collection of
 callbacks. (See <a href="#wheel">wheel</a>, for example.)</p>
@@ -176,10 +149,10 @@ and promptly stops caring about them.</p>
 
         
           <div class='highlight'><pre><span class="hljs-comment">/* banish buttons actions */</span>
-deactimate(<span class="hljs-string">'button'</span>);
+robot.deactimate(<span class="hljs-string">'button'</span>);
 
 <span class="hljs-comment">/* or, ignore button *and* wheel events. */</span>
-deactimate(<span class="hljs-string">'button'</span>, <span class="hljs-string">'wheel'</span>);</pre></div>
+robot.deactimate(<span class="hljs-string">'button'</span>, <span class="hljs-string">'wheel'</span>);</pre></div>
         
       
         
@@ -195,12 +168,12 @@ callbacks receive will be of form <code>{ buttonID: int }</code>
 <a id="wheel"></a></p>
 <p><dt>wheel</dt></p>
 <p><dd>
-wheel events are more complicated because you can specify how many degrees
+Wheel events are more complicated because you can specify how many degrees
 to wait before an event is triggered. To support this, the connection value
 can be a map:</p>
 
         
-          <div class='highlight'><pre>LinkbotMgr.reactimate({ wheel: { <span class="hljs-number">20</span>: scrollEvent } });</pre></div>
+          <div class='highlight'><pre>robot.reactimate({ wheel: { <span class="hljs-number">20</span>: scrollEvent } });</pre></div>
         
       
         
@@ -209,8 +182,8 @@ single function instead of a map:</p>
 
         
           <div class='highlight'><pre><span class="hljs-comment">/* these are identical */</span>
-LinkbotMgr.reactimate({ wheel: moveEvent });
-LinkbotMgr.reactimate({ wheel: { <span class="hljs-number">0</span> : moveEvent }});</pre></div>
+robot.reactimate({ wheel: moveEvent });
+robot.reactimate({ wheel: { <span class="hljs-number">0</span> : moveEvent }});</pre></div>
         
       
         
@@ -219,9 +192,32 @@ callbacks receive will be of form <code>{ wheelID: int, distance: double }</code
 ‘distance’ will be positive if the motion was clockwise.
 </dd>
 </dl></p>
-<h2 id="including-the-api-in-your-code">Including the API in your code</h2>
+<h2 id="linkbotmanager-methods">LinkbotManager Methods</h2>
+<p><a id=scan></a>
+<strong>scan</strong> returns a list of ids.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> availIds = LinkbotManager.scan();</pre></div>
+        
+      
+        
+        <p><a id=connect></a>
+<strong>connect</strong> is straightforward, though it might throw an error if the
+connection fails. As mentioned above, it returns a <a
+href="#linkbot">Linkbot</a> object.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> linkbot;
+<span class="hljs-keyword">try</span> {
+    linkbot = LinkbotManager.connect(id);
+} <span class="hljs-keyword">catch</span>(<span class="hljs-comment">/* TODO */</span>) {
+}</pre></div>
+        
+      
+        
+        <h2 id="including-the-api-in-your-code">Including the API in your code</h2>
 <p>Eventual support of require.js is planned, but for now, include linkbot.js
-before your application code, and LinkbotMgr will be available at the
+before your application code, and LinkbotManager will be available at the
 global scope.</p>
 
         
