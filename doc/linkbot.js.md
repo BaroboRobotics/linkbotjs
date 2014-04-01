@@ -1,9 +1,9 @@
 # LinkbotJS API
 
-This is the user documentation for LinkbotJS. It describes version 0.0.1,
+This is the user documentation for LinkbotJS. It describes version 0.0.2,
 which is available here:
 
-* <a href="linkbot.js.zip">linkbot.js.zip v0.0.1</a>
+* <a href="linkbot.js.zip">linkbot.js.zip v0.0.2</a>
 
 Source code and contributor documentation is available on Github at
 <a target=_new href="https://github.com/BaroboRobotics/LinkbotJS">BaroboRobotics/LinkbotJS</a>.
