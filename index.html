@@ -15,23 +15,36 @@
         
           
           <h1 id="linkbotjs-api">LinkbotJS API</h1>
-<p>This API has two methods for managing robots, and a
-<a href="#linkbot">Linkbot class</a>
-for controlling individual robots. The two management methods are
-<a href="#scan">scan</a> and
-<a href="#connect">connect</a>. They are found on the LinkbotManager object,
-described below.</p>
-<p>To get started, obtain a Linkbot object with
-<a id="connect"><strong>connect</strong></a>:</p>
+<p>This is the user documentation for LinkbotJS. It describes version 0.0.2,
+which is available here:</p>
+<ul>
+<li><a href="linkbot.js.zip">linkbot.js.zip v0.0.2</a></li>
+</ul>
+<p>Source code and contributor documentation is available on Github at
+<a target=_new href="https://github.com/BaroboRobotics/LinkbotJS">BaroboRobotics/LinkbotJS</a>.</p>
+<hr>
 
-          
-            <div class='highlight'><pre><span class="hljs-keyword">var</span> linkbot = LinkbotManager.connect(id);</pre></div>
           
         
 
         
       </div>
 
+      
+        
+        <p>This API has two methods for managing robots, and a
+<a href="#linkbot">Linkbot class</a>
+for controlling individual robots. The two management methods are
+<a href="#scan">scan</a> and
+<a href="#connect">connect</a>. They are found on the
+<a href="#Linkbots">Linkbots object</a>
+, described below.</p>
+<p>To get started, obtain a Linkbot object with
+<a id="connect"><strong>connect</strong></a>:</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> bot = Linkbots.connect(id);</pre></div>
+        
       
         
         <p>Now you can use the following class to control that robot.</p>
@@ -50,7 +63,7 @@ described below.</p>
 0–255.</p>
 
         
-          <div class='highlight'><pre>linkbot.color(<span class="hljs-number">255</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>); <span class="hljs-comment">// Set LED to red.</span></pre></div>
+          <div class='highlight'><pre>bot.color(<span class="hljs-number">255</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>); <span class="hljs-comment">// Set LED to red.</span></pre></div>
         
       
         
@@ -60,10 +73,10 @@ sets motor speed, in radians per second. This is treated as a magnitude.
 Only use positive values. [Explain three arguments. Which are which?]</p>
 
         
-          <div class='highlight'><pre>linkbot.angularSpeed(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>);
+          <div class='highlight'><pre>bot.angularSpeed(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>);
 
 <span class="hljs-comment">/* bad: negative numbers */</span>
-<span class="hljs-comment">/* linkbot.angularSpeed(-1, 1, 2) */</span></pre></div>
+<span class="hljs-comment">/* bot.angularSpeed(-1, 1, 2) */</span></pre></div>
         
       
         
@@ -71,8 +84,8 @@ Only use positive values. [Explain three arguments. Which are which?]</p>
 motors.</p>
 
         
-          <div class='highlight'><pre><span class="hljs-comment">/* same as linkbot.angularSpeed(1,1,1) */</span>
-linkbot.angularSpeed(<span class="hljs-number">1</span>);</pre></div>
+          <div class='highlight'><pre><span class="hljs-comment">/* same as bot.angularSpeed(1,1,1) */</span>
+bot.angularSpeed(<span class="hljs-number">1</span>);</pre></div>
         
       
         
@@ -83,7 +96,7 @@ controlled by <a href="#angSpeed">angularSpeed</a>, above. Positive values
 move the motor clockwise.</p>
 
         
-          <div class='highlight'><pre>linkbot.move(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span>);</pre></div>
+          <div class='highlight'><pre>bot.move(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span>);</pre></div>
         
       
         
@@ -92,7 +105,7 @@ move the motor clockwise.</p>
 is an emergency stop!</p>
 
         
-          <div class='highlight'><pre>linkbot.stop();</pre></div>
+          <div class='highlight'><pre>bot.stop();</pre></div>
         
       
         
@@ -102,7 +115,7 @@ relinquishes control of the robot. It also invalidates the object it is
 executed on by nulling out the id attribute. Let me know if that’s weird.</p>
 
         
-          <div class='highlight'><pre>linkbot.disconnect();</pre></div>
+          <div class='highlight'><pre>bot.disconnect();</pre></div>
         
       
         
@@ -122,7 +135,7 @@ example of its use, then explain what’s going on.</p>
 <span class="hljs-keyword">var</span> appData = {
   mine: <span class="hljs-number">0</span>,
   other: <span class="hljs-number">0</span>,
-  myRobot: LinkbotManager.connect(id)
+  myRobot: Linkbots.connect(id)
 };
 
 myRobot.reactimate({ button: handleClick }, appData);</pre></div>
@@ -192,12 +205,13 @@ callbacks receive will be of form <code>{ wheelID: int, distance: double }</code
 ‘distance’ will be positive if the motion was clockwise.
 </dd>
 </dl></p>
-<h2 id="linkbotmanager-methods">LinkbotManager Methods</h2>
+<p><a id="Linkbots"></a></p>
+<h2 id="linkbots-object-methods">Linkbots Object Methods</h2>
 <p><a id=scan></a>
 <strong>scan</strong> returns a list of ids.</p>
 
         
-          <div class='highlight'><pre><span class="hljs-keyword">var</span> availIds = LinkbotManager.scan();</pre></div>
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> availIds = Linkbots.scan();</pre></div>
         
       
         
@@ -207,17 +221,16 @@ connection fails. As mentioned above, it returns a <a
 href="#linkbot">Linkbot</a> object.</p>
 
         
-          <div class='highlight'><pre><span class="hljs-keyword">var</span> linkbot;
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> bot;
 <span class="hljs-keyword">try</span> {
-    linkbot = LinkbotManager.connect(id);
-} <span class="hljs-keyword">catch</span>(<span class="hljs-comment">/* TODO */</span>) {
-}</pre></div>
+    bot = Linkbots.connect(id);
+} <span class="hljs-keyword">catch</span>(<span class="hljs-comment">/* TODO */</span>) { }</pre></div>
         
       
         
         <h2 id="including-the-api-in-your-code">Including the API in your code</h2>
 <p>Eventual support of require.js is planned, but for now, include linkbot.js
-before your application code, and LinkbotManager will be available at the
+before your application code, and Linkbots will be available at the
 global scope.</p>
 
         
