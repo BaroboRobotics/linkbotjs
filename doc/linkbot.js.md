@@ -15,13 +15,13 @@ This API has two methods for managing robots, and a
 for controlling individual robots. The two management methods are
 <a href="#scan">scan</a> and
 <a href="#connect">connect</a>. They are found on the
-<a href="#linkbotManager">LinkbotManager object</a>
+<a href="#Linkbots">Linkbots object</a>
 , described below.
 
 To get started, obtain a Linkbot object with
 <a id="connect">**connect**</a>:
 
-    var bot = LinkbotManager.connect(id);
+    var bot = Linkbots.connect(id);
 
 Now you can use the following class to control that robot.
 
@@ -95,7 +95,7 @@ example of its use, then explain what's going on.
     var appData = {
       mine: 0,
       other: 0,
-      myRobot: LinkbotManager.connect(id)
+      myRobot: Linkbots.connect(id)
     };
 
     myRobot.reactimate({ button: handleClick }, appData);
@@ -161,13 +161,13 @@ callbacks receive will be of form `{ wheelID: int, distance: double }`.
 </dd>
 </dl>
 
-<a id="linkbotManager"></a>
-## LinkbotManager Methods
+<a id="Linkbots"></a>
+## Linkbots Object Methods
 
 <a id=scan></a>
 **scan** returns a list of ids.
 
-    var availIds = LinkbotManager.scan();
+    var availIds = Linkbots.scan();
 
 <a id=connect></a>
 **connect** is straightforward, though it might throw an error if the
@@ -176,12 +176,12 @@ href="#linkbot">Linkbot</a> object.
 
     var bot;
     try {
-        bot = LinkbotManager.connect(id);
+        bot = Linkbots.connect(id);
     } catch(/* TODO */) { }
 
 
 ## Including the API in your code
 
 Eventual support of require.js is planned, but for now, include linkbot.js
-before your application code, and LinkbotManager will be available at the
+before your application code, and Linkbots will be available at the
 global scope.
