@@ -1,16 +1,27 @@
 # LinkbotJS API
 
+This is the user documentation for LinkbotJS. It describes version 0.0.1,
+which is available here:
+
+* <a href="linkbot.js.zip">linkbot.js.zip v0.0.1</a>
+
+Source code and contributor documentation is available on Github at
+<a target=_new href="https://github.com/BaroboRobotics/LinkbotJS">BaroboRobotics/LinkbotJS</a>.
+
+-----------
+
 This API has two methods for managing robots, and a
 <a href="#linkbot">Linkbot class</a>
 for controlling individual robots. The two management methods are
 <a href="#scan">scan</a> and
-<a href="#connect">connect</a>. They are found on the LinkbotManager object,
-described below.
+<a href="#connect">connect</a>. They are found on the
+<a href="#Linkbots">Linkbots object</a>
+, described below.
 
 To get started, obtain a Linkbot object with
 <a id="connect">**connect**</a>:
 
-    var linkbot = LinkbotManager.connect(id);
+    var bot = Linkbots.connect(id);
 
 Now you can use the following class to control that robot.
 
@@ -30,23 +41,23 @@ Linkbot control methods are
 **color** sets the robot's LED. Inputs are *r*, *g*, *b*, with values
 0–255.
 
-    linkbot.color(255, 0, 0); // Set LED to red.
+    bot.color(255, 0, 0); // Set LED to red.
 
 <a id=angSpeed></a>
 **angularSpeed**
 sets motor speed, in radians per second. This is treated as a magnitude.
 Only use positive values. [Explain three arguments. Which are which?]
 
-    linkbot.angularSpeed(1, 2, 1);
+    bot.angularSpeed(1, 2, 1);
 
     /* bad: negative numbers */
-    /* linkbot.angularSpeed(-1, 1, 2) */
+    /* bot.angularSpeed(-1, 1, 2) */
 
 If you only pass one argument, LinkbotJS will use that speed for all the
 motors.
 
-    /* same as linkbot.angularSpeed(1,1,1) */
-    linkbot.angularSpeed(1);
+    /* same as bot.angularSpeed(1,1,1) */
+    bot.angularSpeed(1);
 
 <a id=move></a>
 **move**
@@ -54,20 +65,20 @@ runs the motors the specified number of radians. The speed they move at is
 controlled by <a href="#angSpeed">angularSpeed</a>, above. Positive values
 move the motor clockwise.
 
-    linkbot.move(1, 0, -1);
+    bot.move(1, 0, -1);
 
 <a id=stop></a>
 **stop**
 is an emergency stop!
 
-    linkbot.stop();
+    bot.stop();
 
 <a id=disconnect></a>
 **disconnect**
 relinquishes control of the robot. It also invalidates the object it is
 executed on by nulling out the id attribute. Let me know if that's weird.
 
-    linkbot.disconnect();
+    bot.disconnect();
 
 <a id=reactimate></a>
 **reactimate** connects robot actions to application behavior. I'll show an
@@ -84,7 +95,7 @@ example of its use, then explain what's going on.
     var appData = {
       mine: 0,
       other: 0,
-      myRobot: LinkbotManager.connect(id)
+      myRobot: Linkbots.connect(id)
     };
 
     myRobot.reactimate({ button: handleClick }, appData);
@@ -150,27 +161,27 @@ callbacks receive will be of form `{ wheelID: int, distance: double }`.
 </dd>
 </dl>
 
-## LinkbotManager Methods
+<a id="Linkbots"></a>
+## Linkbots Object Methods
 
 <a id=scan></a>
 **scan** returns a list of ids.
 
-    var availIds = LinkbotManager.scan();
+    var availIds = Linkbots.scan();
 
 <a id=connect></a>
 **connect** is straightforward, though it might throw an error if the
 connection fails. As mentioned above, it returns a <a
 href="#linkbot">Linkbot</a> object.
 
-    var linkbot;
+    var bot;
     try {
-        linkbot = LinkbotManager.connect(id);
-    } catch(/* TODO */) {
-    }
+        bot = Linkbots.connect(id);
+    } catch(/* TODO */) { }
 
 
 ## Including the API in your code
 
 Eventual support of require.js is planned, but for now, include linkbot.js
-before your application code, and LinkbotManager will be available at the
+before your application code, and Linkbots will be available at the
 global scope.
