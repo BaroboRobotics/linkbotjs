@@ -2,3 +2,4 @@ build
 errors.err
 bugs
 .bugs.done
+node_modules

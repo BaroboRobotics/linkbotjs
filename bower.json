@@ -1,0 +1,24 @@
+{
+  "name": "LinkbotJS",
+  "version": "0.0.2",
+  "authors": [
+    "Barobo, Inc."
+  ],
+  "description": "Javascript API for interacting with Barobo robots",
+  "main": "src/linkbot.coffee",
+  "keywords": [
+    "barobo",
+    "linkbot",
+    "robot"
+  ],
+  "license": "MIT",
+  "homepage": "http://baroborobotics.github.io/LinkbotJS/",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
