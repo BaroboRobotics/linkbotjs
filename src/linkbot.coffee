@@ -45,7 +45,9 @@ else
 class Linkbot
     _wheelRadius: 1.75
     constructor: (@_id) ->
-        baroboBridge.connectRobot(@_id)
+        err = baroboBridge.connectRobot(@_id)
+        throw "Linkbot connection failed. id: #{@_id}" if err < 0
+
         for m in [1..3]
             baroboBridge.setMotorEventThreshold(@_id, m, 1e10)
         @wheelPositions = baroboBridge.getMotorAngles(@_id)
