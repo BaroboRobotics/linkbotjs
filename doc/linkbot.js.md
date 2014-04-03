@@ -129,7 +129,9 @@ callbacks:
       },
       button: {
         /* Run fireZeMissiles when button 3 is pressed. */
-        3: fireZeMissiles
+        3: {
+            callback: fireZeMissiles
+        }
       }
     })
 
