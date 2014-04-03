@@ -1,100 +1,109 @@
 # BaroboJS API
 
-BaroboBridge = (if BaroboBridge? then BaroboBridge else {})
-(BaroboBridge[m] ?= ->) for m in [
-    'angularSpeed'
-    'disconnect'
-    'linearSpeed'
-    'move'
-    'stop'
-    'wheelConnect'
-    'wheelDisconnect'
-    'scan'
-    'connect'
-]
-BaroboBridge.button ?= {}
-BaroboBridge.button.connect ?= ->
-BaroboBridge.button.disconnect ?= ->
-
-@Linkbots =
-    scan: scan
-    connect: connect
+baroboBridge = if @baroboBridge?
+    @baroboBridge
+else
+    {
+        # member functions
+        angularSpeed: ->
+        beginScan: ->
+        connectRobot: ->
+        disableAccelSignals: ->
+        disableButtonSignals: ->
+        disableMotorSignals: ->
+        disconnectRobot: ->
+        enableAccelSignals: ->
+        enableButtonSignals: ->
+        enableMotorSignals: ->
+        fetch: ->
+        move: ->
+        numConnectedRobots: ->
+        setLEDColor: ->
+        setMotorEventThreshold: ->
+        stop: ->
+        # signals
+        buttonChanged:
+            connect: ->
+            disconnect: ->
+        motorsChanged:
+            connect: ->
+            disconnect: ->
+        motorChanged:
+            connect: ->
+            disconnect: ->
+        accelChanged:
+            connect: ->
+            disconnect: ->
+        idScanned:
+            connect: ->
+            disconnect: ->
+        fetchFinished:
+            connect: ->
+            disconnect: ->
+    }
 
 class Linkbot
     _wheelRadius: 1.75
     constructor: (@_id) ->
+        baroboBridge.connectRobot(@_id)
+        for m in [1..3]
+            baroboBridge.setMotorEventThreshold(@_id, m, 1e10)
+        @wheelPositions = baroboBridge.getMotorAngles(@_id)
 
-    color: (r, g, b) -> BaroboBridge.color(@_id, r, g, b)
+    color: (r, g, b) -> baroboBridge.setLEDColor(@_id, r, g, b)
 
     angularSpeed: (s1, s2 = s1, s3 = s1) ->
-        BaroboBridge.angularSpeed(@_id, s1, s2, s3)
 
-    linearSpeed: (s1, s2 = s1, s3 = s1) ->
-        [l1, l2, l3] = (s / @_wheelRadius for s in [s1, s2, s3])
-        @angularSpeed(l1, l2, l3)
+        baroboBridge.angularSpeed(@_id, s1, s2, s3)
 
-    move: (r1, r2, r3) -> BaroboBridge.move(@_id, r1, r2, r3)
+    move: (r1, r2, r3) ->
+        baroboBridge.move(@_id, r1, r2, r3)
 
-    stop: -> BaroboBridge.stop(@_id)
+    stop: -> baroboBridge.stop(@_id)
 
     # **disconnect** nulls out @_id, making the object unusable. Let me know
     # if that's weird.
     disconnect: ->
-        BaroboBridge.disconnect(@_id)
+        baroboBridge.disconnectRobot(@_id)
         @_id = null
 
-    reactimate: (connections, model = {}) ->
+    register: (connections) ->
         if connections.button?
-            act = buttonAction(connections.button, model)
-            BaroboBridge.button.connect(@_id, act)
-            actions().button.push(act)
+            for own buttonId, registerObject of connections.button
+                act = buttonAction(@, parseInt(buttonId), registerObject.callback, registerObject.data)
+                baroboBridge.buttonChanged.connect(act)
+                baroboBridge.enableButtonSignals(@_id)
 
         if connections.wheel?
-            if typeof(connections.wheel) == "function"
-                act = wheelAction(connections.wheel, model)
-                BaroboBridge.wheelConnect(@_id, 0, act)
-                actions().wheel.push(act)
-            else
-                for own distance, callback of connections.wheel
-                    act = wheelAction(callback, model)
-                    BaroboBridge.wheelConnect(@_id, parseInt(distance), act)
-                    actions().wheel.push(act)
-
-    deactimate: (connections) ->
-        if connections.indexOf('button') >=0
-            BaroboBridge.button.disconnect(@_id, act) for act in actions().button
-            actions().button = []
-
-        if connections.indexOf('wheel') >= 0
-            BaroboBridge.wheelDisconnect(@_id, act) for act in actions().wheel
-            actions().wheel = []
-
+            for own _wheelId, registerObject of connections.wheel
+                wheelId = parseInt(_wheelId)
+                act = wheelAction(@, wheelId, registerObject.callback, registerObject.data)
+                baroboBridge.setMotorEventThreshold(@_id, wheelId, registerObject.distance)
+                baroboBridge.motorChanged.connect(act)
+                baroboBridge.enableMotorSignals(@_id)
 
 # Robot Management Methods
 
-actions = (meh) ->
-    actions.actions = meh if meh?
-    actions.actions
-
-actions(
-    button: []
-    wheel: []
-)
-
 # These actions wrap the slot registered with the Bridge's signal, bringing
 # it back to javascript land.
-buttonAction = (callback, model) ->
-    (robID, btnID) -> callback(robID, model, { button: btnID })
+buttonAction = (robot, buttonId, callback, model = {}) ->
+    (robID, btnID, press) ->
+        if press == 1 and robot._id == robID and buttonId == btnID
+            callback(robot, model, { button: btnID })
 
-wheelAction = (callback, model) ->
-    (robID, clockwise, distance) ->
-        callback(robID, model, {
-            clockwise: clockwise
-            distance: distance
-        })
+wheelAction = (robot, wheelId, callback, model = {}) ->
+    (robID, _wheelId, angle) ->
+        if robot._id == robID and wheelId == _wheelId
+            diff = angle - robot.wheelPositions[wheelId - 1]
+            robot.wheelPositions[wheelId - 1] = angle
+            callback(robot, model, {
+                triggerWheel: wheelId
+                position: angle
+                difference: diff
+            })
 
-scan = -> BaroboBridge.scan()
+@Linkbots =
+    scan: -> baroboBridge.scan()
 
-connect = (id) ->
-    BaroboBridge.connect(id)
-    new Linkbot(id)
+    connect: (id) ->
+        new Linkbot(id)
