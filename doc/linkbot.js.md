@@ -10,7 +10,7 @@ Source code and contributor documentation is available on Github at
 
 -----------
 
-This API has two methods for managing robots, and a
+This API has two methods for managing robots and a
 <a href="#linkbot">Linkbot class</a>
 for controlling individual robots. The two management methods are
 <a href="#scan">scan</a> and
@@ -61,27 +61,27 @@ Linkbot objects have the following methods:
 
 <a id=angSpeed></a>
 **angularSpeed**
-sets wheel speeds, in radians per second. This is treated as a magnitude.
+sets wheel speeds, in degrees per second. This is treated as a magnitude.
 Only use positive values. Argument 1 corresponds to wheel 1, etc.
 
-    bot.angularSpeed(1, 2, 1);
+    bot.angularSpeed(10, 20, 10);
 
     /* bad: negative numbers */
-    /* bot.angularSpeed(-1, 1, 2) */
+    /* bot.angularSpeed(-10, 10, 20) */
 
 If you only pass one argument, LinkbotJS will use that speed for all the
 wheels.
 
-    /* same as bot.angularSpeed(1,1,1) */
-    bot.angularSpeed(1);
+    /* same as bot.angularSpeed(10,10,10) */
+    bot.angularSpeed(10);
 
 <a id=move></a>
 **move**
-runs the wheels the specified number of radians. The speed they move at is
+runs the wheels the specified number of degrees. The speed they move at is
 controlled by <a href="#angSpeed">angularSpeed</a>. Positive values move
 the wheel clockwise.
 
-    bot.move(1, 0, -1);
+    bot.move(10, 0, -10);
 
 <a id=stop></a>
 **stop**
@@ -110,15 +110,20 @@ way:
 
 **TODO**: explain the parameters once the design settles down.
 
+The <a href="#eventTypes">available event types</a> are listed below.
+
+<a id="register"></a>
+#### register
+
 In lieu of complete documentation, here is an example of registering three
 callbacks:
 
     bot.register({
       wheel: {
-        /* When wheel 1 moves 0.1 radians, run doStuff. Pass myData as 2nd
+        /* When wheel 1 moves 20 degrees, run doStuff. Pass myData as 2nd
         argument to doStuff. */
         1: {
-          distance: .1,
+          distance: 20,
           callback: doStuff,
           data: myData
         },
@@ -135,6 +140,12 @@ callbacks:
       }
     })
 
+<a id="unregister"></a>
+#### unregister
+*fixme: unimplemented*
+
+<a id="eventTypes"></a>
+#### Event types
 The available events are:
 
 <dl>
