@@ -6,6 +6,7 @@ baroboBridge = jasmine.createSpyObj "baroboBridge", [
   'angularSpeed'
   'disconnectRobot'
   'enableButtonSignals'
+  'enableMotorSignals'
   'scan'
 ]
 

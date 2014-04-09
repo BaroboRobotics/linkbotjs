@@ -11,6 +11,7 @@ describe "LinkbotJS", ->
     describe "testing setup", ->
         it "exposes internals", ->
             expect(Linkbot).toBeDefined()
+            expect(baroboBridge).not.toBeNull()
 
     describe "Linkbot", ->
         x = 0
@@ -65,6 +66,32 @@ describe "LinkbotJS", ->
             it "wheel passes the model through"
 
             it "communicates the wheel index to the callback"
+            it "keeps track of (Qt) connections, so they can be disconnected"
+
+        describe "unregister", ->
+            x = null
+
+            beforeEach ->
+                x = new Linkbot("fiz")
+
+            it "doesn't care if nothing is registered", ->
+                expect(x.unregister()).not.toThrow()
+
+            it "calls both (Qt) disconnect functions on baroboBridge", ->
+                x.register(
+                    wheel: 3: callback: (r, m, e) -> [r, m, e]
+                )
+                buttonDisconnectCallCount =
+                    baroboBridge.buttonChanged.disconnect.calls.count
+                wheelDisconnectCallCount =
+                    baroboBridge.motorChanged.disconnect.calls.count
+
+                x.unregister()
+
+                expect(baroboBridge.motorChanged.disconnect.calls.count)
+                    .toEqual(wheelDisconnectCallCount + 1)
+                expect(baroboBridge.buttonChanged.disconnect.calls.count)
+                    .toEqual(buttonDisconnectCallCount + 1)
 
     describe "scan", ->
         it "calls baroboBridge's scan", ->
