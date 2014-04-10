@@ -29,6 +29,7 @@ describe "LinkbotJS", ->
                   'stop'
                   'disconnect'
                   'register'
+                  'unregister'
                 ]
             )
 
@@ -75,22 +76,38 @@ describe "LinkbotJS", ->
                 x = new Linkbot("fiz")
 
             it "doesn't care if nothing is registered", ->
-                expect(x.unregister()).not.toThrow()
+                expect(x.unregister).not.toThrow()
 
             it "calls both (Qt) disconnect functions on baroboBridge", ->
                 x.register(
                     wheel: 3: callback: (r, m, e) -> [r, m, e]
                 )
                 buttonDisconnectCallCount =
-                    baroboBridge.buttonChanged.disconnect.calls.count
+                    baroboBridge.buttonChanged.disconnect.calls.length
                 wheelDisconnectCallCount =
-                    baroboBridge.motorChanged.disconnect.calls.count
+                    baroboBridge.motorChanged.disconnect.calls.length
 
                 x.unregister()
 
-                expect(baroboBridge.motorChanged.disconnect.calls.count)
+                expect(baroboBridge.motorChanged.disconnect.calls.length)
                     .toEqual(wheelDisconnectCallCount + 1)
-                expect(baroboBridge.buttonChanged.disconnect.calls.count)
+                expect(baroboBridge.buttonChanged.disconnect.calls.length)
+                    .toEqual(buttonDisconnectCallCount + 1)
+
+            it "calls disables motor events", ->
+                x.register(
+                    wheel: 3: callback: (r, m, e) -> [r, m, e]
+                )
+                buttonDisconnectCallCount =
+                    baroboBridge.disableButtonSignals.calls.length
+                wheelDisconnectCallCount =
+                    baroboBridge.disableMotorSignals.calls.length
+
+                x.unregister()
+
+                expect(baroboBridge.disableMotorSignals.calls.length)
+                    .toEqual(wheelDisconnectCallCount + 1)
+                expect(baroboBridge.disableButtonSignals.calls.length)
                     .toEqual(buttonDisconnectCallCount + 1)
 
     describe "scan", ->

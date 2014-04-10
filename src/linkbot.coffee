@@ -84,6 +84,13 @@ class Linkbot
                 baroboBridge.motorChanged.connect(act)
                 baroboBridge.enableMotorSignals(@_id)
 
+    unregister: ->
+        baroboBridge.motorChanged.disconnect()
+        baroboBridge.disableMotorSignals(@_id)
+
+        baroboBridge.buttonChanged.disconnect()
+        baroboBridge.disableButtonSignals(@_id)
+
 # Robot Management Methods
 
 # These actions wrap the slot registered with the Bridge's signal, bringing
