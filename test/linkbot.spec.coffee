@@ -82,33 +82,29 @@ describe "LinkbotJS", ->
                 x.register(
                     wheel: 3: callback: (r, m, e) -> [r, m, e]
                 )
-                buttonDisconnectCallCount =
-                    baroboBridge.buttonChanged.disconnect.calls.length
-                wheelDisconnectCallCount =
-                    baroboBridge.motorChanged.disconnect.calls.length
+                baroboBridge.buttonChanged.disconnect.calls.reset()
+                baroboBridge.motorChanged.disconnect.calls.reset()
 
                 x.unregister()
 
-                expect(baroboBridge.motorChanged.disconnect.calls.length)
-                    .toEqual(wheelDisconnectCallCount + 1)
-                expect(baroboBridge.buttonChanged.disconnect.calls.length)
-                    .toEqual(buttonDisconnectCallCount + 1)
+                expect(baroboBridge.buttonChanged.disconnect.calls.any())
+                    .toBe(true)
+                expect(baroboBridge.buttonChanged.disconnect.calls.any())
+                    .toBe(true)
 
             it "calls disables motor events", ->
                 x.register(
                     wheel: 3: callback: (r, m, e) -> [r, m, e]
                 )
-                buttonDisconnectCallCount =
-                    baroboBridge.disableButtonSignals.calls.length
-                wheelDisconnectCallCount =
-                    baroboBridge.disableMotorSignals.calls.length
+                baroboBridge.disableButtonSignals.calls.reset()
+                baroboBridge.disableMotorSignals.calls.reset()
 
                 x.unregister()
 
-                expect(baroboBridge.disableMotorSignals.calls.length)
-                    .toEqual(wheelDisconnectCallCount + 1)
-                expect(baroboBridge.disableButtonSignals.calls.length)
-                    .toEqual(buttonDisconnectCallCount + 1)
+                expect(baroboBridge.disableMotorSignals.calls.any())
+                    .toBe(true)
+                expect(baroboBridge.disableButtonSignals.calls.any())
+                    .toBe(true)
 
     describe "scan", ->
         it "calls baroboBridge's scan", ->
