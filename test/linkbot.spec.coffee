@@ -53,6 +53,11 @@ describe "LinkbotJS", ->
                 x.disconnect()
                 expect(x._id).toBeNull()
 
+            it "stops the robot", ->
+                spyOn(x, "stop")
+                x.disconnect()
+                expect(x.stop).toHaveBeenCalled()
+
         describe "register", ->
             robot = null
             model = {}
@@ -70,11 +75,6 @@ describe "LinkbotJS", ->
             it "keeps track of (Qt) connections, so they can be disconnected"
 
         describe "unregister", ->
-            x = null
-
-            beforeEach ->
-                x = new Linkbot("fiz")
-
             it "doesn't care if nothing is registered", ->
                 expect(x.unregister).not.toThrow()
 

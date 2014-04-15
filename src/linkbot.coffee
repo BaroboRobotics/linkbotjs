@@ -66,6 +66,7 @@ class Linkbot
     # **disconnect** nulls out @_id, making the object unusable. Let me know
     # if that's weird.
     disconnect: ->
+        @stop()
         baroboBridge.disconnectRobot(@_id)
         @_id = null
 
