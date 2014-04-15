@@ -10,6 +10,7 @@ baroboBridge = jasmine.createSpyObj "baroboBridge", [
   'disableButtonSignals'
   'disableMotorSignals'
   'scan'
+  'stop'
 ]
 
 # Spy on baroboBridge's signals
