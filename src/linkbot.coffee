@@ -105,8 +105,8 @@ buttonAction = (robot, buttonId, callback, model = {}) ->
 wheelAction = (robot, wheelId, callback, model = {}) ->
     (robID, _wheelId, angle) ->
         if robot._id == robID and wheelId == _wheelId
-            diff = angle - robot.wheelPositions[wheelId - 1]
-            robot.wheelPositions[wheelId - 1] = angle
+            diff = angle - robot._wheelPositions[wheelId - 1]
+            robot._wheelPositions[wheelId - 1] = angle
             callback(robot, model, {
                 triggerWheel: wheelId
                 position: angle
