@@ -50,7 +50,8 @@ class Linkbot
 
         for m in [1..3]
             baroboBridge.setMotorEventThreshold(@_id, m, 1e10)
-        @wheelPositions = baroboBridge.getMotorAngles(@_id)
+        @_wheelPositions = baroboBridge.getMotorAngles(@_id)
+        @_firmwareVersion = baroboBridge.firmwareVersion(@_id)
 
     color: (r, g, b) -> baroboBridge.setLEDColor(@_id, r, g, b)
 

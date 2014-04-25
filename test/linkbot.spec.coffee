@@ -119,4 +119,9 @@ describe "LinkbotJS", ->
         it "returns a Linkbot", ->
             r = Linkbots.connect(23)
             expect(r).toEqual(jasmine.any(Linkbot))
-            expect(r._id).toBe(23)
+
+        it "sets instance vars", ->
+            r = Linkbots.connect(23)
+            expect(r._id).toBeDefined()
+            expect(r._firmwareVersion).toBeDefined()
+            expect(r._wheelPositions).toBeDefined()

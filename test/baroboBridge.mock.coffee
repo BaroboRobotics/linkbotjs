@@ -11,7 +11,13 @@ baroboBridge = jasmine.createSpyObj "baroboBridge", [
   'disableMotorSignals'
   'scan'
   'stop'
+  'availableFirmwareVersions'
+  'firmwareVersion'
 ]
+
+baroboBridge.firmwareVersion.and.returnValue("FW")
+baroboBridge.availableFirmwareVersions.and.returnValue(["FW"])
+baroboBridge.getMotorAngles.and.returnValue([0,0,0])
 
 # Spy on baroboBridge's signals
 for sig in [
