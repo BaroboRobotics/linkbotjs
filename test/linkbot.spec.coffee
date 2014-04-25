@@ -4,7 +4,8 @@ describe "LinkbotJS", ->
         methods = Object.getOwnPropertyNames(Linkbots)
         expect(methods).toEqual(
             [ 'scan'
-              'connect' ]
+              'connect'
+            ]
 
         )
 
@@ -74,6 +75,12 @@ describe "LinkbotJS", ->
             it "communicates the wheel index to the callback"
             it "keeps track of (Qt) connections, so they can be disconnected"
 
+            describe "wheelAction", ->
+                it "returns accurate data" # wheelId, position, difference
+
+            describe "buttonAction", ->
+                it "returns accurate data" # btnId
+
         describe "unregister", ->
             it "doesn't care if nothing is registered", ->
                 expect(x.unregister).not.toThrow()
@@ -112,6 +119,9 @@ describe "LinkbotJS", ->
             expect(baroboBridge.scan).toHaveBeenCalled()
 
     describe "connect", ->
+        it "hecka barfs when the robot's firmware is not blessed"
+
+
         it "calls baroboBridge's connectRobot", ->
             Linkbots.connect(0)
             expect(baroboBridge.connectRobot).toHaveBeenCalledWith(0)
