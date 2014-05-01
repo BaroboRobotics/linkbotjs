@@ -75,10 +75,10 @@ describe "LinkbotJS", ->
             it "communicates the wheel index to the callback"
             it "keeps track of (Qt) connections, so they can be disconnected"
 
-            describe "wheelAction", ->
+            describe "wheelSlot", ->
                 it "returns accurate data" # wheelId, position, difference
 
-            describe "buttonAction", ->
+            describe "buttonSlot", ->
                 it "returns accurate data" # btnId
 
         describe "unregister", ->

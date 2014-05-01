@@ -74,16 +74,16 @@ class Linkbot
     register: (connections) ->
         if connections.button?
             for own buttonId, registerObject of connections.button
-                act = buttonAction(@, parseInt(buttonId), registerObject.callback, registerObject.data)
-                baroboBridge.buttonChanged.connect(act)
+                slot = buttonSlot(@, parseInt(buttonId), registerObject.callback, registerObject.data)
+                baroboBridge.buttonChanged.connect(slot)
                 baroboBridge.enableButtonSignals(@_id)
 
         if connections.wheel?
             for own _wheelId, registerObject of connections.wheel
                 wheelId = parseInt(_wheelId)
-                act = wheelAction(@, wheelId, registerObject.callback, registerObject.data)
+                slot = wheelSlot(@, wheelId, registerObject.callback, registerObject.data)
                 baroboBridge.setMotorEventThreshold(@_id, wheelId, registerObject.distance)
-                baroboBridge.motorChanged.connect(act)
+                baroboBridge.motorChanged.connect(slot)
                 baroboBridge.enableMotorSignals(@_id)
 
     unregister: ->
@@ -95,14 +95,15 @@ class Linkbot
 
 # Robot Management Methods
 
-# These actions wrap the slot registered with the Bridge's signal, bringing
-# it back to javascript land.
-buttonAction = (robot, buttonId, callback, model = {}) ->
+# These functions translate baroboBridge's interface to LinkbotJS'
+# interface, returning a (Qt) slot that calls a user-supplied (js)
+# callback.
+buttonSlot = (robot, buttonId, callback, model = {}) ->
     (robID, btnID, press) ->
         if press == 1 and robot._id == robID and buttonId == btnID
             callback(robot, model, { button: btnID })
 
-wheelAction = (robot, wheelId, callback, model = {}) ->
+wheelSlot = (robot, wheelId, callback, model = {}) ->
     (robID, _wheelId, angle) ->
         if robot._id == robID and wheelId == _wheelId
             diff = angle - robot._wheelPositions[wheelId - 1]
