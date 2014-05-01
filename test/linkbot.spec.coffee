@@ -62,17 +62,85 @@ describe "LinkbotJS", ->
         describe "register", ->
             robot = null
             model = {}
+
             beforeEach ->
                 robot = new Linkbot(42)
                 model = fuzz: "baz"
 
-            it "button passes the model through"
+            afterEach ->
+                baroboBridge.motorChanged.connect.and.stub()
+                robot.unregister()
 
-            it "button lets the baroboBridge pass through events"
+            describe "button", ->
+                registerObj = 0
 
-            it "wheel passes the model through"
+                beforeEach ->
+                    # This fakes the Qt signal, calling the slot as soon as
+                    # it's registered
+                    baroboBridge.buttonChanged.connect
+                        .and.callFake((slot) -> slot(42, 1, 1))
 
-            it "communicates the wheel index to the callback"
+                    registerObj =
+                        button:
+                            1:
+                                callback: (r, m, e) ->
+                                data: model
+                            2:
+                                callback: (r, m, e) ->
+                                data: model
+
+                afterEach ->
+                    baroboBridge.buttonChanged.connect.and.stub()
+
+                it "calls the callback when a Qt signal fires", ->
+                    spyOn(registerObj.button['1'],'callback').and.callThrough()
+                    robot.register(registerObj)
+                    expect(baroboBridge.buttonChanged.connect).toHaveBeenCalled()
+                    expect(registerObj.button['1'].callback)
+                        .toHaveBeenCalledWith(robot, model, {button: 1})
+
+                it "only calls the right callback", ->
+                    # Fake Qt signal uses button 2, so this shouldn't
+                    # happen
+                    spyOn(registerObj.button['2'],'callback').and.callThrough()
+                    robot.register(registerObj)
+                    expect(registerObj.button['2'].callback)
+                        .not.toHaveBeenCalled()
+
+                    # Also only uses robot with id 42, so:
+                    lb = Linkbots.connect(18)
+                    spyOn(registerObj.button['1'],'callback').and.callThrough()
+                    lb.register(registerObj)
+                    expect(registerObj.button['1'].callback)
+                        .not.toHaveBeenCalled()
+
+            describe "wheel", ->
+                it "calls the callback when a Qt signal fires", ->
+                    # This fakes the Qt signal, calling the slot as soon as it's
+                    # registered
+                    baroboBridge.motorChanged.connect.and.callFake((slot) -> slot(42, 2, 30))
+
+                    registerObj =
+                        wheel:
+                            2:
+                                callback: (r, m, e) ->
+                                data: model
+                                distance: 10
+
+                    spyOn(registerObj.wheel['2'],'callback').and.callThrough()
+                    robot.register(registerObj)
+                    expect(baroboBridge.motorChanged.connect).toHaveBeenCalled()
+                    expect(registerObj.wheel['2'].callback)
+                        .toHaveBeenCalledWith(
+                            robot
+                            model
+                            {
+                                triggerWheel: 2
+                                position: 30
+                                difference: 30
+                            }
+                        )
+
             it "keeps track of (Qt) connections, so they can be disconnected"
 
             describe "wheelSlot", ->
