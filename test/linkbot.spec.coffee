@@ -15,9 +15,9 @@ describe "LinkbotJS", ->
             expect(baroboBridge).not.toBeNull()
 
     describe "Linkbot", ->
-        x = 0
+        lb = 0
         beforeEach(->
-            x = new Linkbot(3)
+            lb = new Linkbot(3)
         )
         it "has specified interface", ->
             methods = Object.getOwnPropertyNames(Linkbot.prototype)
@@ -35,29 +35,29 @@ describe "LinkbotJS", ->
             )
 
         it "sets _id with constructor", ->
-            expect(x._id).toBe(3)
+            expect(lb._id).toBe(3)
 
         describe "angularSpeed", ->
             it "calls through to baroboBridge", ->
-                x.angularSpeed(3, 2, 1)
+                lb.angularSpeed(3, 2, 1)
                 expect(baroboBridge.angularSpeed)
-                    .toHaveBeenCalledWith(x._id, 3, 2, 1)
+                    .toHaveBeenCalledWith(lb._id, 3, 2, 1)
 
             it "uses sole argument for all wheels", ->
-                x.angularSpeed(4)
+                lb.angularSpeed(4)
                 expect(
                     baroboBridge.angularSpeed
-                ).toHaveBeenCalledWith(x._id, 4,4,4)
+                ).toHaveBeenCalledWith(lb._id, 4,4,4)
 
         describe "disconnect", ->
             it "nulls _id", ->
-                x.disconnect()
-                expect(x._id).toBeNull()
+                lb.disconnect()
+                expect(lb._id).toBeNull()
 
             it "stops the robot", ->
-                spyOn(x, "stop")
-                x.disconnect()
-                expect(x.stop).toHaveBeenCalled()
+                spyOn(lb, "stop")
+                lb.disconnect()
+                expect(lb.stop).toHaveBeenCalled()
 
         describe "register", ->
             robot = null
@@ -83,16 +83,16 @@ describe "LinkbotJS", ->
 
         describe "unregister", ->
             it "doesn't care if nothing is registered", ->
-                expect(x.unregister).not.toThrow()
+                expect(lb.unregister).not.toThrow()
 
             it "calls both (Qt) disconnect functions on baroboBridge", ->
-                x.register(
+                lb.register(
                     wheel: 3: callback: (r, m, e) -> [r, m, e]
                 )
                 baroboBridge.buttonChanged.disconnect.calls.reset()
                 baroboBridge.motorChanged.disconnect.calls.reset()
 
-                x.unregister()
+                lb.unregister()
 
                 expect(baroboBridge.buttonChanged.disconnect.calls.any())
                     .toBe(true)
@@ -100,13 +100,13 @@ describe "LinkbotJS", ->
                     .toBe(true)
 
             it "calls disables motor events", ->
-                x.register(
+                lb.register(
                     wheel: 3: callback: (r, m, e) -> [r, m, e]
                 )
                 baroboBridge.disableButtonSignals.calls.reset()
                 baroboBridge.disableMotorSignals.calls.reset()
 
-                x.unregister()
+                lb.unregister()
 
                 expect(baroboBridge.disableMotorSignals.calls.any())
                     .toBe(true)
