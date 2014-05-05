@@ -30,6 +30,7 @@ describe "LinkbotJS", ->
                   'moveTo'
                   'wheelPositions'
                   'stop'
+                  'buzzerFrequency'
                   'disconnect'
                   'register'
                   'unregister'
