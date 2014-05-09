@@ -1,46 +1,37 @@
 # BaroboJS API
 
-baroboBridge = if @baroboBridge?
+# Set up a dummy baroboBridge, so the library doesn't throw lots of errors
+# on non-barobo browsers.
+baroboBridge =
+  if @baroboBridge?
     @baroboBridge
-else
-    {
-        # member functions
-        angularSpeed: ->
-        beginScan: ->
-        connectRobot: ->
-        disableAccelSignals: ->
-        disableButtonSignals: ->
-        disableMotorSignals: ->
-        disconnectRobot: ->
-        enableAccelSignals: ->
-        enableButtonSignals: ->
-        enableMotorSignals: ->
-        fetch: ->
-        move: ->
-        numConnectedRobots: ->
-        setLEDColor: ->
-        setMotorEventThreshold: ->
-        stop: ->
-        # signals
-        buttonChanged:
-            connect: ->
-            disconnect: ->
-        motorsChanged:
-            connect: ->
-            disconnect: ->
-        motorChanged:
-            connect: ->
-            disconnect: ->
-        accelChanged:
-            connect: ->
-            disconnect: ->
-        idScanned:
-            connect: ->
-            disconnect: ->
-        fetchFinished:
-            connect: ->
-            disconnect: ->
-    }
+  else
+    methods = [
+      'angularSpeed'
+      'availableFirmwareVersions'
+      'buttonChanged'
+      'connectRobot'
+      'disconnectRobot'
+      'enableButtonSignals'
+      'enableMotorSignals'
+      'disableButtonSignals'
+      'disableMotorSignals'
+      'firmwareVersion'
+      'getMotorAngles'
+      'scan'
+      'setMotorEventThreshold'
+      'stop'
+    ]
+    signals = [
+      'motorChanged'
+      'buttonChanged'
+    ]
+    obj = {}
+    for k in methods
+      obj[k] = ->
+    for k in signals
+      obj[k] = { connect: (->), disconnect: (->) }
+    obj
 
 class Linkbot
     _wheelRadius: 1.75
