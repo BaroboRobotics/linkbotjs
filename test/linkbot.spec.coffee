@@ -11,7 +11,7 @@ describe "LinkbotJS", ->
 
     describe "testing setup", ->
         it "exposes internals", ->
-            expect(Linkbot).toBeDefined()
+            expect(Linkbot).toBeDefined('Linkbot')
             expect(baroboBridge).not.toBeNull()
 
     describe "Linkbot", ->
@@ -39,11 +39,13 @@ describe "LinkbotJS", ->
 
         describe "angularSpeed", ->
             it "calls through to baroboBridge", ->
+                spyOn baroboBridge, "angularSpeed"
                 lb.angularSpeed(3, 2, 1)
                 expect(baroboBridge.angularSpeed)
                     .toHaveBeenCalledWith(lb._id, 3, 2, 1)
 
             it "uses sole argument for all wheels", ->
+                spyOn baroboBridge, "angularSpeed"
                 lb.angularSpeed(4)
                 expect(
                     baroboBridge.angularSpeed
@@ -65,10 +67,10 @@ describe "LinkbotJS", ->
 
             beforeEach ->
                 robot = new Linkbot(42)
+                robot._wheelPositions = [0,0,0]
                 model = fuzz: "baz"
 
             afterEach ->
-                baroboBridge.motorChanged.connect.and.stub()
                 robot.unregister()
 
             describe "button", ->
@@ -77,7 +79,7 @@ describe "LinkbotJS", ->
                 beforeEach ->
                     # This fakes the Qt signal, calling the slot as soon as
                     # it's registered
-                    baroboBridge.buttonChanged.connect
+                    spyOn(baroboBridge.buttonChanged, "connect")
                         .and.callFake((slot) -> slot(42, 1, 1))
 
                     registerObj =
@@ -116,6 +118,7 @@ describe "LinkbotJS", ->
 
             describe "wheel", ->
                 it "calls the callback when a Qt signal fires", ->
+                    spyOn baroboBridge.motorChanged, "connect"
                     # This fakes the Qt signal, calling the slot as soon as it's
                     # registered
                     baroboBridge.motorChanged.connect.and.callFake((slot) -> slot(42, 2, 30))
@@ -154,6 +157,8 @@ describe "LinkbotJS", ->
                 expect(lb.unregister).not.toThrow()
 
             it "calls both (Qt) disconnect functions on baroboBridge", ->
+                spyOn baroboBridge.buttonChanged, "disconnect"
+                spyOn baroboBridge.motorChanged, "disconnect"
                 lb.register(
                     wheel: 3: callback: (r, m, e) -> [r, m, e]
                 )
@@ -168,6 +173,8 @@ describe "LinkbotJS", ->
                     .toBe(true)
 
             it "calls disables motor events", ->
+                spyOn baroboBridge, "disableMotorSignals"
+                spyOn baroboBridge, "disableButtonSignals"
                 lb.register(
                     wheel: 3: callback: (r, m, e) -> [r, m, e]
                 )
@@ -183,14 +190,14 @@ describe "LinkbotJS", ->
 
     describe "scan", ->
         it "calls baroboBridge's scan", ->
+            spyOn baroboBridge, "scan"
             Linkbots.scan()
             expect(baroboBridge.scan).toHaveBeenCalled()
 
     describe "connect", ->
-        it "hecka barfs when the robot's firmware is not blessed"
-
 
         it "calls baroboBridge's connectRobot", ->
+            spyOn baroboBridge, "connectRobot"
             Linkbots.connect(0)
             expect(baroboBridge.connectRobot).toHaveBeenCalledWith(0)
 
@@ -199,7 +206,9 @@ describe "LinkbotJS", ->
             expect(r).toEqual(jasmine.any(Linkbot))
 
         it "sets instance vars", ->
+            spyOn(baroboBridge, "getMotorAngles").and.returnValue([0,0,0])
+            spyOn(baroboBridge, "firmwareVersion").and.returnValue(0)
             r = Linkbots.connect(23)
-            expect(r._id).toBeDefined()
-            expect(r._firmwareVersion).toBeDefined()
-            expect(r._wheelPositions).toBeDefined()
+            expect(r._id).toBeDefined('_id')
+            expect(r._firmwareVersion).toBeDefined('_firmwareVersion')
+            expect(r._wheelPositions).toBeDefined('_wheelPositions')
