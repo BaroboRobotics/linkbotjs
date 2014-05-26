@@ -1,4 +1,5 @@
 # BaroboJS API
+# vim: sw=4
 
 # Set up a dummy baroboBridge, so the library doesn't throw lots of errors
 # on non-barobo browsers.
@@ -26,7 +27,7 @@ baroboBridge =
       'motorChanged'
       'buttonChanged'
     ]
-    obj = {}
+    obj = { mock: true }
     for k in methods
       obj[k] = ->
     for k in signals
@@ -43,6 +44,14 @@ class Linkbot
             baroboBridge.setMotorEventThreshold(@_id, m, 1e10)
         @_wheelPositions = baroboBridge.getMotorAngles(@_id)
         @_firmwareVersion = baroboBridge.firmwareVersion(@_id)
+        if ! baroboBridge.mock
+            blessedFW = baroboBridge.availableFirmwareVersions()
+            # This only exists until the UI component of LinkbotJS has a robot
+            # manager that apps can use.
+            if blessedFW.indexOf(@_firmwareVersion) < 0
+                idAsURI = encodeURIComponent(@_id)
+                @disconnect()
+                document.location = ("../LinkbotUpdate/index.html?badRobot=#{idAsURI}")
 
     color: (r, g, b) -> baroboBridge.setLEDColor(@_id, r, g, b)
 
