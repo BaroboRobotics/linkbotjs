@@ -62,6 +62,12 @@ class Linkbot
     move: (r1, r2, r3) ->
         baroboBridge.move(@_id, r1, r2, r3)
 
+    moveTo: (r1, r2, r3) ->
+        baroboBridge.moveTo(@_id, r1, r2, r3)
+
+    wheelPositions: ->
+        @_wheelPositions = baroboBridge.getMotorAngles(@_id)
+
     stop: -> baroboBridge.stop(@_id)
 
     # **disconnect** nulls out @_id, making the object unusable. Let me know

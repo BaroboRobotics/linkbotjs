@@ -27,6 +27,8 @@ describe "LinkbotJS", ->
                   'color'
                   'angularSpeed'
                   'move'
+                  'moveTo'
+                  'wheelPositions'
                   'stop'
                   'disconnect'
                   'register'
