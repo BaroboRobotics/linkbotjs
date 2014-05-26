@@ -1,39 +1,26 @@
-# BaroboJS API
+# LinkbotJS API
 # vim: sw=4
 
-# Set up a dummy baroboBridge, so the library doesn't throw lots of errors
-# on non-barobo browsers.
-baroboBridge =
-  if @baroboBridge?
-    @baroboBridge
-  else
-    methods = [
-      'angularSpeed'
-      'availableFirmwareVersions'
-      'buttonChanged'
-      'connectRobot'
-      'disconnectRobot'
-      'enableButtonSignals'
-      'enableMotorSignals'
-      'disableButtonSignals'
-      'disableMotorSignals'
-      'firmwareVersion'
-      'getMotorAngles'
-      'scan'
-      'setMotorEventThreshold'
-      'stop'
-    ]
-    signals = [
-      'motorChanged'
-      'buttonChanged'
-    ]
-    obj = { mock: true }
-    for k in methods
-      obj[k] = ->
-    for k in signals
-      obj[k] = { connect: (->), disconnect: (->) }
-    obj
+# The API for LinkbotJS is found in two parts. The first, and largest, is
+# the Linkbot class, which manages a single Linkbot. The second is the
+# Linkbots object, with is the global 'library' object (like $ for JQuery).
+#
+# LinkbotJS also sets up a dummy baroboBridge, so the library doesn't throw
+# lots of errors on non-barobo browsers. It obviously won't communicate
+# with robots on those browsers, but at least apps won't crash and die.
 
+#
+# "Module" object, exposed globally.
+#
+@Linkbots =
+    scan: -> baroboBridge.scan()
+
+    connect: (id) ->
+        new Linkbot(id)
+
+#
+# Linkbot class, accessed through Linkbots.connect.
+#
 class Linkbot
     _wheelRadius: 1.75
     constructor: (@_id) ->
@@ -101,11 +88,13 @@ class Linkbot
         baroboBridge.buttonChanged.disconnect()
         baroboBridge.disableButtonSignals(@_id)
 
-# Robot Management Methods
-
+#
+# "Private" library methods.
+#
 # These functions translate baroboBridge's interface to LinkbotJS'
 # interface, returning a (Qt) slot that calls a user-supplied (js)
 # callback.
+#
 buttonSlot = (robot, buttonId, callback, model = {}) ->
     (robID, btnID, press) ->
         if press == 1 and robot._id == robID and buttonId == btnID
@@ -122,8 +111,36 @@ wheelSlot = (robot, wheelId, callback, model = {}) ->
                 difference: diff
             })
 
-@Linkbots =
-    scan: -> baroboBridge.scan()
-
-    connect: (id) ->
-        new Linkbot(id)
+#
+# The mock baroboBridge object.
+#
+baroboBridge =
+  if @baroboBridge?
+    @baroboBridge
+  else
+    methods = [
+      'angularSpeed'
+      'availableFirmwareVersions'
+      'buttonChanged'
+      'connectRobot'
+      'disconnectRobot'
+      'enableButtonSignals'
+      'enableMotorSignals'
+      'disableButtonSignals'
+      'disableMotorSignals'
+      'firmwareVersion'
+      'getMotorAngles'
+      'scan'
+      'setMotorEventThreshold'
+      'stop'
+    ]
+    signals = [
+      'motorChanged'
+      'buttonChanged'
+    ]
+    obj = { mock: true }
+    for k in methods
+      obj[k] = ->
+    for k in signals
+      obj[k] = { connect: (->), disconnect: (->) }
+    obj
