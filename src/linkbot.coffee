@@ -1,5 +1,4 @@
 # LinkbotJS API
-# vim: sw=4
 
 # The API for LinkbotJS is found in two parts. The first, and largest, is
 # the Linkbot class, which manages a single Linkbot. The second is the
@@ -13,80 +12,80 @@
 # "Module" object, exposed globally.
 #
 @Linkbots =
-    scan: -> baroboBridge.scan()
+  scan: -> baroboBridge.scan()
 
-    connect: (id) ->
-        new Linkbot(id)
+  connect: (id) ->
+    new Linkbot(id)
 
 #
 # Linkbot class, accessed through Linkbots.connect.
 #
 class Linkbot
-    _wheelRadius: 1.75
-    constructor: (@_id) ->
-        err = baroboBridge.connectRobot(@_id)
-        throw "Linkbot connection failed. id: #{@_id}" if err < 0
+  _wheelRadius: 1.75
+  constructor: (@_id) ->
+    err = baroboBridge.connectRobot(@_id)
+    throw "Linkbot connection failed. id: #{@_id}" if err < 0
 
-        for m in [1..3]
-            baroboBridge.setMotorEventThreshold(@_id, m, 1e10)
-        @_wheelPositions = baroboBridge.getMotorAngles(@_id)
-        @_firmwareVersion = baroboBridge.firmwareVersion(@_id)
-        if ! baroboBridge.mock
-            blessedFW = baroboBridge.availableFirmwareVersions()
-            # This only exists until the UI component of LinkbotJS has a robot
-            # manager that apps can use.
-            if blessedFW.indexOf(@_firmwareVersion) < 0
-                idAsURI = encodeURIComponent(@_id)
-                @disconnect()
-                document.location = ("../LinkbotUpdate/index.html?badRobot=#{idAsURI}")
+    for m in [1..3]
+      baroboBridge.setMotorEventThreshold(@_id, m, 1e10)
+    @_wheelPositions = baroboBridge.getMotorAngles(@_id)
+    @_firmwareVersion = baroboBridge.firmwareVersion(@_id)
+    if ! baroboBridge.mock
+      blessedFW = baroboBridge.availableFirmwareVersions()
+      # This only exists until the UI component of LinkbotJS has a robot
+      # manager that apps can use.
+      if blessedFW.indexOf(@_firmwareVersion) < 0
+        idAsURI = encodeURIComponent(@_id)
+        @disconnect()
+        document.location = ("../LinkbotUpdate/index.html?badRobot=#{idAsURI}")
 
-    color: (r, g, b) -> baroboBridge.setLEDColor(@_id, r, g, b)
+  color: (r, g, b) -> baroboBridge.setLEDColor(@_id, r, g, b)
 
-    angularSpeed: (s1, s2 = s1, s3 = s1) ->
+  angularSpeed: (s1, s2 = s1, s3 = s1) ->
 
-        baroboBridge.angularSpeed(@_id, s1, s2, s3)
+    baroboBridge.angularSpeed(@_id, s1, s2, s3)
 
-    move: (r1, r2, r3) ->
-        baroboBridge.move(@_id, r1, r2, r3)
+  move: (r1, r2, r3) ->
+    baroboBridge.move(@_id, r1, r2, r3)
 
-    moveTo: (r1, r2, r3) ->
-        baroboBridge.moveTo(@_id, r1, r2, r3)
+  moveTo: (r1, r2, r3) ->
+    baroboBridge.moveTo(@_id, r1, r2, r3)
 
-    wheelPositions: ->
-        @_wheelPositions = baroboBridge.getMotorAngles(@_id)
+  wheelPositions: ->
+    @_wheelPositions = baroboBridge.getMotorAngles(@_id)
 
-    stop: -> baroboBridge.stop(@_id)
+  stop: -> baroboBridge.stop(@_id)
 
-    buzzerFrequency: (freq) -> baroboBridge.buzzerFrequency(@_id, freq)
+  buzzerFrequency: (freq) -> baroboBridge.buzzerFrequency(@_id, freq)
 
-    # **disconnect** nulls out @_id, making the object unusable. Let me know
-    # if that's weird.
-    disconnect: ->
-        @stop()
-        baroboBridge.disconnectRobot(@_id)
-        @_id = null
+  # **disconnect** nulls out @_id, making the object unusable. Let me know
+  # if that's weird.
+  disconnect: ->
+    @stop()
+    baroboBridge.disconnectRobot(@_id)
+    @_id = null
 
-    register: (connections) ->
-        if connections.button?
-            for own buttonId, registerObject of connections.button
-                slot = buttonSlot(@, parseInt(buttonId), registerObject.callback, registerObject.data)
-                baroboBridge.buttonChanged.connect(slot)
-                baroboBridge.enableButtonSignals(@_id)
+  register: (connections) ->
+    if connections.button?
+      for own buttonId, registerObject of connections.button
+        slot = buttonSlot(@, parseInt(buttonId), registerObject.callback, registerObject.data)
+        baroboBridge.buttonChanged.connect(slot)
+        baroboBridge.enableButtonSignals(@_id)
 
-        if connections.wheel?
-            for own _wheelId, registerObject of connections.wheel
-                wheelId = parseInt(_wheelId)
-                slot = wheelSlot(@, wheelId, registerObject.callback, registerObject.data)
-                baroboBridge.setMotorEventThreshold(@_id, wheelId, registerObject.distance)
-                baroboBridge.motorChanged.connect(slot)
-                baroboBridge.enableMotorSignals(@_id)
+    if connections.wheel?
+      for own _wheelId, registerObject of connections.wheel
+        wheelId = parseInt(_wheelId)
+        slot = wheelSlot(@, wheelId, registerObject.callback, registerObject.data)
+        baroboBridge.setMotorEventThreshold(@_id, wheelId, registerObject.distance)
+        baroboBridge.motorChanged.connect(slot)
+        baroboBridge.enableMotorSignals(@_id)
 
-    unregister: ->
-        baroboBridge.motorChanged.disconnect()
-        baroboBridge.disableMotorSignals(@_id)
+  unregister: ->
+    baroboBridge.motorChanged.disconnect()
+    baroboBridge.disableMotorSignals(@_id)
 
-        baroboBridge.buttonChanged.disconnect()
-        baroboBridge.disableButtonSignals(@_id)
+    baroboBridge.buttonChanged.disconnect()
+    baroboBridge.disableButtonSignals(@_id)
 
 #
 # "Private" library methods.
@@ -96,20 +95,20 @@ class Linkbot
 # callback.
 #
 buttonSlot = (robot, buttonId, callback, model = {}) ->
-    (robID, btnID, press) ->
-        if press == 1 and robot._id == robID and buttonId == btnID
-            callback(robot, model, { button: btnID })
+  (robID, btnID, press) ->
+    if press == 1 and robot._id == robID and buttonId == btnID
+      callback(robot, model, { button: btnID })
 
 wheelSlot = (robot, wheelId, callback, model = {}) ->
-    (robID, _wheelId, angle) ->
-        if robot._id == robID and wheelId == _wheelId
-            diff = angle - robot._wheelPositions[wheelId - 1]
-            robot._wheelPositions[wheelId - 1] = angle
-            callback(robot, model, {
-                triggerWheel: wheelId
-                position: angle
-                difference: diff
-            })
+  (robID, _wheelId, angle) ->
+    if robot._id == robID and wheelId == _wheelId
+      diff = angle - robot._wheelPositions[wheelId - 1]
+      robot._wheelPositions[wheelId - 1] = angle
+      callback(robot, model, {
+        triggerWheel: wheelId
+        position: angle
+        difference: diff
+      })
 
 #
 # The mock baroboBridge object.
