@@ -1,14 +1,5 @@
 describe "LinkbotJS", ->
 
-  it "has specified interface", ->
-    methods = Object.getOwnPropertyNames(Linkbots)
-    expect(methods).toEqual(
-      [ 'scan'
-        'connect'
-      ]
-
-    )
-
   describe "testing setup", ->
     it "exposes internals", ->
       expect(Linkbot).toBeDefined('Linkbot')
@@ -191,27 +182,39 @@ describe "LinkbotJS", ->
         expect(baroboBridge.disableButtonSignals.calls.any())
           .toBe(true)
 
-  describe "scan", ->
-    it "calls baroboBridge's scan", ->
-      spyOn baroboBridge, "scan"
-      Linkbots.scan()
-      expect(baroboBridge.scan).toHaveBeenCalled()
+  describe "Linkbots module object", ->
 
-  describe "connect", ->
+    it "has specified interface", ->
+      methods = Object.getOwnPropertyNames(Linkbots)
+      expect(methods).toEqual(
+        [ 'scan'
+          'connect'
+          'robotManagerElement'
+        ]
 
-    it "calls baroboBridge's connectRobot", ->
-      spyOn baroboBridge, "connectRobot"
-      Linkbots.connect(0)
-      expect(baroboBridge.connectRobot).toHaveBeenCalledWith(0)
+      )
 
-    it "returns a Linkbot", ->
-      r = Linkbots.connect(23)
-      expect(r).toEqual(jasmine.any(Linkbot))
+    describe "scan", ->
+      it "calls baroboBridge's scan", ->
+        spyOn baroboBridge, "scan"
+        Linkbots.scan()
+        expect(baroboBridge.scan).toHaveBeenCalled()
 
-    it "sets instance vars", ->
-      spyOn(baroboBridge, "getMotorAngles").and.returnValue([0,0,0])
-      spyOn(baroboBridge, "firmwareVersion").and.returnValue(0)
-      r = Linkbots.connect(23)
-      expect(r._id).toBeDefined('_id')
-      expect(r._firmwareVersion).toBeDefined('_firmwareVersion')
-      expect(r._wheelPositions).toBeDefined('_wheelPositions')
+    describe "connect", ->
+
+      it "calls baroboBridge's connectRobot", ->
+        spyOn baroboBridge, "connectRobot"
+        Linkbots.connect(0)
+        expect(baroboBridge.connectRobot).toHaveBeenCalledWith(0)
+
+      it "returns a Linkbot", ->
+        r = Linkbots.connect(23)
+        expect(r).toEqual(jasmine.any(Linkbot))
+
+      it "sets instance vars", ->
+        spyOn(baroboBridge, "getMotorAngles").and.returnValue([0,0,0])
+        spyOn(baroboBridge, "firmwareVersion").and.returnValue(0)
+        r = Linkbots.connect(23)
+        expect(r._id).toBeDefined('_id')
+        expect(r._firmwareVersion).toBeDefined('_firmwareVersion')
+        expect(r._wheelPositions).toBeDefined('_wheelPositions')
