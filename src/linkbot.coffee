@@ -70,6 +70,8 @@ class Linkbot
 
     stop: -> baroboBridge.stop(@_id)
 
+    buzzerFrequency: (freq) -> baroboBridge.buzzerFrequency(@_id, freq)
+
     # **disconnect** nulls out @_id, making the object unusable. Let me know
     # if that's weird.
     disconnect: ->
