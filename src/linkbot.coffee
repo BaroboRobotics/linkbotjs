@@ -9,13 +9,32 @@
 # with robots on those browsers, but at least apps won't crash and die.
 
 #
+# RobotManager class
+#
+# Handles the internal logic of the manager widget
+#
+class RobotManager
+  constructor: (@document) ->
+    @robots = []
+
+#
 # "Module" object, exposed globally.
 #
-@Linkbots =
-  scan: -> baroboBridge.scan()
+@Linkbots = ((doc)->
+  # Private stuff
+  manager = new RobotManager(doc)
 
-  connect: (id) ->
-    new Linkbot(id)
+  # Public interface
+  {
+    scan: -> baroboBridge.scan()
+
+    managerElement: ->
+      manager.element()
+
+    acquire: (n) ->
+      manager.acquire(n)
+  }
+)(@document)
 
 #
 # Linkbot class, accessed through Linkbots.connect.

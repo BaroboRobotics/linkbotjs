@@ -104,7 +104,7 @@ describe "LinkbotJS", ->
             .not.toHaveBeenCalled()
 
           # Also only uses robot with id 42, so:
-          lb = Linkbots.connect(18)
+          lb = new Linkbot(18)
           spyOn(registerObj.button['1'],'callback').and.callThrough()
           lb.register(registerObj)
           expect(registerObj.button['1'].callback)
@@ -188,8 +188,8 @@ describe "LinkbotJS", ->
       methods = Object.getOwnPropertyNames(Linkbots)
       expect(methods).toEqual(
         [ 'scan'
-          'connect'
-          'robotManagerElement'
+          'managerElement'
+          'acquire'
         ]
 
       )
@@ -200,7 +200,8 @@ describe "LinkbotJS", ->
         Linkbots.scan()
         expect(baroboBridge.scan).toHaveBeenCalled()
 
-    describe "connect", ->
+    # Disabled until connect comes back in the RobotManager
+    xdescribe "connect", ->
 
       it "calls baroboBridge's connectRobot", ->
         spyOn baroboBridge, "connectRobot"
