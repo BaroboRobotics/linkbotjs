@@ -45,6 +45,12 @@ class RobotManager
 
     ret
 
+  add: (id) ->
+    if @robots.map((x) -> x.id).indexOf(id) < 0
+      @robots.push
+        status: "new"
+        id: id
+
 #
 # "Module" object, exposed globally.
 #

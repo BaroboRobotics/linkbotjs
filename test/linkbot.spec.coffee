@@ -288,3 +288,17 @@ describe "LinkbotJS", ->
           expect(ret2.robots).toEqual([])
           expect(ret2.ready).toEqual(0)
           expect(ret2.registered).toEqual(4)
+
+
+      describe "add", ->
+        rs = null
+        beforeEach ->
+          rs = roboMgr.robots.slice()
+
+        it "ignores duplicates", ->
+          roboMgr.add(23)
+          expect(roboMgr.robots).toEqual(rs)
+
+        it "increases count by 1", ->
+          roboMgr.add(666)
+          expect(roboMgr.robots.length).toEqual(rs.length + 1)
