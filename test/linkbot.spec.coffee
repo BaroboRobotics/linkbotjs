@@ -302,3 +302,23 @@ describe "LinkbotJS", ->
         it "increases count by 1", ->
           roboMgr.add(666)
           expect(roboMgr.robots.length).toEqual(rs.length + 1)
+
+      describe "relinquish", ->
+        rs = null
+        beforeEach ->
+          rs = roboMgr.robots.slice()
+
+        it "keeps the list same size", ->
+          roboMgr.relinquish(new Linkbot(87))
+          expect(roboMgr.robots.length).toEqual(rs.length)
+
+        it "changes robo's status", ->
+          expect(roboMgr.robots[3].status).toEqual("acquired")
+          roboMgr.relinquish(new Linkbot(87))
+          expect(roboMgr.robots[3].status).toEqual("ready")
+
+
+        it "is idempotent for unacquired robots", ->
+          expect(roboMgr.robots[0].status).toEqual("failed")
+          roboMgr.relinquish(new Linkbot(99))
+          expect(roboMgr.robots[0].status).toEqual("failed")

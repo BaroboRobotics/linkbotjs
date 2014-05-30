@@ -51,6 +51,11 @@ class RobotManager
         status: "new"
         id: id
 
+  relinquish: (bot) ->
+    idx = @robots.map((x) -> x.id).indexOf(bot._id)
+    if idx >= 0 && @robots[idx].status == "acquired"
+      @robots[idx].status = "ready"
+
 #
 # "Module" object, exposed globally.
 #
