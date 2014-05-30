@@ -191,7 +191,6 @@ describe "LinkbotJS", ->
           'managerElement'
           'acquire'
         ]
-
       )
 
     describe "scan", ->
@@ -219,3 +218,30 @@ describe "LinkbotJS", ->
         expect(r._id).toBeDefined('_id')
         expect(r._firmwareVersion).toBeDefined('_firmwareVersion')
         expect(r._wheelPositions).toBeDefined('_wheelPositions')
+
+    describe "RobotManager class", ->
+      roboMgr = null
+      beforeEach ->
+        roboMgr = new RobotManager(window.document)
+
+      describe "element", ->
+        beforeEach ->
+          # Add a matcher using toString(), since jasmine.any seems to fail
+          # for Element objects.
+          jasmine.addMatchers({
+            toStringEqual: (util, customEqualityMatchers) ->
+              compare: (actual, expected) ->
+                actualStr = actual.toString()
+                result =
+                  pass: util.equals(actualStr
+                                    expected
+                                    customEqualityMatchers)
+                result.message = "Expected #{actualStr}" +
+                  (if result.pass then " NOT " else " ") +
+                  "to equal #{expected}"
+                result
+          })
+
+        it "generates HTML", ->
+          e = roboMgr.element
+          expect(e).toStringEqual('[object HTMLDivElement]')

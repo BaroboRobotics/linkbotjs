@@ -14,8 +14,20 @@
 # Handles the internal logic of the manager widget
 #
 class RobotManager
-  constructor: (@document) ->
+  constructor: (document) ->
     @robots = []
+    @element = document.createElement('div')
+    @element.innerHTML =
+      '<form>' +
+        '<div>' +
+          '<label for="roboInput">' +
+            'Linkbot ID' +
+          '</label>' +
+          '<input type="text" placeholder="Linkbot ID">' +
+        '</div>' +
+        '<button>+</button>' +
+      '</form>' +
+      '<ol></ol>'
 
 #
 # "Module" object, exposed globally.
