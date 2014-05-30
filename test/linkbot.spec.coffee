@@ -1,5 +1,4 @@
 describe "LinkbotJS", ->
-
   describe "testing setup", ->
     it "exposes internals", ->
       expect(Linkbot).toBeDefined('Linkbot')
@@ -221,8 +220,32 @@ describe "LinkbotJS", ->
 
     describe "RobotManager class", ->
       roboMgr = null
+      fakeRobotList = -> [
+        {
+          status: "failed"
+          linkbot: null
+          id: 99
+        }
+        {
+          status: "ready"
+          linkbot: new Linkbot(32)
+          id: 32
+        }
+        {
+          status: "ready"
+          linkbot: new Linkbot(23)
+          id: 23
+        }
+        {
+          status: "acquired"
+          linkbot: new Linkbot(87)
+          id: 87
+        }
+      ]
+
       beforeEach ->
         roboMgr = new RobotManager(window.document)
+        roboMgr.robots = fakeRobotList()
 
       describe "element", ->
         beforeEach ->
@@ -245,3 +268,23 @@ describe "LinkbotJS", ->
         it "generates HTML", ->
           e = roboMgr.element
           expect(e).toStringEqual('[object HTMLDivElement]')
+
+      describe "acquire", ->
+        it "returns no robots if not enough are registered", ->
+          ret = roboMgr.acquire(10)
+          expect(ret.robots).toEqual([])
+          expect(ret.registered).toEqual(4)
+        it "returns no robots if not enough are ready", ->
+          ret = roboMgr.acquire(3)
+          expect(ret.robots).toEqual([])
+          expect(ret.ready).toEqual(2)
+        it "returns the number requested", ->
+          ret = roboMgr.acquire(2)
+          expect(ret.robots).toEqual([new Linkbot(32), new Linkbot(23)])
+        it "changes robots' statuses", ->
+          ret = roboMgr.acquire(2)
+          ret2 = roboMgr.acquire(1)
+          expect(ret.robots).toEqual([new Linkbot(32), new Linkbot(23)])
+          expect(ret2.robots).toEqual([])
+          expect(ret2.ready).toEqual(0)
+          expect(ret2.registered).toEqual(4)

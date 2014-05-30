@@ -29,6 +29,22 @@ class RobotManager
       '</form>' +
       '<ol></ol>'
 
+  acquire: (n) ->
+    readyBots = @robots.filter((r) -> r.status == "ready")
+
+    ret =
+      robots: []
+      registered: @robots.length
+      ready: readyBots.length
+
+    if ret.ready >= n
+      rs = readyBots[0...2]
+      rs.map((r) -> r.status = "acquired")
+      ret.robots = rs.map((r) -> r.linkbot)
+      ret.ready -= 2
+
+    ret
+
 #
 # "Module" object, exposed globally.
 #
