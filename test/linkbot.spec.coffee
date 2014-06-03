@@ -30,6 +30,11 @@ describe "LinkbotJS", ->
     it "sets _id with constructor", ->
       expect(lb._id).toBe(3)
 
+    it "constructor nulls @_id on connection failure", ->
+      spyOn(baroboBridge, "connectRobot").and.returnValue(-1)
+      x = new Linkbot(52)
+      expect(x._id).toBeNull()
+
     describe "angularSpeed", ->
       it "calls through to baroboBridge", ->
         spyOn baroboBridge, "angularSpeed"
