@@ -64,6 +64,16 @@ class RobotManager
     ol.innerHTML += "<li>#{r.id}</li>" for r in @robots
     @element.replaceChild(ol, @element.querySelector('ol'))
 
+  connect: ->
+    for r in @robots
+      if r.status == "new"
+        r.linkbot = new Linkbot(r.id)
+        r.status =
+          if r.linkbot._id != null
+            "ready"
+          else
+            "failed"
+
 #
 # "Module" object, exposed globally.
 #

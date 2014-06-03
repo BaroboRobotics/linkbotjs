@@ -354,3 +354,16 @@ describe "LinkbotJS", ->
 
           li.innerHTML = "99"
           expect(orig).toEqual(roboMgr.element.outerHTML)
+
+      describe "connect", ->
+
+        it "changes a connected robot's status", ->
+          roboMgr.add('9x')
+          expect(roboMgr.robots[4].status).toEqual("new")
+          roboMgr.connect()
+          expect(roboMgr.robots[4].status).toEqual("ready")
+
+          roboMgr.add('14t')
+          spyOn(baroboBridge, "connectRobot").and.returnValue(-1)
+          roboMgr.connect()
+          expect(roboMgr.robots[5].status).toEqual("failed")
