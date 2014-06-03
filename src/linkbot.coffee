@@ -29,6 +29,7 @@ class RobotManager
       '</form>' +
       '<ol></ol>'
 
+  # "Pure" methods that only effect this's state.
   acquire: (n) ->
     readyBots = @robots.filter((r) -> r.status == "ready")
 
@@ -55,6 +56,13 @@ class RobotManager
     idx = @robots.map((x) -> x.id).indexOf(bot._id)
     if idx >= 0 && @robots[idx].status == "acquired"
       @robots[idx].status = "ready"
+
+  # "Impure" methods, which effect either robots or the UI, not just this.
+  drawList: ->
+    doc = @element.ownerDocument
+    ol = doc.createElement('ol')
+    ol.innerHTML += "<li>#{r.id}</li>" for r in @robots
+    @element.replaceChild(ol, @element.querySelector('ol'))
 
 #
 # "Module" object, exposed globally.

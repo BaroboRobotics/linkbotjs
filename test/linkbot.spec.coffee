@@ -322,3 +322,30 @@ describe "LinkbotJS", ->
           expect(roboMgr.robots[0].status).toEqual("failed")
           roboMgr.relinquish(new Linkbot(99))
           expect(roboMgr.robots[0].status).toEqual("failed")
+
+
+      describe "drawList", ->
+        beforeEach -> roboMgr.drawList()
+
+        it "draws the same thing if @robots is the same", ->
+          orig = roboMgr.element.outerHTML
+          roboMgr.drawList()
+          expect(orig).toEqual(roboMgr.element.outerHTML)
+
+        it "adds an element when a robot is added", ->
+          orig = roboMgr.element.querySelectorAll('li').length
+          roboMgr.robots.push(id: "foo")
+          roboMgr.drawList()
+          new_ = roboMgr.element.querySelectorAll('li').length
+          expect(orig+1).toEqual(new_)
+
+        it "modifies an existing element", ->
+          orig = roboMgr.element.outerHTML
+          expect(roboMgr.element.querySelector('li').innerHTML).toEqual("99")
+          roboMgr.robots[0].id = "baz"
+          roboMgr.drawList()
+          li = roboMgr.element.querySelector('li')
+          expect(li.innerHTML).toEqual("baz")
+
+          li.innerHTML = "99"
+          expect(orig).toEqual(roboMgr.element.outerHTML)
