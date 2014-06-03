@@ -38,10 +38,10 @@ class RobotManager
       ready: readyBots.length
 
     if ret.ready >= n
-      rs = readyBots[0...2]
+      rs = readyBots[0...n]
       rs.map((r) -> r.status = "acquired")
       ret.robots = rs.map((r) -> r.linkbot)
-      ret.ready -= 2
+      ret.ready -= n
 
     ret
 

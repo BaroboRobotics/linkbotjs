@@ -282,10 +282,10 @@ describe "LinkbotJS", ->
           ret = roboMgr.acquire(2)
           expect(ret.robots).toEqual([new Linkbot(32), new Linkbot(23)])
         it "changes robots' statuses", ->
-          ret = roboMgr.acquire(2)
+          ret = roboMgr.acquire(1)
           ret2 = roboMgr.acquire(1)
-          expect(ret.robots).toEqual([new Linkbot(32), new Linkbot(23)])
-          expect(ret2.robots).toEqual([])
+          expect(ret.robots).toEqual([new Linkbot(32)])
+          expect(ret2.robots).toEqual([new Linkbot(23)])
           expect(ret2.ready).toEqual(0)
           expect(ret2.registered).toEqual(4)
 
