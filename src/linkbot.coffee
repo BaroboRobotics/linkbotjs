@@ -140,7 +140,6 @@ class Linkbot
   # if that's weird.
   disconnect: ->
     @stop()
-    baroboBridge.disconnectRobot(@_id)
     @_id = null
 
   register: (connections) ->
