@@ -17,6 +17,7 @@ class RobotManager
   constructor: (document) ->
     @robots = []
     @element = document.createElement('div')
+    @element.setAttribute('class', 'robomgr--container')
     @element.innerHTML =
       '<form>' +
         '<div>' +
@@ -64,7 +65,11 @@ class RobotManager
   drawList: ->
     doc = @element.ownerDocument
     ol = doc.createElement('ol')
-    ol.innerHTML += "<li>#{r.id}</li>" for r in @robots
+    for r in @robots
+      li = doc.createElement('li')
+      li.setAttribute('class', "robomgr--#{r.status}")
+      li.innerText = r.id
+      ol.appendChild li
     @element.replaceChild(ol, @element.querySelector('ol'))
 
   connect: ->
@@ -102,11 +107,14 @@ class RobotManager
       manager.element
 
     acquire: (n) ->
-      manager.acquire(n)
+      x = manager.acquire(n)
+      manager.drawList()
+      x
 
     relinquish: (l) ->
       manager.relinquish(l)
       l.disconnect()
+      manager.drawList()
   }
 )(@document)
 
