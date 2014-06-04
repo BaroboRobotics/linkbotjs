@@ -29,6 +29,9 @@ class RobotManager
       '</form>' +
       '<ol></ol>'
 
+    addBtn = @element.querySelector('button')
+    addBtn.addEventListener('click', @uiAdd)
+
   # "Pure" methods that only effect this's state.
   acquire: (n) ->
     readyBots = @robots.filter((r) -> r.status == "ready")
@@ -73,6 +76,16 @@ class RobotManager
             "ready"
           else
             "failed"
+
+  # UI actions, suitable for use as EventListeners.
+  uiAdd: (e) =>
+    e.preventDefault()
+    idInput = @element.querySelector('input')
+    @add(idInput.value)
+    idInput.value = ""
+    @drawList()
+    @connect()
+    @drawList()
 
 #
 # "Module" object, exposed globally.
