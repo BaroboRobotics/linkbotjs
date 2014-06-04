@@ -253,28 +253,6 @@ describe "LinkbotJS", ->
       roboMgr = new RobotManager(window.document)
       roboMgr.robots = fakeRobotList()
 
-    describe "element", ->
-      beforeEach ->
-        # Add a matcher using toString(), since jasmine.any seems to fail
-        # for Element objects.
-        jasmine.addMatchers({
-          toStringEqual: (util, customEqualityMatchers) ->
-            compare: (actual, expected) ->
-              actualStr = actual.toString()
-              result =
-                pass: util.equals(actualStr
-                                  expected
-                                  customEqualityMatchers)
-              result.message = "Expected #{actualStr}" +
-                (if result.pass then " NOT " else " ") +
-                "to equal #{expected}"
-              result
-        })
-
-      it "generates HTML", ->
-        e = roboMgr.element
-        expect(e).toStringEqual('[object HTMLDivElement]')
-
     describe "acquire", ->
       it "returns no robots if not enough are registered", ->
         ret = roboMgr.acquire(10)
@@ -328,43 +306,3 @@ describe "LinkbotJS", ->
         expect(roboMgr.robots[0].status).toEqual("failed")
         roboMgr.relinquish(new Linkbot(99))
         expect(roboMgr.robots[0].status).toEqual("failed")
-
-
-    describe "drawList", ->
-      beforeEach -> roboMgr.drawList()
-
-      it "draws the same thing if @robots is the same", ->
-        orig = roboMgr.element.outerHTML
-        roboMgr.drawList()
-        expect(orig).toEqual(roboMgr.element.outerHTML)
-
-      it "adds an element when a robot is added", ->
-        orig = roboMgr.element.querySelectorAll('li').length
-        roboMgr.robots.push(id: "foo")
-        roboMgr.drawList()
-        new_ = roboMgr.element.querySelectorAll('li').length
-        expect(orig+1).toEqual(new_)
-
-      it "modifies an existing element", ->
-        orig = roboMgr.element.outerHTML
-        expect(roboMgr.element.querySelector('li').innerHTML).toEqual("99")
-        roboMgr.robots[0].id = "baz"
-        roboMgr.drawList()
-        li = roboMgr.element.querySelector('li')
-        expect(li.innerHTML).toEqual("baz")
-
-        li.innerHTML = "99"
-        expect(orig).toEqual(roboMgr.element.outerHTML)
-
-    describe "connect", ->
-
-      it "changes a connected robot's status", ->
-        roboMgr.add('9x')
-        expect(roboMgr.robots[4].status).toEqual("new")
-        roboMgr.connect()
-        expect(roboMgr.robots[4].status).toEqual("ready")
-
-        roboMgr.add('14t')
-        spyOn(baroboBridge, "connectRobot").and.returnValue(-1)
-        roboMgr.connect()
-        expect(roboMgr.robots[5].status).toEqual("failed")
