@@ -224,147 +224,147 @@ describe "LinkbotJS", ->
         expect(r._firmwareVersion).toBeDefined('_firmwareVersion')
         expect(r._wheelPositions).toBeDefined('_wheelPositions')
 
-    describe "RobotManager class", ->
-      roboMgr = null
-      fakeRobotList = -> [
-        {
-          status: "failed"
-          linkbot: null
-          id: 99
-        }
-        {
-          status: "ready"
-          linkbot: new Linkbot(32)
-          id: 32
-        }
-        {
-          status: "ready"
-          linkbot: new Linkbot(23)
-          id: 23
-        }
-        {
-          status: "acquired"
-          linkbot: new Linkbot(87)
-          id: 87
-        }
-      ]
+  describe "RobotManager class", ->
+    roboMgr = null
+    fakeRobotList = -> [
+      {
+        status: "failed"
+        linkbot: null
+        id: 99
+      }
+      {
+        status: "ready"
+        linkbot: new Linkbot(32)
+        id: 32
+      }
+      {
+        status: "ready"
+        linkbot: new Linkbot(23)
+        id: 23
+      }
+      {
+        status: "acquired"
+        linkbot: new Linkbot(87)
+        id: 87
+      }
+    ]
 
+    beforeEach ->
+      roboMgr = new RobotManager(window.document)
+      roboMgr.robots = fakeRobotList()
+
+    describe "element", ->
       beforeEach ->
-        roboMgr = new RobotManager(window.document)
-        roboMgr.robots = fakeRobotList()
+        # Add a matcher using toString(), since jasmine.any seems to fail
+        # for Element objects.
+        jasmine.addMatchers({
+          toStringEqual: (util, customEqualityMatchers) ->
+            compare: (actual, expected) ->
+              actualStr = actual.toString()
+              result =
+                pass: util.equals(actualStr
+                                  expected
+                                  customEqualityMatchers)
+              result.message = "Expected #{actualStr}" +
+                (if result.pass then " NOT " else " ") +
+                "to equal #{expected}"
+              result
+        })
 
-      describe "element", ->
-        beforeEach ->
-          # Add a matcher using toString(), since jasmine.any seems to fail
-          # for Element objects.
-          jasmine.addMatchers({
-            toStringEqual: (util, customEqualityMatchers) ->
-              compare: (actual, expected) ->
-                actualStr = actual.toString()
-                result =
-                  pass: util.equals(actualStr
-                                    expected
-                                    customEqualityMatchers)
-                result.message = "Expected #{actualStr}" +
-                  (if result.pass then " NOT " else " ") +
-                  "to equal #{expected}"
-                result
-          })
+      it "generates HTML", ->
+        e = roboMgr.element
+        expect(e).toStringEqual('[object HTMLDivElement]')
 
-        it "generates HTML", ->
-          e = roboMgr.element
-          expect(e).toStringEqual('[object HTMLDivElement]')
-
-      describe "acquire", ->
-        it "returns no robots if not enough are registered", ->
-          ret = roboMgr.acquire(10)
-          expect(ret.robots).toEqual([])
-          expect(ret.registered).toEqual(4)
-        it "returns no robots if not enough are ready", ->
-          ret = roboMgr.acquire(3)
-          expect(ret.robots).toEqual([])
-          expect(ret.ready).toEqual(2)
-        it "returns the number requested", ->
-          ret = roboMgr.acquire(2)
-          expect(ret.robots).toEqual([new Linkbot(32), new Linkbot(23)])
-        it "changes robots' statuses", ->
-          ret = roboMgr.acquire(1)
-          ret2 = roboMgr.acquire(1)
-          expect(ret.robots).toEqual([new Linkbot(32)])
-          expect(ret2.robots).toEqual([new Linkbot(23)])
-          expect(ret2.ready).toEqual(0)
-          expect(ret2.registered).toEqual(4)
+    describe "acquire", ->
+      it "returns no robots if not enough are registered", ->
+        ret = roboMgr.acquire(10)
+        expect(ret.robots).toEqual([])
+        expect(ret.registered).toEqual(4)
+      it "returns no robots if not enough are ready", ->
+        ret = roboMgr.acquire(3)
+        expect(ret.robots).toEqual([])
+        expect(ret.ready).toEqual(2)
+      it "returns the number requested", ->
+        ret = roboMgr.acquire(2)
+        expect(ret.robots).toEqual([new Linkbot(32), new Linkbot(23)])
+      it "changes robots' statuses", ->
+        ret = roboMgr.acquire(1)
+        ret2 = roboMgr.acquire(1)
+        expect(ret.robots).toEqual([new Linkbot(32)])
+        expect(ret2.robots).toEqual([new Linkbot(23)])
+        expect(ret2.ready).toEqual(0)
+        expect(ret2.registered).toEqual(4)
 
 
-      describe "add", ->
-        rs = null
-        beforeEach ->
-          rs = roboMgr.robots.slice()
+    describe "add", ->
+      rs = null
+      beforeEach ->
+        rs = roboMgr.robots.slice()
 
-        it "ignores duplicates", ->
-          roboMgr.add(23)
-          expect(roboMgr.robots).toEqual(rs)
+      it "ignores duplicates", ->
+        roboMgr.add(23)
+        expect(roboMgr.robots).toEqual(rs)
 
-        it "increases count by 1", ->
-          roboMgr.add(666)
-          expect(roboMgr.robots.length).toEqual(rs.length + 1)
+      it "increases count by 1", ->
+        roboMgr.add(666)
+        expect(roboMgr.robots.length).toEqual(rs.length + 1)
 
-      describe "relinquish", ->
-        rs = null
-        beforeEach ->
-          rs = roboMgr.robots.slice()
+    describe "relinquish", ->
+      rs = null
+      beforeEach ->
+        rs = roboMgr.robots.slice()
 
-        it "keeps the list same size", ->
-          roboMgr.relinquish(new Linkbot(87))
-          expect(roboMgr.robots.length).toEqual(rs.length)
+      it "keeps the list same size", ->
+        roboMgr.relinquish(new Linkbot(87))
+        expect(roboMgr.robots.length).toEqual(rs.length)
 
-        it "changes robo's status", ->
-          expect(roboMgr.robots[3].status).toEqual("acquired")
-          roboMgr.relinquish(new Linkbot(87))
-          expect(roboMgr.robots[3].status).toEqual("ready")
-
-
-        it "is idempotent for unacquired robots", ->
-          expect(roboMgr.robots[0].status).toEqual("failed")
-          roboMgr.relinquish(new Linkbot(99))
-          expect(roboMgr.robots[0].status).toEqual("failed")
+      it "changes robo's status", ->
+        expect(roboMgr.robots[3].status).toEqual("acquired")
+        roboMgr.relinquish(new Linkbot(87))
+        expect(roboMgr.robots[3].status).toEqual("ready")
 
 
-      describe "drawList", ->
-        beforeEach -> roboMgr.drawList()
+      it "is idempotent for unacquired robots", ->
+        expect(roboMgr.robots[0].status).toEqual("failed")
+        roboMgr.relinquish(new Linkbot(99))
+        expect(roboMgr.robots[0].status).toEqual("failed")
 
-        it "draws the same thing if @robots is the same", ->
-          orig = roboMgr.element.outerHTML
-          roboMgr.drawList()
-          expect(orig).toEqual(roboMgr.element.outerHTML)
 
-        it "adds an element when a robot is added", ->
-          orig = roboMgr.element.querySelectorAll('li').length
-          roboMgr.robots.push(id: "foo")
-          roboMgr.drawList()
-          new_ = roboMgr.element.querySelectorAll('li').length
-          expect(orig+1).toEqual(new_)
+    describe "drawList", ->
+      beforeEach -> roboMgr.drawList()
 
-        it "modifies an existing element", ->
-          orig = roboMgr.element.outerHTML
-          expect(roboMgr.element.querySelector('li').innerHTML).toEqual("99")
-          roboMgr.robots[0].id = "baz"
-          roboMgr.drawList()
-          li = roboMgr.element.querySelector('li')
-          expect(li.innerHTML).toEqual("baz")
+      it "draws the same thing if @robots is the same", ->
+        orig = roboMgr.element.outerHTML
+        roboMgr.drawList()
+        expect(orig).toEqual(roboMgr.element.outerHTML)
 
-          li.innerHTML = "99"
-          expect(orig).toEqual(roboMgr.element.outerHTML)
+      it "adds an element when a robot is added", ->
+        orig = roboMgr.element.querySelectorAll('li').length
+        roboMgr.robots.push(id: "foo")
+        roboMgr.drawList()
+        new_ = roboMgr.element.querySelectorAll('li').length
+        expect(orig+1).toEqual(new_)
 
-      describe "connect", ->
+      it "modifies an existing element", ->
+        orig = roboMgr.element.outerHTML
+        expect(roboMgr.element.querySelector('li').innerHTML).toEqual("99")
+        roboMgr.robots[0].id = "baz"
+        roboMgr.drawList()
+        li = roboMgr.element.querySelector('li')
+        expect(li.innerHTML).toEqual("baz")
 
-        it "changes a connected robot's status", ->
-          roboMgr.add('9x')
-          expect(roboMgr.robots[4].status).toEqual("new")
-          roboMgr.connect()
-          expect(roboMgr.robots[4].status).toEqual("ready")
+        li.innerHTML = "99"
+        expect(orig).toEqual(roboMgr.element.outerHTML)
 
-          roboMgr.add('14t')
-          spyOn(baroboBridge, "connectRobot").and.returnValue(-1)
-          roboMgr.connect()
-          expect(roboMgr.robots[5].status).toEqual("failed")
+    describe "connect", ->
+
+      it "changes a connected robot's status", ->
+        roboMgr.add('9x')
+        expect(roboMgr.robots[4].status).toEqual("new")
+        roboMgr.connect()
+        expect(roboMgr.robots[4].status).toEqual("ready")
+
+        roboMgr.add('14t')
+        spyOn(baroboBridge, "connectRobot").and.returnValue(-1)
+        roboMgr.connect()
+        expect(roboMgr.robots[5].status).toEqual("failed")
