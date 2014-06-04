@@ -194,6 +194,7 @@ describe "LinkbotJS", ->
         [ 'scan'
           'managerElement'
           'acquire'
+          'relinquish'
         ]
       )
 

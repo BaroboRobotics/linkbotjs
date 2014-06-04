@@ -86,10 +86,14 @@ class RobotManager
     scan: -> baroboBridge.scan()
 
     managerElement: ->
-      manager.element()
+      manager.element
 
     acquire: (n) ->
       manager.acquire(n)
+
+    relinquish: (l) ->
+      manager.relinquish(l)
+      l.disconnect()
   }
 )(@document)
 
