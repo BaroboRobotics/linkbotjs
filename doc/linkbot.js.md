@@ -46,7 +46,9 @@ Linkbot objects have the following methods:
 <a href="#color">color</a>,
 <a href="#angSpeed">angularSpeed</a>,
 <a href="#move">move</a>,
+<a href="#moveTo">moveTo</a>,
 <a href="#stop">stop</a>,
+<a href="#wheelPositions">wheelPositions</a>,
 <a href="#disconnect">disconnect</a>,
 <a href="#register">register</a>, and
 <a href="#unregister">unregister</a>.
@@ -83,11 +85,20 @@ the wheel clockwise.
 
     bot.move(10, 0, -10);
 
+<a id=moveTo></a>
+**moveTo**
+moves the wheels to a particular absolute position. The Linkbot has an
+internal sense of zero that it uses for this method.
+
 <a id=stop></a>
 **stop**
 is an emergency stop!
 
     bot.stop();
+
+<a id=wheelPositions></a>
+**wheelPositions**
+returns an array of absolute wheel positions.
 
 <a id=disconnect></a>
 **disconnect**
