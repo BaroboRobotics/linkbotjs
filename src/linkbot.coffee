@@ -9,31 +9,18 @@
 # and die.
 
 #
-# RobotManager class
+# RobotStatus class
 #
-# Handles the internal logic of the manager widget
+# Used by the RobotManager class. No user-facing functionality.
 #
-class RobotManager
-  constructor: (document) ->
-    @robots = []
-    @element = document.createElement('div')
-    @element.setAttribute('class', 'robomgr--container')
-    @element.innerHTML =
-      '<form>' +
-        '<div>' +
-          '<label for="roboInput">' +
-            'Linkbot ID' +
-          '</label>' +
-          '<input type="text" placeholder="Linkbot ID">' +
-        '</div>' +
-        '<button>+</button>' +
-      '</form>' +
-      '<ol></ol>'
+# This class is "pure" in that its methods only change internal state. All
+# functions should return falsy if the operation fails.
+#
+class RobotStatus
+  constructor: (@robots = []) ->
 
-    addBtn = @element.querySelector('button')
-    addBtn.addEventListener('click', @uiAdd)
+  list: -> @robots
 
-  # "Pure" methods that only effect this's state.
   acquire: (n) ->
     readyBots = @robots.filter((r) -> r.status == "ready")
 
@@ -55,28 +42,76 @@ class RobotManager
       @robots.push
         status: "new"
         id: id
+    else
+      false
 
   relinquish: (bot) ->
     idx = @robots.map((x) -> x.id).indexOf(bot._id)
     if idx >= 0 && @robots[idx].status == "acquired"
       @robots[idx].status = "ready"
+    else
+      return false
+
+  ready: (idx, bot) ->
+    @robots[idx]?.linkbot = bot
+    @robots[idx]?.status = "ready"
+
+  fail: (idx) ->
+    @robots[idx]?.status = "failed"
+
+#
+# RobotManager class
+#
+# Handles the internal logic of the manager widget. No user-facing
+# functionality.
+#
+# This class is "impure" in that its methods affect external state (robots,
+# UI, persistence, etc.)
+#
+class RobotManager
+  constructor: (document) ->
+    @robots = new RobotStatus()
+    @element = @_constructElement(document)
+
+  _constructElement: (document) ->
+    el = document.createElement('div')
+    el.setAttribute('class', 'robomgr--container')
+    el.innerHTML =
+      '<form>' +
+        '<div>' +
+          '<label for="roboInput">' +
+            'Linkbot ID' +
+          '</label>' +
+          '<input type="text" placeholder="Linkbot ID">' +
+        '</div>' +
+        '<button>+</button>' +
+      '</form>' +
+      '<ol></ol>'
+
+    addBtn = el.querySelector('button')
+
+    # Add ui-facing event listeners
+    addBtn.addEventListener('click', @_uiAdd)
+
+    el
 
   # UI actions, suitable for use as EventListeners.
 
-  uiAdd: (e) =>
+  _uiAdd: (e) =>
     e.preventDefault()
     idInput = @element.querySelector('input')
-    @add(idInput.value)
+    @robots.add(idInput.value)
     idInput.value = ""
     @drawList()
     @connect()
     @drawList()
 
-  # "Impure" methods, which effect either robots or the UI, not just this.
+  # Methods for communicating with this class
+
   drawList: ->
     doc = @element.ownerDocument
     ol = doc.createElement('ol')
-    for r in @robots
+    for r in @robots.list()
       li = doc.createElement('li')
       li.setAttribute('class', "robomgr--#{r.status}")
       li.innerText = r.id
@@ -84,14 +119,23 @@ class RobotManager
     @element.replaceChild(ol, @element.querySelector('ol'))
 
   connect: ->
-    for r in @robots
+    for r, idx in @robots.list()
       if r.status == "new"
-        r.linkbot = new Linkbot(r.id)
-        r.status =
-          if r.linkbot._id != null
-            "ready"
-          else
-            "failed"
+        bot = new Linkbot(r.id)
+        if bot._id?
+          @robots.ready(idx, bot)
+        else
+          @robots.fail(idx)
+
+  relinquish: (l) ->
+    l.disconnect()
+    @robots.relinquish(l)
+    @drawList()
+
+  acquire: (n) ->
+    x = @robots.acquire(n)
+    @drawList()
+    x
 
 #
 # LinkbotJS library object, exposed globally.
@@ -102,20 +146,10 @@ class RobotManager
 
   # Public interface
   {
-    scan: -> baroboBridge.scan()
-
-    managerElement: ->
-      manager.element
-
-    acquire: (n) ->
-      x = manager.acquire(n)
-      manager.drawList()
-      x
-
-    relinquish: (l) ->
-      manager.relinquish(l)
-      l.disconnect()
-      manager.drawList()
+    scan:           -> baroboBridge.scan()
+    managerElement: -> manager.element
+    acquire: (n)    -> manager.acquire(n)
+    relinquish: (l) -> manager.relinquish(l)
   }
 )(@document)
 

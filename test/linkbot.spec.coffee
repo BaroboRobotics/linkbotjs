@@ -224,8 +224,8 @@ describe "LinkbotJS", ->
         expect(r._firmwareVersion).toBeDefined('_firmwareVersion')
         expect(r._wheelPositions).toBeDefined('_wheelPositions')
 
-  describe "RobotManager class", ->
-    roboMgr = null
+  describe "RobotStatus class", ->
+    roboStatus = null
     fakeRobotList = -> [
       {
         status: "failed"
@@ -250,24 +250,24 @@ describe "LinkbotJS", ->
     ]
 
     beforeEach ->
-      roboMgr = new RobotManager(window.document)
-      roboMgr.robots = fakeRobotList()
+      roboStatus = new RobotStatus()
+      roboStatus.robots = fakeRobotList()
 
     describe "acquire", ->
       it "returns no robots if not enough are registered", ->
-        ret = roboMgr.acquire(10)
+        ret = roboStatus.acquire(10)
         expect(ret.robots).toEqual([])
         expect(ret.registered).toEqual(4)
       it "returns no robots if not enough are ready", ->
-        ret = roboMgr.acquire(3)
+        ret = roboStatus.acquire(3)
         expect(ret.robots).toEqual([])
         expect(ret.ready).toEqual(2)
       it "returns the number requested", ->
-        ret = roboMgr.acquire(2)
+        ret = roboStatus.acquire(2)
         expect(ret.robots).toEqual([new Linkbot(32), new Linkbot(23)])
       it "changes robots' statuses", ->
-        ret = roboMgr.acquire(1)
-        ret2 = roboMgr.acquire(1)
+        ret = roboStatus.acquire(1)
+        ret2 = roboStatus.acquire(1)
         expect(ret.robots).toEqual([new Linkbot(32)])
         expect(ret2.robots).toEqual([new Linkbot(23)])
         expect(ret2.ready).toEqual(0)
@@ -277,32 +277,32 @@ describe "LinkbotJS", ->
     describe "add", ->
       rs = null
       beforeEach ->
-        rs = roboMgr.robots.slice()
+        rs = roboStatus.robots.slice()
 
       it "ignores duplicates", ->
-        roboMgr.add(23)
-        expect(roboMgr.robots).toEqual(rs)
+        roboStatus.add(23)
+        expect(roboStatus.robots).toEqual(rs)
 
       it "increases count by 1", ->
-        roboMgr.add(666)
-        expect(roboMgr.robots.length).toEqual(rs.length + 1)
+        roboStatus.add(666)
+        expect(roboStatus.robots.length).toEqual(rs.length + 1)
 
     describe "relinquish", ->
       rs = null
       beforeEach ->
-        rs = roboMgr.robots.slice()
+        rs = roboStatus.robots.slice()
 
       it "keeps the list same size", ->
-        roboMgr.relinquish(new Linkbot(87))
-        expect(roboMgr.robots.length).toEqual(rs.length)
+        roboStatus.relinquish(new Linkbot(87))
+        expect(roboStatus.robots.length).toEqual(rs.length)
 
       it "changes robo's status", ->
-        expect(roboMgr.robots[3].status).toEqual("acquired")
-        roboMgr.relinquish(new Linkbot(87))
-        expect(roboMgr.robots[3].status).toEqual("ready")
+        expect(roboStatus.robots[3].status).toEqual("acquired")
+        roboStatus.relinquish(new Linkbot(87))
+        expect(roboStatus.robots[3].status).toEqual("ready")
 
 
       it "is idempotent for unacquired robots", ->
-        expect(roboMgr.robots[0].status).toEqual("failed")
-        roboMgr.relinquish(new Linkbot(99))
-        expect(roboMgr.robots[0].status).toEqual("failed")
+        expect(roboStatus.robots[0].status).toEqual("failed")
+        roboStatus.relinquish(new Linkbot(99))
+        expect(roboStatus.robots[0].status).toEqual("failed")
