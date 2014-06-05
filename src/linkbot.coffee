@@ -1,12 +1,12 @@
 # LinkbotJS API
 
-# The API for LinkbotJS is found in two parts. The first, and largest, is
-# the Linkbot class, which manages a single Linkbot. The second is the
-# Linkbots object, with is the global 'library' object (like $ for JQuery).
-#
-# LinkbotJS also sets up a dummy baroboBridge, so the library doesn't throw
-# lots of errors on non-barobo browsers. It obviously won't communicate
-# with robots on those browsers, but at least apps won't crash and die.
+# The API for LinkbotJS is found in two parts. The first is the Linkbots
+# object, with is the global 'library' object (like $ for JQuery). The
+# second, and largest, is the Linkbot class, which manages a single
+# Linkbot. LinkbotJS also sets up a dummy baroboBridge, so the library
+# doesn't throw lots of errors on non-barobo browsers. It obviously won't
+# communicate with robots on those browsers, but at least apps won't crash
+# and die.
 
 #
 # RobotManager class
@@ -61,6 +61,17 @@ class RobotManager
     if idx >= 0 && @robots[idx].status == "acquired"
       @robots[idx].status = "ready"
 
+  # UI actions, suitable for use as EventListeners.
+
+  uiAdd: (e) =>
+    e.preventDefault()
+    idInput = @element.querySelector('input')
+    @add(idInput.value)
+    idInput.value = ""
+    @drawList()
+    @connect()
+    @drawList()
+
   # "Impure" methods, which effect either robots or the UI, not just this.
   drawList: ->
     doc = @element.ownerDocument
@@ -82,18 +93,8 @@ class RobotManager
           else
             "failed"
 
-  # UI actions, suitable for use as EventListeners.
-  uiAdd: (e) =>
-    e.preventDefault()
-    idInput = @element.querySelector('input')
-    @add(idInput.value)
-    idInput.value = ""
-    @drawList()
-    @connect()
-    @drawList()
-
 #
-# "Module" object, exposed globally.
+# LinkbotJS library object, exposed globally.
 #
 @Linkbots = ((doc)->
   # Private stuff
@@ -119,7 +120,7 @@ class RobotManager
 )(@document)
 
 #
-# Linkbot class, accessed through Linkbots.connect.
+# Linkbot class, accessed through Linkbots.acquire
 #
 class Linkbot
   _wheelRadius: 1.75
@@ -190,7 +191,7 @@ class Linkbot
     baroboBridge.disableButtonSignals(@_id)
 
 #
-# "Private" library methods.
+# Private, static library methods.
 #
 # These functions translate baroboBridge's interface to LinkbotJS'
 # interface, returning a (Qt) slot that calls a user-supplied (js)
@@ -213,7 +214,7 @@ wheelSlot = (robot, wheelId, callback, model = {}) ->
       })
 
 #
-# The mock baroboBridge object.
+# The private mock baroboBridge object.
 #
 baroboBridge =
   if @baroboBridge?
