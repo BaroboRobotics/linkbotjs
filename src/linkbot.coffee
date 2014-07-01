@@ -75,8 +75,11 @@ class RobotManager
 
   _constructElement: (document) ->
     el = document.createElement('div')
-    el.setAttribute('class', 'robomgr--container')
+    el.setAttribute('class', 'robomgr-container robomgr-container-hidden')
     el.innerHTML =
+      '<div class="robomgr-pullout">' +
+        '<span class="robomgr-pulloutbtn robomgr-right"></span>' +
+      '</div>' +
       '<form>' +
         '<div>' +
           '<label for="roboInput">' +
@@ -89,9 +92,11 @@ class RobotManager
       '<ol></ol>'
 
     addBtn = el.querySelector('button')
+    pulloutBtn = el.querySelector('.robomgr-pullout')
 
     # Add ui-facing event listeners
     addBtn.addEventListener('click', @_uiAdd)
+    pulloutBtn.addEventListener('click', @_uiMenuSlide)
 
     el
 
@@ -106,6 +111,19 @@ class RobotManager
     @connect()
     @drawList()
 
+  _uiMenuSlide: (e) =>
+    e.preventDefault()
+    spanBtn = @element.querySelector('span')
+    container = document.querySelector('.robomgr-container')
+    left = /robomgr-left/.test(spanBtn.className)
+    if left
+      spanBtn.className = 'robomgr-pulloutbtn robomgr-right'
+      container.className = 'robomgr-container robomgr-container-hidden'
+    else
+      spanBtn.className = 'robomgr-pulloutbtn robomgr-left'
+      container.className = 'robomgr-container robomgr-container-open'
+    e
+    
   # Methods for communicating with this class
 
   drawList: ->

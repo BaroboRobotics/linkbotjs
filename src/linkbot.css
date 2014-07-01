@@ -1,0 +1,67 @@
+body {
+	margin-left: 40px;
+}
+.robomgr-container {
+	z-index: 1000;
+	background-color: #FFF;
+	width: 300px;
+	height: 300px;
+	float: left;
+	position: fixed;
+	top: 100px;
+	border: 1px solid black;
+	padding: 3px;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+}
+.robomgr-container-hidden {
+	left: -270px;
+	-webkit-transition: all 1s ease;
+  	-moz-transition: all 1s ease;
+  	-o-transition: all 1s ease;
+  	-ms-transition: all 1s ease;
+  	transition: all 1s ease;
+}
+.robomgr-container-open {
+	left: 0px;
+	-webkit-transition: all 1s ease;
+  	-moz-transition: all 1s ease;
+  	-o-transition: all 1s ease;
+  	-ms-transition: all 1s ease;
+  	transition: all 1s ease;
+}
+.robomgr-pullout {
+	float: right;
+	position: relative;
+	top: -3px;
+	right: -3px;
+	height: 298px;
+	width: 30px;
+	background-color: #F0F0F0;
+	border-left: 1px solid #D9D9D9;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+}
+.robomgr-pulloutbtn {
+	display: inline-block;
+	position: relative;
+	top: 137px;
+	right: -2px;
+}
+
+span.robomgr-left {
+	width: 0;
+	height: 0;
+	border-top: 10px solid transparent;
+	border-right: 20px solid black;
+	border-bottom: 10px solid transparent;
+}
+
+span.robomgr-right {
+	width: 0;
+	height: 0;
+	border-top: 10px solid transparent;
+	border-left: 20px solid black;
+	border-bottom: 10px solid transparent;
+}
+
