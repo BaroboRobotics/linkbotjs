@@ -6,6 +6,7 @@ body {
 	background-color: #FFF;
 	width: 300px;
 	height: 300px;
+	font-size: 14px;
 	float: left;
 	position: fixed;
 	top: 100px;
@@ -13,6 +14,64 @@ body {
 	padding: 3px;
 	border-top-right-radius: 10px;
 	border-bottom-right-radius: 10px;
+	line-height: 1.42857143;
+}
+.robomgr-container form {
+	background-color: #fff;
+	border-color: #ddd;
+	border-width: 1px;
+	border-radius: 4px 4px 0 0;
+}
+.robomgr-container form label {
+	font-weight: 700;
+	display: inline-block;
+	margin-right: 10px;
+}
+.robomgr-container form input {
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	padding: 1px 5px;
+}
+.robomgr-container button {
+	color: #333;
+	background-color: #fff;
+	display: inline-block;
+	padding: 6px 12px;
+	margin-bottom: 0;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+.robomgr-container ol {
+	padding-left: 0;
+	margin-bottom: 20px;
+	margin-top: 0;
+	width: 240px;
+}
+.robomgr-container ol li:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+}
+.robomgr-container ol li:last-child {
+	margin-bottom: 0;
+	border-bottom-right-radius: 4px;
+	border-bottom-left-radius: 4px;
+}
+.robomgr-container ol li {
+	position: relative;
+	display: block;
+	padding: 10px 15px;
+	margin-bottom: -1px;
+	background-color: #fff;
+	border: 1px solid #ddd;
 }
 .robomgr-container-hidden {
 	left: -270px;
@@ -41,6 +100,12 @@ body {
 	border-left: 1px solid #D9D9D9;
 	border-top-right-radius: 10px;
 	border-bottom-right-radius: 10px;
+}
+.robomgr-buttonbar {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	margin: 5px;
 }
 .robomgr-pulloutbtn {
 	display: inline-block;

@@ -85,11 +85,11 @@ class RobotManager
           '<label for="roboInput">' +
             'Linkbot ID' +
           '</label>' +
-          '<input type="text" placeholder="Linkbot ID">' +
+          '<input id="robotInput" type="text" placeholder="Linkbot ID">' +
         '</div>' +
-        '<button>+</button>' +
       '</form>' +
-      '<ol></ol>'
+      '<ol></ol>' +
+      '<div class="robomgr-buttonbar"><button id="robomgr-add">Add</button></div>'
 
     addBtn = el.querySelector('button')
     pulloutBtn = el.querySelector('.robomgr-pullout')
@@ -123,7 +123,7 @@ class RobotManager
       spanBtn.className = 'robomgr-pulloutbtn robomgr-left'
       container.className = 'robomgr-container robomgr-container-open'
     e
-    
+
   # Methods for communicating with this class
 
   drawList: ->
