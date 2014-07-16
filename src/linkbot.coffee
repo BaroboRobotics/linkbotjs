@@ -81,15 +81,15 @@ class RobotManager
         '<span class="robomgr-pulloutbtn robomgr-right"></span>' +
       '</div>' +
       '<form>' +
-        '<div>' +
-          '<label for="roboInput">' +
+        '<div id="robotFormContainer">' +
+          '<label for="robotInput" id="robotInputLabel" class="sr-only">' +
             'Linkbot ID' +
           '</label>' +
-          '<input id="robotInput" type="text" placeholder="Linkbot ID">' +
+          '<input name="robotInput" id="robotInput" type="text" placeholder="Linkbot ID">' +
+          '<button id="robomgr-add">Add</button>' +
         '</div>' +
       '</form>' +
-      '<ol></ol>' +
-      '<div class="robomgr-buttonbar"><button id="robomgr-add">Add</button></div>'
+      '<ol></ol>'
 
     addBtn = el.querySelector('button')
     pulloutBtn = el.querySelector('.robomgr-pullout')
@@ -104,7 +104,7 @@ class RobotManager
 
   _uiAdd: (e) =>
     e.preventDefault()
-    idInput = @element.querySelector('input')
+    idInput = @element.querySelector('input#robotInput')
     @robots.add(idInput.value)
     idInput.value = ""
     @drawList()

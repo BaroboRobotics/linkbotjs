@@ -79,30 +79,49 @@
 
   RobotManager = (function() {
     function RobotManager(document) {
+      this._uiMenuSlide = __bind(this._uiMenuSlide, this);
       this._uiAdd = __bind(this._uiAdd, this);
       this.robots = new RobotStatus();
       this.element = this._constructElement(document);
     }
 
     RobotManager.prototype._constructElement = function(document) {
-      var addBtn, el;
+      var addBtn, el, pulloutBtn;
       el = document.createElement('div');
-      el.setAttribute('class', 'robomgr--container');
-      el.innerHTML = '<form>' + '<div>' + '<label for="roboInput">' + 'Linkbot ID' + '</label>' + '<input type="text" placeholder="Linkbot ID">' + '</div>' + '<button>+</button>' + '</form>' + '<ol></ol>';
+      el.setAttribute('class', 'robomgr-container robomgr-container-hidden');
+      el.innerHTML = '<div class="robomgr-pullout">' + '<span class="robomgr-pulloutbtn robomgr-right"></span>' + '</div>' + '<form>' + '<div>' + '<label for="robotInput" id="robotInputLabel">' + 'Linkbot ID' + '</label>' + '<input name="robotInput" id="robotInput" type="text" placeholder="Linkbot ID">' + '</div>' + '</form>' + '<ol></ol>' + '<div class="robomgr-buttonbar"><button id="robomgr-add">Add</button></div>';
       addBtn = el.querySelector('button');
+      pulloutBtn = el.querySelector('.robomgr-pullout');
       addBtn.addEventListener('click', this._uiAdd);
+      pulloutBtn.addEventListener('click', this._uiMenuSlide);
       return el;
     };
 
     RobotManager.prototype._uiAdd = function(e) {
       var idInput;
       e.preventDefault();
-      idInput = this.element.querySelector('input');
+      idInput = this.element.querySelector('input#robotInput');
       this.robots.add(idInput.value);
       idInput.value = "";
       this.drawList();
       this.connect();
       return this.drawList();
+    };
+
+    RobotManager.prototype._uiMenuSlide = function(e) {
+      var container, left, spanBtn;
+      e.preventDefault();
+      spanBtn = this.element.querySelector('span');
+      container = document.querySelector('.robomgr-container');
+      left = /robomgr-left/.test(spanBtn.className);
+      if (left) {
+        spanBtn.className = 'robomgr-pulloutbtn robomgr-right';
+        container.className = 'robomgr-container robomgr-container-hidden';
+      } else {
+        spanBtn.className = 'robomgr-pulloutbtn robomgr-left';
+        container.className = 'robomgr-container robomgr-container-open';
+      }
+      return e;
     };
 
     RobotManager.prototype.drawList = function() {
