@@ -5,7 +5,9 @@
     "Barobo, Inc."
   ],
   "description": "Javascript API for interacting with Barobo robots",
-  "main": "linkbot.js",
+  "main": [
+		"./dist/linkbot.js",
+		"./dist/linkbot.css"],
   "keywords": [
     "barobo",
     "linkbot",
