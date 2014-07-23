@@ -287,6 +287,39 @@ describe "LinkbotJS", ->
         roboStatus.add(666)
         expect(roboStatus.robots.length).toEqual(rs.length + 1)
 
+      it "adds robot to the end of list", ->
+        roboStatus.add(666)
+        expect(roboStatus.robots[roboStatus.robots.length - 1].id).toEqual(666)
+
+      it "sets status to new", ->
+        roboStatus.add(666)
+        expect(roboStatus.robots[roboStatus.robots.length - 1].status).toEqual("new")
+
+    describe "remove", ->
+      rs = null
+      beforeEach ->
+        rs = roboStatus.robots.slice()
+
+      it "removes the robot", ->
+        rid = roboStatus.robots[0].id
+        rm = roboStatus.remove(rid)
+        expect(roboStatus.robots.length).toEqual(rs.length - 1)
+        expect(rm).toEqual([
+          {
+            status: "failed"
+            linkbot: null
+            id: 99
+          }
+        ])
+
+      it "returns false if list is empty", ->
+        roboStatus.robots = []
+        expect(roboStatus.remove(16)).toBe(false)
+
+      it "returns false if robot isn't in list", ->
+        expect(roboStatus.remove(666)).toBe(false)
+        expect(roboStatus.robots.length).toEqual(rs.length)
+
     describe "relinquish", ->
       rs = null
       beforeEach ->
