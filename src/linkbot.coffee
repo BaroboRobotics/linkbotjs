@@ -45,6 +45,13 @@ class RobotStatus
     else
       false
 
+  remove: (id) ->
+    idx = @robots.map((x) -> x.id).indexOf(id)
+    if idx >= 0
+      @robots.splice(idx, 1)
+    else
+      false
+
   relinquish: (bot) ->
     idx = @robots.map((x) -> x.id).indexOf(bot._id)
     if idx >= 0 && @robots[idx].status == "acquired"
