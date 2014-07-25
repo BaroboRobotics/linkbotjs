@@ -12,6 +12,10 @@ coffee () {
     command coffee -m -b -c -o build $@ 2>&1 | tee errors.err
 }
 
+buildCopy () {
+    cp -vt build $@
+}
+
 docco () {
     command docco -l linear -o build/doc $@
 }
@@ -29,7 +33,14 @@ process () {
     f=$2
     case $w in
         ./src/)
-            coffee $w$f
+            case $f in
+              *.coffee)
+                  coffee $w$f
+                  ;;
+              *.css)
+                  buildCopy $w$f
+                  ;;
+            esac
             ;;
         ./doc/)
             docco $w$f
