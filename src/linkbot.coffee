@@ -131,16 +131,32 @@ class RobotManager
       container.className = 'robomgr-container robomgr-container-open'
     e
 
+  _uiRemoveFn: (id) =>
+    (e) =>
+      e.preventDefault()
+      @robots.remove(id)
+      @drawList()
+
+  # Sub-methods
+
+  _robotLi: (doc, r) ->
+    li = doc.createElement('li')
+    rm = doc.createElement('span')
+    rm.innerText = '[-]'
+    rm.setAttribute('class', "robomgr--rm")
+    rm.addEventListener('click', @_uiRemoveFn(r.id))
+    li.setAttribute('class', "robomgr--#{r.status}")
+    li.innerText = r.id
+    li.appendChild(rm)
+    li
+
   # Methods for communicating with this class
 
   drawList: ->
     doc = @element.ownerDocument
     ol = doc.createElement('ol')
     for r in @robots.list()
-      li = doc.createElement('li')
-      li.setAttribute('class', "robomgr--#{r.status}")
-      li.innerText = r.id
-      ol.appendChild li
+      ol.appendChild(@_robotLi(doc, r))
     @element.replaceChild(ol, @element.querySelector('ol'))
 
   connect: ->
