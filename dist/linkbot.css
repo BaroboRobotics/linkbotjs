@@ -133,6 +133,19 @@ span.robomgr-right {
 	border-bottom: 10px solid transparent;
 }
 
+.robomgr--rmBtn {
+  cursor: pointer;
+  float: right;
+}
+
+.robomgr--hoverItem {
+  display: none;
+}
+
+.robomgr--roboHover .robomgr--hoverItem {
+  display: initial;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

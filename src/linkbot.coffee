@@ -1,5 +1,5 @@
-# LinkbotJS API
-
+### LinkbotJS 0.1.1 ###
+#
 # The API for LinkbotJS is found in two parts. The first is the Linkbots
 # object, with is the global 'library' object (like $ for JQuery). The
 # second, and largest, is the Linkbot class, which manages a single

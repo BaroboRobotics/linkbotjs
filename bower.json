@@ -6,8 +6,8 @@
   ],
   "description": "Javascript API for interacting with Barobo robots",
   "main": [
-		"./dist/linkbot.js",
-		"./dist/linkbot.css"],
+    "./dist/linkbot.js",
+    "./dist/linkbot.css"],
   "keywords": [
     "barobo",
     "linkbot",
