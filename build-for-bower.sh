@@ -2,4 +2,5 @@
 
 set -e
 
-coffee -c --no-header -o . src/linkbot.coffee
+coffee -c --no-header -o dist src/linkbot.coffee
+cp -t dist src/linkbot.css

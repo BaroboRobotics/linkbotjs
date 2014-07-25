@@ -8,6 +8,23 @@ docs](http://baroborobotics.github.io/LinkbotJS/).
 Compile src/linkbot.coffee to javascript with
 [coffee](http://coffeescript.org/).
 
+### Building for distribution via Bower
+
+1. Create a release branch, following the
+   [gitflow](https://www.atlassian.com/git/workflows#!workflow-gitflow)
+   methodology.
+1. Update bower.json to specify the new version number.
+2. Compile the deliverable linkbot.js with `coffee -c --no-header -o . src/linkbot.coffee`
+3. Check in those files
+4. Merge into master, again following gitflow methdology (remembering to use
+   `git merge --no-ff`).
+5. Create a release tag (e.g. v0.2.0)
+6. Push master and the tag to Github
+
+### Consuming via Bower
+
+`bower install linkbotjs=BaroboRobotics/LinkbotJS`
+
 ### Testing
 
 Unit tests are runnable with

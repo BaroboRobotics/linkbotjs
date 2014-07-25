@@ -1,5 +1,5 @@
-# LinkbotJS API
-
+### LinkbotJS 0.1.1 ###
+#
 # The API for LinkbotJS is found in two parts. The first is the Linkbots
 # object, with is the global 'library' object (like $ for JQuery). The
 # second, and largest, is the Linkbot class, which manages a single
@@ -45,6 +45,13 @@ class RobotStatus
     else
       false
 
+  remove: (id) ->
+    idx = @robots.map((x) -> x.id).indexOf(id)
+    if idx >= 0
+      @robots.splice(idx, 1)
+    else
+      false
+
   relinquish: (bot) ->
     idx = @robots.map((x) -> x.id).indexOf(bot._id)
     if idx >= 0 && @robots[idx].status == "acquired"
@@ -75,23 +82,28 @@ class RobotManager
 
   _constructElement: (document) ->
     el = document.createElement('div')
-    el.setAttribute('class', 'robomgr--container')
+    el.setAttribute('class', 'robomgr-container robomgr-container-hidden')
     el.innerHTML =
+      '<div class="robomgr-pullout">' +
+        '<span class="robomgr-pulloutbtn robomgr-right"></span>' +
+      '</div>' +
       '<form>' +
-        '<div>' +
-          '<label for="roboInput">' +
+        '<div id="robotFormContainer">' +
+          '<label for="robotInput" id="robotInputLabel" class="sr-only">' +
             'Linkbot ID' +
           '</label>' +
-          '<input type="text" placeholder="Linkbot ID">' +
+          '<input name="robotInput" id="robotInput" type="text" placeholder="Linkbot ID">' +
+          '<button id="robomgr-add">Add</button>' +
         '</div>' +
-        '<button>+</button>' +
       '</form>' +
       '<ol></ol>'
 
     addBtn = el.querySelector('button')
+    pulloutBtn = el.querySelector('.robomgr-pullout')
 
     # Add ui-facing event listeners
     addBtn.addEventListener('click', @_uiAdd)
+    pulloutBtn.addEventListener('click', @_uiMenuSlide)
 
     el
 
@@ -99,12 +111,62 @@ class RobotManager
 
   _uiAdd: (e) =>
     e.preventDefault()
-    idInput = @element.querySelector('input')
+    idInput = @element.querySelector('input#robotInput')
     @robots.add(idInput.value)
     idInput.value = ""
     @drawList()
     @connect()
     @drawList()
+
+  _uiMenuSlide: (e) =>
+    e.preventDefault()
+    spanBtn = @element.querySelector('span')
+    container = document.querySelector('.robomgr-container')
+    left = /robomgr-left/.test(spanBtn.className)
+    if left
+      spanBtn.className = 'robomgr-pulloutbtn robomgr-right'
+      container.className = 'robomgr-container robomgr-container-hidden'
+    else
+      spanBtn.className = 'robomgr-pulloutbtn robomgr-left'
+      container.className = 'robomgr-container robomgr-container-open'
+    e
+
+  _uiRemoveFn: (id) =>
+    (e) =>
+      e.preventDefault()
+      @robots.remove(id)
+      @drawList()
+
+  # Sub-methods
+
+  _robotLi: (doc, r) ->
+    li = doc.createElement('li')
+    rm = doc.createElement('span')
+    rm.innerText = '[-]'
+    rm.setAttribute('class', "robomgr--rmBtn robomgr--hoverItem")
+    rm.addEventListener('click', @_uiRemoveFn(r.id))
+    li.setAttribute('class', "robomgr--#{r.status}")
+    li.innerText = r.id
+    li.appendChild(rm)
+    # Qt only supports mouseover and mouseout as of Qt 5.3. No
+    # mouseenter/mouseleave. Thus need to bubble (not capture), test if
+    # target is LI element, and cancel propagation.
+    li.addEventListener(
+      'mouseover'
+      (e) ->
+        e.stopPropagation()
+        if e.currentTarget.nodeName == "LI"
+          e.currentTarget.classList.add("robomgr--roboHover")
+    )
+    # See above.
+    li.addEventListener(
+      'mouseout'
+      (e) ->
+        e.stopPropagation()
+        if e.currentTarget.nodeName == "LI"
+          e.currentTarget.classList.remove("robomgr--roboHover")
+    )
+    li
 
   # Methods for communicating with this class
 
@@ -112,10 +174,7 @@ class RobotManager
     doc = @element.ownerDocument
     ol = doc.createElement('ol')
     for r in @robots.list()
-      li = doc.createElement('li')
-      li.setAttribute('class', "robomgr--#{r.status}")
-      li.innerText = r.id
-      ol.appendChild li
+      ol.appendChild(@_robotLi(doc, r))
     @element.replaceChild(ol, @element.querySelector('ol'))
 
   connect: ->

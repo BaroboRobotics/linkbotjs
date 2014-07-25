@@ -1,3 +1,6 @@
+
+/* LinkbotJS 0.1.1 */
+
 (function() {
   var Linkbot, RobotManager, RobotStatus, baroboBridge, buttonSlot, k, methods, obj, signals, wheelSlot,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -48,6 +51,18 @@
       }
     };
 
+    RobotStatus.prototype.remove = function(id) {
+      var idx;
+      idx = this.robots.map(function(x) {
+        return x.id;
+      }).indexOf(id);
+      if (idx >= 0) {
+        return this.robots.splice(idx, 1);
+      } else {
+        return false;
+      }
+    };
+
     RobotStatus.prototype.relinquish = function(bot) {
       var idx;
       idx = this.robots.map(function(x) {
@@ -79,25 +94,29 @@
 
   RobotManager = (function() {
     function RobotManager(document) {
+      this._uiRemoveFn = __bind(this._uiRemoveFn, this);
+      this._uiMenuSlide = __bind(this._uiMenuSlide, this);
       this._uiAdd = __bind(this._uiAdd, this);
       this.robots = new RobotStatus();
       this.element = this._constructElement(document);
     }
 
     RobotManager.prototype._constructElement = function(document) {
-      var addBtn, el;
+      var addBtn, el, pulloutBtn;
       el = document.createElement('div');
-      el.setAttribute('class', 'robomgr--container');
-      el.innerHTML = '<form>' + '<div>' + '<label for="roboInput">' + 'Linkbot ID' + '</label>' + '<input type="text" placeholder="Linkbot ID">' + '</div>' + '<button>+</button>' + '</form>' + '<ol></ol>';
+      el.setAttribute('class', 'robomgr-container robomgr-container-hidden');
+      el.innerHTML = '<div class="robomgr-pullout">' + '<span class="robomgr-pulloutbtn robomgr-right"></span>' + '</div>' + '<form>' + '<div id="robotFormContainer">' + '<label for="robotInput" id="robotInputLabel" class="sr-only">' + 'Linkbot ID' + '</label>' + '<input name="robotInput" id="robotInput" type="text" placeholder="Linkbot ID">' + '<button id="robomgr-add">Add</button>' + '</div>' + '</form>' + '<ol></ol>';
       addBtn = el.querySelector('button');
+      pulloutBtn = el.querySelector('.robomgr-pullout');
       addBtn.addEventListener('click', this._uiAdd);
+      pulloutBtn.addEventListener('click', this._uiMenuSlide);
       return el;
     };
 
     RobotManager.prototype._uiAdd = function(e) {
       var idInput;
       e.preventDefault();
-      idInput = this.element.querySelector('input');
+      idInput = this.element.querySelector('input#robotInput');
       this.robots.add(idInput.value);
       idInput.value = "";
       this.drawList();
@@ -105,17 +124,65 @@
       return this.drawList();
     };
 
+    RobotManager.prototype._uiMenuSlide = function(e) {
+      var container, left, spanBtn;
+      e.preventDefault();
+      spanBtn = this.element.querySelector('span');
+      container = document.querySelector('.robomgr-container');
+      left = /robomgr-left/.test(spanBtn.className);
+      if (left) {
+        spanBtn.className = 'robomgr-pulloutbtn robomgr-right';
+        container.className = 'robomgr-container robomgr-container-hidden';
+      } else {
+        spanBtn.className = 'robomgr-pulloutbtn robomgr-left';
+        container.className = 'robomgr-container robomgr-container-open';
+      }
+      return e;
+    };
+
+    RobotManager.prototype._uiRemoveFn = function(id) {
+      return (function(_this) {
+        return function(e) {
+          e.preventDefault();
+          _this.robots.remove(id);
+          return _this.drawList();
+        };
+      })(this);
+    };
+
+    RobotManager.prototype._robotLi = function(doc, r) {
+      var li, rm;
+      li = doc.createElement('li');
+      rm = doc.createElement('span');
+      rm.innerText = '[-]';
+      rm.setAttribute('class', "robomgr--rmBtn robomgr--hoverItem");
+      rm.addEventListener('click', this._uiRemoveFn(r.id));
+      li.setAttribute('class', "robomgr--" + r.status);
+      li.innerText = r.id;
+      li.appendChild(rm);
+      li.addEventListener('mouseover', function(e) {
+        e.stopPropagation();
+        if (e.currentTarget.nodeName === "LI") {
+          return e.currentTarget.classList.add("robomgr--roboHover");
+        }
+      });
+      li.addEventListener('mouseout', function(e) {
+        e.stopPropagation();
+        if (e.currentTarget.nodeName === "LI") {
+          return e.currentTarget.classList.remove("robomgr--roboHover");
+        }
+      });
+      return li;
+    };
+
     RobotManager.prototype.drawList = function() {
-      var doc, li, ol, r, _i, _len, _ref;
+      var doc, ol, r, _i, _len, _ref;
       doc = this.element.ownerDocument;
       ol = doc.createElement('ol');
       _ref = this.robots.list();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         r = _ref[_i];
-        li = doc.createElement('li');
-        li.setAttribute('class', "robomgr--" + r.status);
-        li.innerText = r.id;
-        ol.appendChild(li);
+        ol.appendChild(this._robotLi(doc, r));
       }
       return this.element.replaceChild(ol, this.element.querySelector('ol'));
     };

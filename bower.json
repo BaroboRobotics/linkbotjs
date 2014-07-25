@@ -1,11 +1,13 @@
 {
   "name": "LinkbotJS",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "authors": [
     "Barobo, Inc."
   ],
   "description": "Javascript API for interacting with Barobo robots",
-  "main": "linkbot.js",
+  "main": [
+    "./dist/linkbot.js",
+    "./dist/linkbot.css"],
   "keywords": [
     "barobo",
     "linkbot",
