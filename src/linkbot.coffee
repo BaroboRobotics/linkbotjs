@@ -143,11 +143,29 @@ class RobotManager
     li = doc.createElement('li')
     rm = doc.createElement('span')
     rm.innerText = '[-]'
-    rm.setAttribute('class', "robomgr--rm")
+    rm.setAttribute('class', "robomgr--rmBtn robomgr--hoverItem")
     rm.addEventListener('click', @_uiRemoveFn(r.id))
     li.setAttribute('class', "robomgr--#{r.status}")
     li.innerText = r.id
     li.appendChild(rm)
+    # Qt only supports mouseover and mouseout as of Qt 5.3. No
+    # mouseenter/mouseleave. Thus need to bubble (not capture), test if
+    # target is LI element, and cancel propagation.
+    li.addEventListener(
+      'mouseover'
+      (e) ->
+        e.stopPropagation()
+        if e.currentTarget.nodeName == "LI"
+          e.currentTarget.classList.add("robomgr--roboHover")
+    )
+    # See above.
+    li.addEventListener(
+      'mouseout'
+      (e) ->
+        e.stopPropagation()
+        if e.currentTarget.nodeName == "LI"
+          e.currentTarget.classList.remove("robomgr--roboHover")
+    )
     li
 
   # Methods for communicating with this class
