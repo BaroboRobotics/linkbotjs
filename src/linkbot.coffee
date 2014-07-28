@@ -155,7 +155,7 @@ class RobotManager
       'mouseover'
       (e) ->
         e.stopPropagation()
-        if e.currentTarget.nodeName == "LI"
+        if e.currentTarget == li
           e.currentTarget.classList.add("robomgr--roboHover")
     )
     # See above.
@@ -163,7 +163,7 @@ class RobotManager
       'mouseout'
       (e) ->
         e.stopPropagation()
-        if e.currentTarget.nodeName == "LI"
+        if e.currentTarget == li
           e.currentTarget.classList.remove("robomgr--roboHover")
     )
     li
