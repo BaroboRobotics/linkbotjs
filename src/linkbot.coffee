@@ -80,43 +80,49 @@ class RobotManager
     @robots = new RobotStatus()
     @element = @_constructElement(document)
 
-  _constructElement: (document) ->
-    el = document.createElement('div')
-    el.setAttribute('class', 'robomgr-container robomgr-container-hidden')
-    el.innerHTML =
-      '<div class="robomgr-pullout">' +
-        '<span class="robomgr-pulloutbtn robomgr-right"></span>' +
-      '</div>' +
-      '<form>' +
-        '<div id="robotFormContainer">' +
-          '<label for="robotInput" id="robotInputLabel" class="sr-only">' +
-            'Linkbot ID' +
-          '</label>' +
-          '<input name="robotInput" id="robotInput" type="text" placeholder="Linkbot ID">' +
-          '<button id="robomgr-add">Add</button>' +
-        '</div>' +
-      '</form>' +
-      '<ol></ol>'
+  # Primary interface
 
-    addBtn = el.querySelector('button')
-    pulloutBtn = el.querySelector('.robomgr-pullout')
+  acquire: (n) ->
+    x = @robots.acquire(n)
+    @redraw()
+    x
 
-    # Add ui-facing event listeners
-    addBtn.addEventListener('click', @_uiAdd)
-    pulloutBtn.addEventListener('click', @_uiMenuSlide)
+  relinquish: (l) ->
+    l.disconnect()
+    @robots.relinquish(l)
+    @redraw()
 
-    el
+  # Low level actions. These can be used directly, but it helps if you know
+  # what you're doing.
+
+  add: (ids...) ->
+    ids.map((i) => @robots.add i)
+
+  redraw: ->
+    doc = @element.ownerDocument
+    ol = doc.createElement('ol')
+    for r in @robots.list()
+      ol.appendChild(@_robotLi(doc, r))
+    @element.replaceChild(ol, @element.querySelector('ol'))
+
+  connect: ->
+    for r, idx in @robots.list()
+      if r.status == "new"
+        bot = new Linkbot(r.id)
+        if bot._id?
+          @robots.ready(idx, bot)
+        else
+          @robots.fail(idx)
 
   # UI actions, suitable for use as EventListeners.
 
   _uiAdd: (e) =>
     e.preventDefault()
     idInput = @element.querySelector('input#robotInput')
-    @robots.add(idInput.value)
+    @add(idInput.value)
     idInput.value = ""
-    @drawList()
     @connect()
-    @drawList()
+    @redraw()
 
   _uiMenuSlide: (e) =>
     e.preventDefault()
@@ -135,7 +141,7 @@ class RobotManager
     (e) =>
       e.preventDefault()
       @robots.remove(id)
-      @drawList()
+      @redraw()
 
   # Sub-methods
 
@@ -168,33 +174,32 @@ class RobotManager
     )
     li
 
-  # Methods for communicating with this class
+  _constructElement: (document) ->
+    el = document.createElement('div')
+    el.setAttribute('class', 'robomgr-container robomgr-container-hidden')
+    el.innerHTML =
+      '<div class="robomgr-pullout">' +
+        '<span class="robomgr-pulloutbtn robomgr-right"></span>' +
+      '</div>' +
+      '<form>' +
+        '<div id="robotFormContainer">' +
+          '<label for="robotInput" id="robotInputLabel" class="sr-only">' +
+            'Linkbot ID' +
+          '</label>' +
+          '<input name="robotInput" id="robotInput" type="text" placeholder="Linkbot ID">' +
+          '<button id="robomgr-add">Add</button>' +
+        '</div>' +
+      '</form>' +
+      '<ol></ol>'
 
-  drawList: ->
-    doc = @element.ownerDocument
-    ol = doc.createElement('ol')
-    for r in @robots.list()
-      ol.appendChild(@_robotLi(doc, r))
-    @element.replaceChild(ol, @element.querySelector('ol'))
+    addBtn = el.querySelector('button')
+    pulloutBtn = el.querySelector('.robomgr-pullout')
 
-  connect: ->
-    for r, idx in @robots.list()
-      if r.status == "new"
-        bot = new Linkbot(r.id)
-        if bot._id?
-          @robots.ready(idx, bot)
-        else
-          @robots.fail(idx)
+    # Add ui-facing event listeners
+    addBtn.addEventListener('click', @_uiAdd)
+    pulloutBtn.addEventListener('click', @_uiMenuSlide)
 
-  relinquish: (l) ->
-    l.disconnect()
-    @robots.relinquish(l)
-    @drawList()
-
-  acquire: (n) ->
-    x = @robots.acquire(n)
-    @drawList()
-    x
+    el
 
 #
 # LinkbotJS library object, exposed globally.
@@ -209,6 +214,11 @@ class RobotManager
     managerElement: -> manager.element
     acquire: (n)    -> manager.acquire(n)
     relinquish: (l) -> manager.relinquish(l)
+
+    # Low level interface.
+    managerAdd: (ids...) -> manager.add(ids...)
+    managerRedraw:       -> manager.redraw()
+    managerConnect:      -> manager.connect()
   }
 )(@document)
 

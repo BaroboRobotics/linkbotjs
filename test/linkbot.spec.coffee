@@ -195,6 +195,9 @@ describe "LinkbotJS", ->
           'managerElement'
           'acquire'
           'relinquish'
+          'managerAdd'
+          'managerRedraw'
+          'managerConnect'
         ]
       )
 
