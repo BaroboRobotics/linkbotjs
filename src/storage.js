@@ -21,10 +21,14 @@ function Storage(config) {
     db.transaction(function(tx) {
       tx.executeSql("DELETE FROM " + settings.TABLE + " WHERE name = ?", [name],
         function(tx, result) {
-          callback(true);
+          if (callback) {
+            callback(true);
+          }
         },
         function(tx, error) {
-          callback(false, error);
+          if (callback) {
+            callback(false, error);
+          }
         });
     });
   };
@@ -71,6 +75,33 @@ function Storage(config) {
         });
     });
   };
+  this.updateOrder = function(callback) {
+    db.transaction(function(tx) {
+      tx.executeSql("SELECT id FROM " + settings.TABLE + " ORDER BY rorder", [],
+          function(tx, result) {
+              var success = function(tx, results) {}; // do nothing
+              var error = function(tx, error) {
+                  if (callback) {
+                      callback(false, results);
+                  }
+              };
+              for (var i = 0; i < result.rows.length; i++) {
+                  tx.executeSql("UPDATE " + settings.TABLE + " SET rorder = ? WHERE id = ?", [i, result.rows.item(i).id],
+                      success,
+                      error);
+              }
+              if (callback) {
+                  callback(true);
+              }
+          },
+          function(tx, error) {
+              if (callback) {
+                  callback(false, results);
+              }
+          });
+    });
+  };
+
   // For debugging.
   this.printRows = function() {
     db.transaction(function(tx) {

@@ -349,3 +349,102 @@ baroboBridge =
     for k in signals
       obj[k] = { connect: (->), disconnect: (->) }
     obj
+
+
+class @WebSQL
+	constructor: ->
+		@DBNAME = "robotsdb"
+		@DBVER = 1.0
+		@DBDESC = "Robots Database, used for persistance"
+		@DBSIZE = 2 * 1024 * 1024
+		@TABLE = "robots"
+
+		@db = openDatabase(@DBNAME, @DBVER, @DBDESC, @DBSIZE);
+		@db.transaction (tx) =>
+			console.log "Creating DB"
+			tx.executeSql("CREATE TABLE IF NOT EXISTS #{@TABLE} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT not null, status INTEGER not null, rorder INTEGER not null)",
+				[],
+				(tx, results) => console.log(results),
+				(tx, error) => console.log(error),
+			)
+
+	add: (name, status) ->
+		@db.transaction (tx) =>
+			tx.executeSql("SELECT COUNT(*) AS c FROM #{@TABLE}",
+				[],
+				(tx, countResult) => 
+					@db.transaction (tx) =>
+						console.log "Saving #{name},#{status},#{countResult.rows.item(0).c}"
+						tx.executeSql("INSERT INTO #{@TABLE} (name, status, rorder) values (?,?,?)",
+							[name, status, countResult.rows.item(0).c],
+							(tx, results) => console.log(results),
+							(tx,error) => console.log(error),
+						)
+				(tx, error) => console.log(error),
+			)
+
+	output: ->
+		@db.transaction (tx) =>
+			tx.executeSql("SELECT * FROM #{@TABLE} ORDER BY rorder",
+				[],
+				(tx, results) =>
+					_rows = results.rows;
+					length = results.rows.length-1
+					for i in [0..length]
+						console.log('ID: ' + _rows.item(i).id + ',NAME: ' + _rows.item(i).name + ',STATUS: ' + _rows.item(i).status + ',ORDER: ' + _rows.item(i).rorder)
+					results
+				(tx, error) => console.log(error),
+			)
+	changePosition: (newPosition, oldPosition) ->
+		if newPosition == oldPosition
+			0
+		@db.transaction (tx) =>
+			tx.executeSql("SELECT * from #{@TABLE} WHERE rorder BETWEEN ? and ? ORDER BY rorder",
+				[newPosition, oldPosition],
+				(tx, results) =>
+					_r = results.rows;
+					l = results.rows.length-1
+					for i in [0..l]
+						console.log('ID: ' + _r.item(i).id + ',NAME: ' + _r.item(i).name + ',STATUS: ' + _r.item(i).status + ',ORDER: ' + _r.item(i).rorder)
+					if newPosition < oldPosition
+						newOrder = newPosition;
+						_rows = results.rows;
+						length = results.rows.length-1
+						for i in [0..length]
+							id = _rows.item(i).id
+							newOrder++
+							console.log('ID: ' + id + ', ORDER: ' + newOrder);
+							@db.transaction (tx) =>
+								console.log('ID: ' + id + ', ORDER: ' + newOrder);
+								tx.executeSql("UPDATE #{@TABLE} SET rorder = ? WHERE id = ?",
+									[newOrder, id],
+									(tx, results) => console.log(results),
+									(tx, error) => console.log('Error: ' + error),
+								)
+								
+						results
+					else
+						_rows = results.rows;
+						length = results.rows.length-1
+						console.log('length: ' + length);
+						for i in [0..length]
+							id = _rows.item(i).id
+							newOrder = _rows.item(i).rorder-1
+							console.log('ID: ' + id + ', ORDER: ' + newOrder);
+							if _rows.item(i).rorder == oldPosition
+								@db.transaction (tx) =>
+									tx.executeSql("UPDATE #{@TABLE} SET rorder = ? WHERE id = ?",
+										[newPosition, id],
+										(tx, results) => console.log(results),
+										(tx, error) => console.log(error),
+									);
+							else
+								@db.transaction (tx) =>
+									tx.executeSql("UPDATE #{@TABLE} SET rorder = ? WHERE id = ?",
+										[newOrder, id],
+										(tx, results) => console.log(results),
+										(tx, error) => console.log(error),);
+						results
+				(tx, error) => console.log(error),
+			)
+		0
