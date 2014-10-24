@@ -86,11 +86,20 @@
 #robomgr-container ol li .robomgr-slide-element-left {
 	left: 10px;
 	background: #202020 url('img/right-arrow.png') no-repeat 230px 8px;
-
+	-webkit-transition: left .25s ease;
+  	-moz-transition: left .25s ease;
+  	-o-transition: left .25s ease;
+  	-ms-transition: left .25s ease;
+  	transition: left .25s ease;
 }
 #robomgr-container ol li .robomgr-slide-element-right {
 	left: 250px;
 	background: #202020 url('img/left-arrow.png') no-repeat 230px 8px;
+	-webkit-transition: left .25s ease;
+  	-moz-transition: left .25s ease;
+  	-o-transition: left .25s ease;
+  	-ms-transition: left .25s ease;
+  	transition: left .25s ease;
 }
 #robomgr-container .robomgr-remove-btn, #robomgr-container .robomgr-beep-btn, #robomgr-container .robomgr-cntrpnl-btn {
 	display: inline-block;
@@ -122,19 +131,19 @@
 
 .robomgr-container-hidden {
 	left: -265px;
-	-webkit-transition: all 1s ease;
-  	-moz-transition: all 1s ease;
-  	-o-transition: all 1s ease;
-  	-ms-transition: all 1s ease;
-  	transition: all 1s ease;
+	-webkit-transition: left .5s ease;
+  	-moz-transition: left .5s ease;
+  	-o-transition: left .5s ease;
+  	-ms-transition: left .5s ease;
+  	transition: left .5s ease;
 }
 .robomgr-container-open {
 	left: 0px;
-	-webkit-transition: all 1s ease;
-  	-moz-transition: all 1s ease;
-  	-o-transition: all 1s ease;
-  	-ms-transition: all 1s ease;
-  	transition: all 1s ease;
+	-webkit-transition: left .5s ease;
+  	-moz-transition: left .5s ease;
+  	-o-transition: left .5s ease;
+  	-ms-transition: left .5s ease;
+  	transition: left .5s ease;
 }
 .robomgr-pullout {
 	float: right;
@@ -303,6 +312,9 @@ span.robomgr-right {
 .robomgr-control-title {
 	text-align: center;
 	padding-right: 72px;
+
+}
+.robomgr-control-title h1 {
 	font-size: 2em;
 }
 .robomgr-control-col {

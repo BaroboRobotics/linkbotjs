@@ -57,6 +57,10 @@ function RobotManager(document) {
         // TODO add error message here.
         return;
       }
+      var slideOutElements = document.getElementsByClassName('robomgr-slide-element-right');
+      for (var index = 0; index < slideOutElements.length; index++) {
+        slideOutElements[index].className = 'robomgr-slide-element robomgr-slide-element-left';
+      }
       // Show control panel.
       var contrlEl = document.getElementById('robomgr-control-panel');
       contrlEl.className = '';
@@ -92,6 +96,7 @@ function RobotManager(document) {
       overlay.setAttribute('class', 'robomgr-hide');
       controlPanelRobot.linkbot.unregister();
       controlPanelRobot = null;
+      _uiMenuSlide();
     }
 
     function valueToHex(value) {
@@ -184,7 +189,9 @@ function RobotManager(document) {
 
     function _uiMenuSlide(e) {
         var container, left, spanBtn;
-        e.preventDefault();
+        if (e && e.preventDefault) { 
+          e.preventDefault();
+        }
         spanBtn = manager.element.querySelector('span');
         container = document.querySelector('#robomgr-container');
         left = /robomgr-left/.test(spanBtn.className);
@@ -236,7 +243,11 @@ function RobotManager(document) {
         li.setAttribute('draggable', 'true');
         li.setAttribute('class', "robomgr--" + r.status);
         li.setAttribute('id', 'robomgr-id-' + r.id);
-        li.style.background = "#" + colorToHex(r.linkbot.getColor());
+        if (r.linkbot) {
+          li.style.background = "#" + colorToHex(r.linkbot.getColor());
+        } else {
+          li.style.background = "#606060";
+        }
         li.appendChild(beep);
         li.appendChild(controlPanel);
         li.appendChild(rm);
@@ -426,8 +437,7 @@ function RobotManager(document) {
         });
         var imgElements = controlPanel.getElementsByClassName('robomgr-control-img');
         imgElements[0].addEventListener('click', function(e) {
-          controlPanel.setAttribute('class', 'robomgr-hide');
-          overlay.setAttribute('class', 'robomgr-hide');
+          hideControlPanel();
         });
         // Enable controls.
         var i;
