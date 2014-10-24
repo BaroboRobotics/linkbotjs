@@ -303,6 +303,7 @@ span.robomgr-right {
 .robomgr-control-title {
 	text-align: center;
 	padding-right: 72px;
+	font-size: 2em;
 }
 .robomgr-control-col {
 	display: inline-block;
