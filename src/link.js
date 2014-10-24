@@ -1,6 +1,10 @@
 function Linkbot(_id) {
   // Private
   var bot = this;
+  var ledCallbacks = [];
+  var wheelSlotCallback = null;
+  var buttonSlotCallback = null;
+  var accelSlotCallback = null;
 
   bot._id = _id;
   err = baroboBridge.connectRobot(_id);
@@ -20,6 +24,21 @@ function Linkbot(_id) {
       baroboBridge.stop(bot._id);
       document.location = "../LinkbotUpdate/index.html?badRobot=" + idAsURI;
     }
+  }
+
+  function accelSlot(robot, callback, model) {
+    if (model === null) {
+      model = {};
+    }
+    return function(robotID, x, y, z) {
+      if (robotID === robot._id) {
+        return callback(robot, model, {
+          x: x,
+          y: y,
+          z: z
+        });
+      }
+    };
   }
 
   function buttonSlot(robot, buttonId, callback, model) {
@@ -59,6 +78,18 @@ function Linkbot(_id) {
 
   this.color = function(r, g, b) {
     baroboBridge.setLEDColor(bot._id, r, g, b);
+    for (var i in ledCallbacks) {
+      ledCallbacks[i](bot._id, r, g, b);
+    }
+  };
+
+  this.getColor = function() {
+    var color = {red:96, green:96, blue:96};
+    if (baroboBridge.getLEDColor) {
+      color = baroboBridge.getLEDColor(bot._id);
+    }
+    color.id = bot._id;
+    return color;
   };
 
   this.angularSpeed = function(s1, s2, s3) {
@@ -99,37 +130,83 @@ function Linkbot(_id) {
   };
 
   this.register = function(connections) {
-    var buttonId, registerObject, slot, wheelId, _ref, _ref1, _results, _wheelId;
-    if (connections.button !== null) {
+    var buttonId, registerObject, slot, wheelId, _ref, _results, _wheelId;
+    if (connections.button && connections.button !== null) {
       _ref = connections.button;
+      if (buttonSlotCallback === null) {
+        buttonSlotCallback = [];
+      }
       for (buttonId in _ref) {
         if (!__hasProp.call(_ref, buttonId)) continue;
         registerObject = _ref[buttonId];
         slot = buttonSlot(bot, parseInt(buttonId), registerObject.callback, registerObject.data);
         baroboBridge.buttonChanged.connect(slot);
+        buttonSlotCallback.push(slot);
         baroboBridge.enableButtonSignals(bot._id);
       }
     }
-    if (connections.wheel !== null) {
-      _ref1 = connections.wheel;
+    if (connections.wheel && connections.wheel !== null) {
+      _ref = connections.wheel;
       _results = [];
-      for (_wheelId in _ref1) {
-        if (!__hasProp.call(_ref1, _wheelId)) continue;
-        registerObject = _ref1[_wheelId];
+      if (wheelSlotCallback === null) {
+        wheelSlotCallback = [];
+      }
+      for (_wheelId in _ref) {
+        if (!__hasProp.call(_ref, _wheelId)) continue;
+        registerObject = _ref[_wheelId];
         wheelId = parseInt(_wheelId);
         slot = wheelSlot(bot, wheelId, registerObject.callback, registerObject.data);
         baroboBridge.setMotorEventThreshold(bot._id, wheelId, registerObject.distance);
         baroboBridge.motorChanged.connect(slot);
+        wheelSlotCallback.push(slot);
         _results.push(baroboBridge.enableMotorSignals(bot._id));
       }
-      return _results;
     }
+    if (connections.accel && connections.accel !== null) {
+      _ref = connections.accel;
+      accelSlotCallback = accelSlot(bot, _ref.callback, _ref.data);
+      baroboBridge.accelChanged.connect(accelSlotCallback);
+      baroboBridge.enableAccelSignals(bot._id);
+    }
+    if (connections.led && connections.led !== null) {
+      _ref = connections.led;
+      ledCallbacks.push(_ref.callback);
+    }
+    return _results;
   };
 
   this.unregister = function() {
-    baroboBridge.motorChanged.disconnect();
-    baroboBridge.disableMotorSignals(bot._id);
-    baroboBridge.buttonChanged.disconnect();
-    return baroboBridge.disableButtonSignals(bot._id);
+    try {
+      if (wheelSlotCallback && wheelSlotCallback !== null) {
+        baroboBridge.disableMotorSignals(bot._id);
+        for (var a in wheelSlotCallback) {
+          baroboBridge.motorChanged.disconnect(wheelSlotCallback[a]);
+        }
+        wheelSlotCallback = null;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+    try {
+      if (buttonSlotCallback && buttonSlotCallback !== null) {
+        baroboBridge.disableButtonSignals(bot._id);
+        for (var b in buttonSlotCallback) {
+          baroboBridge.buttonChanged.disconnect(buttonSlotCallback[b]);
+        }
+        buttonSlotCallback = null;
+      }
+      
+    } catch (err) {
+      console.log(err);
+    }
+    try {
+      if (accelSlotCallback !== null) {
+        baroboBridge.disableAccelSignals(bot._id);
+        baroboBridge.accelChanged.disconnect(accelSlotCallback);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+    ledCallbacks = [];
   };
 }

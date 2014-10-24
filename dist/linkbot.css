@@ -366,6 +366,9 @@ span.robomgr-right {
 	display: inline-block;
 	position: relative;
 }
+.linkbotjs-knob-container img {
+	content: url('img/knob-control.svg');
+}
 .linkbotjs-knob {
 	margin:0;
 	padding:0;

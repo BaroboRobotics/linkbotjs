@@ -62,6 +62,8 @@ var Linkbots = (function(exports, doc) {
         return manager.element;
     };
     exports.topNavElement = function() {
+        document.body.style.marginTop = "90px";
+        manager.element.style.top = "75px";
         return manager.topNav;
     };
     exports.acquire = function(n) {
@@ -80,7 +82,22 @@ var Linkbots = (function(exports, doc) {
     exports.managerConnect = function() {
         return manager.connect();
     };
+    exports.setNavTitle = function(title) {
+        var element = doc.getElementById('ljs-top-nav-title');
+        if (element) {
+            element.innerText = title;
+        }
+    };
+    exports.setNavCrumbs = function(crumbs) {
+        var element = doc.getElementById('ljs-top-nav-breadcrumbs');
+        if (element) {
+            element.innerText = crumbs.join(" // ");
+        }
+    };
     exports.storage = storage;
+
+    LinkbotControls.knob.init();
+    LinkbotControls.slider.init();
 
     return exports;
 })(Linkbots || {}, document);

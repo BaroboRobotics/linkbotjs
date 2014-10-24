@@ -34,7 +34,6 @@ var LinkbotControls = (function(parent, doc) {
 			wrapper.setAttribute('class', 'linkbotjs-knob-container');
 			parent.replaceChild(wrapper, inputElement);
 			inputElement.setAttribute('value', inputValue);
-			imgElement.setAttribute('src', 'img/knob-control.svg');
 			imgElement.setAttribute('width', '100%');
 			imgElement.draggable = false;
 			wrapper.appendChild(imgElement);
