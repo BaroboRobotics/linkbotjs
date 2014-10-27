@@ -296,6 +296,18 @@ span.robomgr-right {
 	background-color: #2c8aab;
 	text-align: center; 
 }
+#robomgr-control-panel .robomgr-btn-up:active,
+	#robomgr-control-panel .robomgr-btn-down:active,
+	#robomgr-control-panel .robomgr-btn-right:active,
+	#robomgr-control-panel .robomgr-btn-left:active {
+	background-color: #c2f7f8;
+}
+#robomgr-control-panel .robomgr-btn-stop:active {
+	background-color: #f74e27;
+}
+#robomgr-control-panel .robomgr-btn-zero:active {
+	background-color: #3cbce9;
+}
 .robomgr-control-nav {
 	margin-bottom: 3px;
 }

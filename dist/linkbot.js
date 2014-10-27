@@ -496,20 +496,20 @@ baroboBridge = (function(main) {
           ' <div class="robomgr-row">',
           '   <div class="robomgr-control-col">speed',
           '     <div class="robomgr-control-poster" style="padding: 10px;">',
-          '       <div style="float: left; width: 115px;">',
+          '       <div style="float: left; width: 110px;">',
           '         <div id="speed-joint-1" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 1: <span id="speed-joint-1-value">10</span></p>',
           '       </div>',
-          '       <div style="margin-left: 125px; width: 115px;">',
+          '       <div style="margin-left: 132px; width: 110px;">',
           '         <div id="speed-joint-2" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 2: <span id="speed-joint-2-value">10</span></p>',
           '       </div>',
           '     </div>',
           '   </div>',
           '   <div class="robomgr-control-col">acceleration',
           '     <div class="robomgr-control-poster" style="padding: 10px;">',
-          '       <div style="float: left; width: 115px;">',
+          '       <div style="float: left; width: 110px;">',
           '         <div id="acceleration-joint-1" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 1: <span id="acceleration-joint-1-value">10</span></p>',
           '       </div>',
-          '       <div style="margin-left: 125px; width: 115px;">',
+          '       <div style="margin-left: 132px; width: 110px;">',
           '         <div id="acceleration-joint-2" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 2: <span id="acceleration-joint-2-value">10</span></p>',
           '       </div>',
           '     </div>',
@@ -861,7 +861,7 @@ baroboBridge = (function(main) {
         buttonSlotCallback = [];
       }
       for (buttonId in _ref) {
-        if (!__hasProp.call(_ref, buttonId)) continue;
+        //if (!__hasProp.call(_ref, buttonId)) continue;
         registerObject = _ref[buttonId];
         slot = buttonSlot(bot, parseInt(buttonId), registerObject.callback, registerObject.data);
         baroboBridge.buttonChanged.connect(slot);
@@ -876,7 +876,7 @@ baroboBridge = (function(main) {
         wheelSlotCallback = [];
       }
       for (_wheelId in _ref) {
-        if (!__hasProp.call(_ref, _wheelId)) continue;
+        // if (!__hasProp.call(_ref, _wheelId)) continue;
         registerObject = _ref[_wheelId];
         wheelId = parseInt(_wheelId);
         slot = wheelSlot(bot, wheelId, registerObject.callback, registerObject.data);

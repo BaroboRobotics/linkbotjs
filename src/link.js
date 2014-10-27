@@ -137,7 +137,7 @@ function Linkbot(_id) {
         buttonSlotCallback = [];
       }
       for (buttonId in _ref) {
-        if (!__hasProp.call(_ref, buttonId)) continue;
+        //if (!__hasProp.call(_ref, buttonId)) continue;
         registerObject = _ref[buttonId];
         slot = buttonSlot(bot, parseInt(buttonId), registerObject.callback, registerObject.data);
         baroboBridge.buttonChanged.connect(slot);
@@ -152,7 +152,7 @@ function Linkbot(_id) {
         wheelSlotCallback = [];
       }
       for (_wheelId in _ref) {
-        if (!__hasProp.call(_ref, _wheelId)) continue;
+        // if (!__hasProp.call(_ref, _wheelId)) continue;
         registerObject = _ref[_wheelId];
         wheelId = parseInt(_wheelId);
         slot = wheelSlot(bot, wheelId, registerObject.callback, registerObject.data);
