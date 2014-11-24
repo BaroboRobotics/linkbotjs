@@ -1,4 +1,9 @@
-
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
 #robomgr-container {
 	z-index: 1000;
 	background-color: transparent;
@@ -67,8 +72,9 @@
 	display: block;
 	color: #fff;
 	background-color: #606060;
-	margin-bottom: 1px;
-
+	margin-bottom: 3px;
+	border-radius: 15px; 
+	height: 70px;
 }
 #robomgr-container ol li .robomgr-slide-element {
 	color: #d8d8d8;
@@ -76,16 +82,17 @@
 	width: 255px;
 	position: absolute;
 	top: 0;
-	height: 60px;
-	padding: 5px;
-	z-index: 0;
-	background: #202020 url('img/right-arrow.png') no-repeat 230px 8px;
+	height: 70px;
+	padding: 10px 10px 10px 20px;
+	z-index: 2000;
+	background: #202020 url('img/right-arrow.png') no-repeat 230px 18px;
 	cursor: pointer;
+	border-radius: 15px;
 }
 
 #robomgr-container ol li .robomgr-slide-element-left {
 	left: 10px;
-	background: #202020 url('img/right-arrow.png') no-repeat 230px 8px;
+	background: #202020 url('img/right-arrow.png') no-repeat 230px 18px;
 	-webkit-transition: left .25s ease;
   	-moz-transition: left .25s ease;
   	-o-transition: left .25s ease;
@@ -94,7 +101,7 @@
 }
 #robomgr-container ol li .robomgr-slide-element-right {
 	left: 250px;
-	background: #202020 url('img/left-arrow.png') no-repeat 230px 8px;
+	background: #202020 url('img/left-arrow.png') no-repeat 230px 18px;
 	-webkit-transition: left .25s ease;
   	-moz-transition: left .25s ease;
   	-o-transition: left .25s ease;
@@ -150,9 +157,9 @@
 	position: relative;
 	top: 30%;
 	right: 0;
-	height: 175px;
-	width: 26px;
-	background-color: #F0F0F0;
+	height: 161px;
+	width: 31px;
+	background-color: transparent;
 	padding: 0;
 	margin: 0;
 }
@@ -160,17 +167,19 @@
 .robomgr-pulloutbtn {
 	display: inline-block;
 	position: relative;
-	width: 26px;
-	height: 176px;
+	width: 31px;
+	height: 161px;
 	cursor: pointer;
 }
 
 span.robomgr-left {
-	background: #71b7bc url('img/robomgr-close.png') no-repeat left top;
+	background: transparent url('img/robomgr-close.png') no-repeat left top;
+	background-color:rgba(45,167,202,0.1);
 }
 
 span.robomgr-right {
-	background: #71b7bc url('img/robomgr-open.png') no-repeat left top;
+	background: transparent url('img/robomgr-open.png') no-repeat left top;
+	background-color:rgba(45,167,202,0.1);
 }
 
 #robomgr-top-navigation {
@@ -179,7 +188,7 @@ span.robomgr-right {
 	right: 0;
 	left: 0;
 	background-color: #202020;
-	color: #71b7bc;
+	color: #2da7ca;
 	height: 75px;
 }
 
@@ -351,6 +360,15 @@ span.robomgr-right {
     bottom:0;
     z-index:1500;
     background-color: rgba(0,0,0,0.6); /* dim the background */
+}
+#robomgr-slideout-overlay {
+	position:fixed;
+    top:0;
+    left:270px;
+    right:0;
+    bottom:0;
+    z-index:1500;
+    display: none;
 }
 .robomgr-tabs {
 	margin: 15px 0 15px 70px;

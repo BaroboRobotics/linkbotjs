@@ -5,6 +5,7 @@ function Linkbot(_id) {
   var wheelSlotCallback = null;
   var buttonSlotCallback = null;
   var accelSlotCallback = null;
+  var joinDirection = [0, 0, 0];
 
   bot._id = _id;
   err = baroboBridge.connectRobot(_id);
@@ -84,9 +85,12 @@ function Linkbot(_id) {
   };
 
   this.getColor = function() {
-    var color = {red:96, green:96, blue:96};
+    var color = null;
     if (baroboBridge.getLEDColor) {
       color = baroboBridge.getLEDColor(bot._id);
+    }
+    if (!color || color === null) {
+      color = {red:96, green:96, blue:96};
     }
     color.id = bot._id;
     return color;
@@ -110,6 +114,40 @@ function Linkbot(_id) {
     return baroboBridge.moveTo(bot._id, r1, r2, r3);
   };
 
+  this.moveForward = function() {
+    joinDirection[0] = 1;
+    joinDirection[2] = -1;
+    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+  };
+  this.moveBackward = function() {
+    joinDirection[0] = -1;
+    joinDirection[2] = 1;
+    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+  };
+  this.moveLeft = function() {
+    joinDirection[0] = -1;
+    joinDirection[2] = -1;
+    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+  };
+  this.moveRight = function() {
+    joinDirection[0] = 1;
+    joinDirection[2] = 1;
+    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+  };
+  this.moveJointContinuous = function(joint, direction) {
+    if (joint >= 0 && joint <= 2) {
+      if (direction > 0) {
+        joinDirection[joint] = 1;
+      } else if (direction < 0) {
+        joinDirection[joint] = -1;
+      } else {
+        joinDirection[joint] = 0;
+      }
+      baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+      return true;
+    }
+    return false;
+  };
   this.wheelPositions = function() {
     bot._wheelPositions = baroboBridge.getMotorAngles(bot._id);
     return bot._wheelPositions;

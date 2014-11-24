@@ -5,8 +5,31 @@ function Storage(config) {
     DBDESC: "Robots Database, used for persistance",
     TABLE: "robots"
   };
-
-  var db = openDatabase(settings.DBNAME, settings.DBVER, settings.DBDESC, settings.DBSIZE);
+  var db = null;
+  try {
+    db = openDatabase(settings.DBNAME, settings.DBVER, settings.DBDESC, settings.DBSIZE);
+  } catch(e) {
+    // TODO implement alternative storage engines.
+    this.remove = function(name, callback) {
+      console.log('OpenDatabase not available');
+    };
+    this.add = function(name, status, callback) {
+      console.log('OpenDatabase not available');
+    };
+    this.getAll = function(callback) {
+      console.log('OpenDatabase not available');
+    };
+    this.updateOrder = function(callback) {
+      console.log('OpenDatabase not available');
+    };
+    this.printRows = function() {
+      console.log('OpenDatabase not available');
+    };
+    this.changePosition = function(currentPosition, newPosition, callback) {
+      console.log('OpenDatabase not available');
+    };
+    return;
+  }
   db.transaction(function(tx) {
     tx.executeSql("CREATE TABLE IF NOT EXISTS " + settings.TABLE + " (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT unique not null, status INTEGER not null, rorder INTEGER not null)",
       [],

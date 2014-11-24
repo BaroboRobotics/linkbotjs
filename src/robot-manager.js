@@ -187,20 +187,38 @@ function RobotManager(document) {
         manager.redraw();
     }
 
+    function _closeMenuSlide(e) {
+      var spanBtn = manager.element.querySelector('span');
+      var left = /robomgr-left/.test(spanBtn.className);
+      if (!left) {
+        return;
+      }
+      _uiMenuSlide(e);
+    }
+
     function _uiMenuSlide(e) {
-        var container, left, spanBtn;
+        var container, left, spanBtn, overlay;
         if (e && e.preventDefault) { 
           e.preventDefault();
         }
         spanBtn = manager.element.querySelector('span');
         container = document.querySelector('#robomgr-container');
         left = /robomgr-left/.test(spanBtn.className);
+        overlay = document.getElementById('robomgr-slideout-overlay');
         if (left) {
+            var slideElements = document.getElementsByClassName('robomgr-slide-element');
+            for (var i = 0; i < slideElements.length; i++) {
+              slideElements[i].className = 'robomgr-slide-element robomgr-slide-element-left';
+            }
             spanBtn.className = 'robomgr-pulloutbtn robomgr-right';
             container.className = 'robomgr-container-hidden';
+            document.body.style.marginLeft = '';
+            overlay.style.display = 'none';
         } else {
             spanBtn.className = 'robomgr-pulloutbtn robomgr-left';
             container.className = 'robomgr-container-open';
+            document.body.style.marginLeft = '300px';
+            overlay.style.display = 'block';
         }
         return e;
     }
@@ -216,6 +234,7 @@ function RobotManager(document) {
         } else {
             divElement.className = 'robomgr-slide-element robomgr-slide-element-right';
         }
+        e.stopPropagation();
     }
 
     function _uiRemoveFn(e, id) {
@@ -262,7 +281,7 @@ function RobotManager(document) {
         li.addEventListener('dragstart', dragStart);
         li.addEventListener('dragover', dragOver);
         li.addEventListener('drop', drop);
-        div.addEventListener('click', _uiSlideOut);
+        div.addEventListener('click', _uiSlideOut, true);
         rm.addEventListener('click', function(e) {
             _uiRemoveFn(e, r.id);
         });
@@ -291,8 +310,10 @@ function RobotManager(document) {
     }
 
     function _constructElement(doc) {
-        var addBtn, el, controlPanel, overlay, pulloutBtn;
+        var addBtn, el, controlPanel, overlay, pulloutBtn, slideOverlay;
         el = doc.createElement('div');
+        slideOverlay = doc.createElement('div');
+        slideOverlay.setAttribute('id', 'robomgr-slideout-overlay');
         overlay = doc.createElement('div');
         overlay.setAttribute('id', 'robomgr-overlay');
         overlay.setAttribute('class', 'robomgr-hide');
@@ -317,6 +338,8 @@ function RobotManager(document) {
         pulloutBtn = el.querySelector('.robomgr-pullout');
         addBtn.addEventListener('click', _uiAdd);
         pulloutBtn.addEventListener('click', _uiMenuSlide);
+
+        slideOverlay.addEventListener('click', _closeMenuSlide);
 
         controlPanel = doc.createElement('div');
         controlPanel.setAttribute('class', 'robomgr-hide');
@@ -430,6 +453,7 @@ function RobotManager(document) {
         ].join('');
         controlPanel.innerHTML = controlPanelHtml;
         el.appendChild(overlay);
+        doc.body.appendChild(slideOverlay);
         el.appendChild(controlPanel);
         overlay.addEventListener('click', hideControlPanel);
         controlPanel.addEventListener('click', function(e) {

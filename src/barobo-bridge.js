@@ -1,10 +1,13 @@
 baroboBridge = (function(main) {
     var _i, _j, _len, _len1;
-    if (main.baroboBridge !== null) {
+    if (main.baroboBridge && main.baroboBridge !== null) {
       return main.baroboBridge;
     } else {
-      methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged', 'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals', 'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'scan', 'setMotorEventThreshold', 'stop'];
-      signals = ['motorChanged', 'buttonChanged'];
+      methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged',
+        'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals',
+        'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles',
+        'scan', 'setMotorEventThreshold', 'stop', 'getLEDColor', 'setLEDColor', 'moveContinuous'];
+      signals = ['accelChanged', 'motorChanged', 'buttonChanged'];
       obj = {
         mock: true
       };
