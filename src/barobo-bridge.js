@@ -3,9 +3,9 @@ baroboBridge = (function(main) {
     if (main.baroboBridge && main.baroboBridge !== null) {
       return main.baroboBridge;
     } else {
-      methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged',
-        'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals',
-        'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles',
+      methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged', 'buzzerFrequency',
+        'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals', 'enableAccelSignals', 'disableAccelSignals',
+        'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'moveTo',
         'scan', 'setMotorEventThreshold', 'stop', 'getLEDColor', 'setLEDColor', 'moveContinuous'];
       signals = ['accelChanged', 'motorChanged', 'buttonChanged'];
       obj = {

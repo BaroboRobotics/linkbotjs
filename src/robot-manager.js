@@ -79,8 +79,10 @@ function RobotManager(document) {
       LinkbotControls.slider.get('speed-joint-1').setValue(50);
       LinkbotControls.slider.get('speed-joint-2').setValue(50);
       pos = controlPanelRobot.linkbot.wheelPositions();
-      LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
-      LinkbotControls.knob.get('position-joint-2').setValue(pos[3]);
+      if (pos) {
+        LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
+        LinkbotControls.knob.get('position-joint-2').setValue(pos[3]);
+      }
       controlPanelRobot.linkbot.register({
         accel: {
           callback: controlAccelChanged
@@ -299,7 +301,7 @@ function RobotManager(document) {
         var el = doc.createElement('div');
         el.setAttribute('id', 'robomgr-top-navigation');
         var htmlVal = ['',
-            '<h1 class="robomgr-logo">Linkbot Labs</h1>',
+            '<h1 class="robomgr-logo"><a href="/index.html">Linkbot Labs</a></h1>',
             '<div class="robomgr-top-nav-info">',
             ' <p id="ljs-top-nav-breadcrumbs" class="robomgr-top-nav-breadcrumbs">&nbsp;</p>',
             ' <h1 id="ljs-top-nav-title" class="robomgr-top-nav-title">&nbsp;</h1>',
@@ -452,8 +454,9 @@ function RobotManager(document) {
           '</div>'
         ].join('');
         controlPanel.innerHTML = controlPanelHtml;
+        // Order matters.
+        el.appendChild(slideOverlay);
         el.appendChild(overlay);
-        doc.body.appendChild(slideOverlay);
         el.appendChild(controlPanel);
         overlay.addEventListener('click', hideControlPanel);
         controlPanel.addEventListener('click', function(e) {
@@ -466,15 +469,15 @@ function RobotManager(document) {
         // Enable controls.
         var i;
         var knobElements = controlPanel.getElementsByClassName('linkbotjs-knob');
-        for (i in knobElements) {
+        for (i = 0; i < knobElements.length; i++) {
           LinkbotControls.knob.add(knobElements[i]);
         }
         var sliderElements = controlPanel.getElementsByClassName('linkbotjs-slider');
-        for (i in sliderElements) {
+        for (i = 0; i < sliderElements.length; i++) {
           LinkbotControls.slider.add(sliderElements[i]);
         }
         var vsliderElements = controlPanel.getElementsByClassName('linkbotjs-vslider');
-        for (i in vsliderElements) {
+        for (i = 0; i < vsliderElements.length; i++) {
           LinkbotControls.slider.add(vsliderElements[i]);
         }
         //Add event handling:

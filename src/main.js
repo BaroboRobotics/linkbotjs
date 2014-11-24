@@ -59,12 +59,12 @@ var Linkbots = (function(exports, doc) {
         return baroboBridge.scan();
     };
     exports.managerElement = function() {
-        return manager.element;
+        console.log('this method is deprecated');
+        return '';
     };
     exports.topNavElement = function() {
-        document.body.style.marginTop = "90px";
-        manager.element.style.top = "75px";
-        return manager.topNav;
+        console.log('this method is deprecated');
+        return '';
     };
     exports.acquire = function(n) {
         return manager.acquire(n);
@@ -99,5 +99,11 @@ var Linkbots = (function(exports, doc) {
     LinkbotControls.knob.init();
     LinkbotControls.slider.init();
 
+    // Add Robot Manager and Top Navigation.
+    manager.element.style.top = "75px";
+    doc.body.style.marginTop = "90px";
+    doc.body.appendChild(manager.topNav);
+    doc.body.appendChild(manager.element);
+    
     return exports;
 })(Linkbots || {}, document);
