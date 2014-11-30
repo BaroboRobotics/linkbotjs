@@ -90,7 +90,7 @@ function Linkbot(_id) {
       color = baroboBridge.getLEDColor(bot._id);
     }
     if (!color || color === null) {
-      color = {red:96, green:96, blue:96};
+      color = {red:96, green:96, blue:96, mock:true};
     }
     color.id = bot._id;
     return color;

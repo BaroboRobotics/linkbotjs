@@ -6,42 +6,78 @@ function RobotManager(document) {
         'remove': [],
         'moved': []
     };
-    var controlPanelRobot = null;
+    var _controlPanelRobot = null;
+    var _robotStatusInterval = null; 
+
+    function _checkRobotStatus() {
+      var robotList, color, r, i, bot, redraw;
+      redraw = false;
+      robotList = manager.robots.list();
+      for (i = 0; i < robotList.length; i++) {
+        r = robotList[i];
+        if (r.linkbot) {
+          color = r.linkbot.getColor();
+          if (color.red === 0 && color.green === 0 && color.blue === 0) {
+            // then possibly offline and need to reconnect.
+            redraw = true;
+            bot = new Linkbot(r.id);
+            if (bot._id !== null) {
+              manager.robots.ready(i, bot);
+            } else {
+              manager.robots.fail(i);
+            }
+          }
+        } else {
+          // Attempt to connect to robot.
+          bot = new Linkbot(r.id);
+          if (bot._id !== null) {
+            manager.robots.ready(i, bot);
+            redraw = true;
+          } else {
+            manager.robots.fail(i);
+          }
+        }
+
+      }
+      if (redraw === true) {
+        manager.redraw();
+      }
+    }
 
     function controlStopPressed() {
-      controlPanelRobot.linkbot.stop();
+      _controlPanelRobot.linkbot.stop();
     }
     function controlZeroPressed() {
-      controlPanelRobot.linkbot.moveTo(0, 0, 0);
+      _controlPanelRobot.linkbot.moveTo(0, 0, 0);
     }
     
     function controlBeepClicked() {
       var val = LinkbotControls.slider.getValue('buzzer-frequency-id');
-      controlPanelRobot.linkbot.buzzerFrequency(val);
-      setTimeout(function() { controlPanelRobot.linkbot.buzzerFrequency(0); }, 250);
+      _controlPanelRobot.linkbot.buzzerFrequency(val);
+      setTimeout(function() { _controlPanelRobot.linkbot.buzzerFrequency(0); }, 250);
     }
     
     function controlBeepDown() {
       var val = LinkbotControls.slider.getValue('buzzer-frequency-id');
-      controlPanelRobot.linkbot.buzzerFrequency(val);
+      _controlPanelRobot.linkbot.buzzerFrequency(val);
     }
 
     function controlBeepUp() {
-      controlPanelRobot.linkbot.buzzerFrequency(0);
+      _controlPanelRobot.linkbot.buzzerFrequency(0);
     }
 
     function controlSpeedChanged(value) {
       var j1, j2;
       j1 = LinkbotControls.slider.getValue('speed-joint-1');
       j2 = LinkbotControls.slider.getValue('speed-joint-2');
-      controlPanelRobot.linkbot.angularSpeed(j1, 0, j2);
+      _controlPanelRobot.linkbot.angularSpeed(j1, 0, j2);
     }
 
     function controlKnobChanged(value) {
       var j1, j2;
       j1 = LinkbotControls.knob.getValue('position-joint-1');
       j2 = LinkbotControls.knob.getValue('position-joint-2');
-      controlPanelRobot.linkbot.moveTo(j1, 0, j2);
+      _controlPanelRobot.linkbot.moveTo(j1, 0, j2);
     }
 
     function controlAccelChanged(robot, data, event) {
@@ -74,16 +110,16 @@ function RobotManager(document) {
       document.getElementById('robomgr-tab-control').parentElement.className='robomgr-active';
       document.getElementById('robomgr-tab-sensors').parentElement.className='';
       // TODO handle logic for robot control
-      controlPanelRobot = r;
-      controlPanelRobot.linkbot.angularSpeed(50, 0, 50);
+      _controlPanelRobot = r;
+      _controlPanelRobot.linkbot.angularSpeed(50, 0, 50);
       LinkbotControls.slider.get('speed-joint-1').setValue(50);
       LinkbotControls.slider.get('speed-joint-2').setValue(50);
-      pos = controlPanelRobot.linkbot.wheelPositions();
+      pos = _controlPanelRobot.linkbot.wheelPositions();
       if (pos) {
         LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
         LinkbotControls.knob.get('position-joint-2').setValue(pos[3]);
       }
-      controlPanelRobot.linkbot.register({
+      _controlPanelRobot.linkbot.register({
         accel: {
           callback: controlAccelChanged
         }
@@ -96,8 +132,8 @@ function RobotManager(document) {
       var overlay = document.getElementById('robomgr-overlay');
       controlPanel.setAttribute('class', 'robomgr-hide');
       overlay.setAttribute('class', 'robomgr-hide');
-      controlPanelRobot.linkbot.unregister();
-      controlPanelRobot = null;
+      _controlPanelRobot.linkbot.unregister();
+      _controlPanelRobot = null;
       _uiMenuSlide();
     }
 
@@ -199,7 +235,7 @@ function RobotManager(document) {
     }
 
     function _uiMenuSlide(e) {
-        var container, left, spanBtn, overlay;
+        var container, left, spanBtn, overlay, i, color;
         if (e && e.preventDefault) { 
           e.preventDefault();
         }
@@ -209,18 +245,35 @@ function RobotManager(document) {
         overlay = document.getElementById('robomgr-slideout-overlay');
         if (left) {
             var slideElements = document.getElementsByClassName('robomgr-slide-element');
-            for (var i = 0; i < slideElements.length; i++) {
+            for (i = 0; i < slideElements.length; i++) {
               slideElements[i].className = 'robomgr-slide-element robomgr-slide-element-left';
             }
             spanBtn.className = 'robomgr-pulloutbtn robomgr-right';
             container.className = 'robomgr-container-hidden';
             document.body.style.marginLeft = '';
             overlay.style.display = 'none';
+            clearInterval(_robotStatusInterval);
+            _robotStatusInterval = null;
         } else {
             spanBtn.className = 'robomgr-pulloutbtn robomgr-left';
             container.className = 'robomgr-container-open';
             document.body.style.marginLeft = '300px';
             overlay.style.display = 'block';
+            _checkRobotStatus();
+            _robotStatusInterval = setInterval(_checkRobotStatus, 3000);
+        }
+        // check status of robots.
+        var robotList = manager.robots.list();
+        for (i = 0; i < robotList.length; i++) {
+          if (robotList[i].linkbot) {
+            color = robotList[i].linkbot.getColor();
+            if (color.red === 0 && color.green === 0 && color.blue === 0) {
+              // then possibly offline and need to recoonect.
+            }
+          } else {
+            // Attempt to connect to robot.
+          }
+
         }
         return e;
     }
@@ -633,7 +686,7 @@ function RobotManager(document) {
     };
 
     this.selectedControlPanelRobot = function() {
-      return controlPanelRobot;
+      return _controlPanelRobot;
     };
 
 }
