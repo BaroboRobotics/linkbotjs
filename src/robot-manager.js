@@ -44,9 +44,6 @@ function RobotManager(document) {
       }
     }
 
-    function controlStopPressed() {
-      _controlPanelRobot.linkbot.stop();
-    }
     function controlZeroPressed() {
       _controlPanelRobot.linkbot.moveTo(0, 0, 0);
     }
@@ -93,10 +90,6 @@ function RobotManager(document) {
         // TODO add error message here.
         return;
       }
-      var slideOutElements = document.getElementsByClassName('robomgr-slide-element-right');
-      for (var index = 0; index < slideOutElements.length; index++) {
-        slideOutElements[index].className = 'robomgr-slide-element robomgr-slide-element-left';
-      }
       // Show control panel.
       var contrlEl = document.getElementById('robomgr-control-panel');
       contrlEl.className = '';
@@ -114,6 +107,7 @@ function RobotManager(document) {
       _controlPanelRobot.linkbot.angularSpeed(50, 0, 50);
       LinkbotControls.slider.get('speed-joint-1').setValue(50);
       LinkbotControls.slider.get('speed-joint-2').setValue(50);
+      LinkbotControls.slider.get('buzzer-frequency-id').setValue(440);
       pos = _controlPanelRobot.linkbot.wheelPositions();
       if (pos) {
         LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
@@ -122,8 +116,40 @@ function RobotManager(document) {
       _controlPanelRobot.linkbot.register({
         accel: {
           callback: controlAccelChanged
-        }
+        },
+        wheel: {
+          0: {
+            distance: 1,
+            callback: function(robot, data, event) {
+              LinkbotControls.knob.get('position-joint-1').setValueWithoutChange(event.position);
+            }
+          },
+          2: {
+            distance: 1,
+            callback: function(robot, data, event) {
+              LinkbotControls.knob.get('position-joint-2').setValueWithoutChange(event.position);
+            }
+          }
+        },
+        button: {
+            0: {
+              callback: function(robot, data, event) {
+                console.log(event);      
+              }
+            },
+            1: {
+              callback: function() {
+                console.log(event);      
+              }
+            },
+            2: {
+              callback: function() {
+                console.log(event);      
+              }
+            }
+          }
       });
+
     }
 
     function hideControlPanel() {
@@ -278,16 +304,23 @@ function RobotManager(document) {
         return e;
     }
 
-    function _uiSlideOut(e) {
-        var divElement = e.target;
+    function _uiSlideOut(e, r) {
+      var slideElements, divElement, right, i;
+        divElement = e.target;
         if (!/robomgr-slide-element/.test(divElement.className)) {
             return;
         }
-        var right = /robomgr-slide-element-right/.test(divElement.className);
+        right = /robomgr-slide-element-right/.test(divElement.className);
         if (right) {
             divElement.className = 'robomgr-slide-element robomgr-slide-element-left';
+            hideControlPanel();
         } else {
+            slideElements = document.getElementsByClassName('robomgr-slide-element');
+            for (i = 0; i < slideElements.length; i++) {
+              slideElements[i].className = 'robomgr-slide-element robomgr-slide-element-left';
+            }
             divElement.className = 'robomgr-slide-element robomgr-slide-element-right';
+            showControlPanel(e, r);
         }
         e.stopPropagation();
     }
@@ -311,9 +344,6 @@ function RobotManager(document) {
         var beep = doc.createElement('span');
         beep.setAttribute('class', 'robomgr-beep-btn');
         beep.innerText = 'beep';
-        var controlPanel = doc.createElement('span');
-        controlPanel.setAttribute('class', 'robomgr-cntrpnl-btn');
-        controlPanel.innerText = 'control';
         li.setAttribute('draggable', 'true');
         li.setAttribute('class', "robomgr--" + r.status);
         li.setAttribute('id', 'robomgr-id-' + r.id);
@@ -323,7 +353,6 @@ function RobotManager(document) {
           li.style.background = "#606060";
         }
         li.appendChild(beep);
-        li.appendChild(controlPanel);
         li.appendChild(rm);
         div.setAttribute('class', 'robomgr-slide-element robomgr-slide-element-left');
         var htmlVal = ['',
@@ -336,7 +365,9 @@ function RobotManager(document) {
         li.addEventListener('dragstart', dragStart);
         li.addEventListener('dragover', dragOver);
         li.addEventListener('drop', drop);
-        div.addEventListener('click', _uiSlideOut, true);
+        div.addEventListener('click', function(e) {
+          _uiSlideOut(e, r);
+        }, true);
         rm.addEventListener('click', function(e) {
             _uiRemoveFn(e, r.id);
         });
@@ -346,7 +377,6 @@ function RobotManager(document) {
             setTimeout(function() { r.linkbot.buzzerFrequency(0); }, 250);
           }
         });
-        controlPanel.addEventListener('click', function(e) { showControlPanel(e, r); });
         return li;
     }
 
@@ -365,7 +395,7 @@ function RobotManager(document) {
     }
 
     function _constructElement(doc) {
-        var addBtn, el, controlPanel, overlay, pulloutBtn, slideOverlay;
+        var addBtn, el, controlPanel, overlay, pulloutBtn, slideOverlay, btn;
         el = doc.createElement('div');
         slideOverlay = doc.createElement('div');
         slideOverlay.setAttribute('id', 'robomgr-slideout-overlay');
@@ -415,7 +445,16 @@ function RobotManager(document) {
           '</div>',
           '<div id="robomgr-tab-control-panel">',
           ' <div class="robomgr-row">',
-          '   <div class="robomgr-control-col" style="visibility: hidden;"></div>',
+          '   <div class="robomgr-control-col">position',
+          '     <div class="robomgr-control-poster" style="padding: 10px;">',
+          '       <div style="float: left;">',
+          '         <input type="text" class="linkbotjs-knob" id="position-joint-1" /> <p style="margin:0;">Joint 1</p>',
+          '       </div>',
+          '       <div style="margin-left: 125px; width: 125px;">',
+          '         <input type="text" class="linkbotjs-knob" id="position-joint-2" /> <p style="margin:0;">Joint 2</p>',
+          '       </div>',
+          '     </div>',
+          '   </div>',
           '   <div class="robomgr-control-col">',
           '     joint control',
           '     <div class="robomgr-control-poster">',
@@ -448,18 +487,6 @@ function RobotManager(document) {
           '       <div><button id="robomgr-drive-stop" class="drive-control-btn-lg robomgr-btn-stop">stop</button></div>',
           '     </div>',
           '   </div>',
-          '   <div class="robomgr-control-col">position',
-          '     <div class="robomgr-control-poster" style="padding: 10px;">',
-          '       <div style="float: left;">',
-          '         <input type="text" class="linkbotjs-knob" id="position-joint-1" /> <p style="padding-top: 10px;">Joint 1</p>',
-          '       </div>',
-          '       <div style="margin-left: 125px; width: 125px;">',
-          '         <input type="text" class="linkbotjs-knob" id="position-joint-2" /> <p style="padding-top: 10px;">Joint 2</p>',
-          '       </div>',
-          '     </div>',
-          '   </div>',
-          ' </div>',
-          ' <div class="robomgr-row">',
           '   <div class="robomgr-control-col">speed',
           '     <div class="robomgr-control-poster" style="padding: 10px;">',
           '       <div style="float: left; width: 110px;">',
@@ -469,8 +496,7 @@ function RobotManager(document) {
           '         <div id="speed-joint-2" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 2: <span id="speed-joint-2-value">10</span></p>',
           '       </div>',
           '     </div>',
-          '   </div>',
-          '   <div class="robomgr-control-col">acceleration',
+          '     acceleration',
           '     <div class="robomgr-control-poster" style="padding: 10px;">',
           '       <div style="float: left; width: 110px;">',
           '         <div id="acceleration-joint-1" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 1: <span id="acceleration-joint-1-value">10</span></p>',
@@ -480,6 +506,10 @@ function RobotManager(document) {
           '       </div>',
           '     </div>',
           '   </div>',
+
+          ' </div>',
+          ' <div class="robomgr-row">',
+          '   <div class="robomgr-control-col" style="visibility: hidden;"></div>',
           ' </div>',
           '</div>',
           '<div id="robomgr-tab-sensors-panel" class="robomgr-hide">',
@@ -598,12 +628,61 @@ function RobotManager(document) {
         }
         var buttons = controlPanel.getElementsByTagName('button');
         for (i in buttons) {
-          var btn = buttons[i];
+          btn = buttons[i];
           if (btn && btn.id) {
-            if (btn.id == 'robomgr-joint1-stop' || btn.id == 'robomgr-joint2-stop' || btn.id == 'robomgr-drive-stop') {
-              btn.addEventListener('click', controlStopPressed);
+            if (btn.id === 'robomgr-drive-stop') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.stop();
+              });
+            } else if (btn.id == 'robomgr-joint1-stop') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveJointContinuous(0, 0);
+              });
+            } else if (btn.id == 'robomgr-joint2-stop') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveJointContinuous(2, 0);
+              });
             } else if (btn.id == 'robomgr-drive-zero') {
               btn.addEventListener('click', controlZeroPressed);
+            }
+          }
+        }
+        var ctrl_buttons = controlPanel.getElementsByTagName('button');
+        for (i = 0; i < ctrl_buttons.length; i++) {
+          btn = ctrl_buttons[i];
+          if (btn.id) {
+            if (btn.id === 'robomgr-drive-up') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveForward();
+              });   
+            } else if (btn.id === 'robomgr-drive-down') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveBackward();
+              }); 
+            } else if (btn.id === 'robomgr-drive-left') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveLeft();
+              });
+            } else if (btn.id === 'robomgr-drive-right') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveRight();
+              });
+            } else if (btn.id === 'robomgr-joint1-up') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveJointContinuous(0, 1);
+              });
+            } else if (btn.id === 'robomgr-joint1-down') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveJointContinuous(0, -1);
+              });
+            } else if (btn.id === 'robomgr-joint2-up') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveJointContinuous(2, -1);
+              });
+            } else if (btn.id === 'robomgr-joint2-down') {
+              btn.addEventListener('click', function() {
+                _controlPanelRobot.linkbot.moveJointContinuous(2, 1);
+              });
             }
           }
         }

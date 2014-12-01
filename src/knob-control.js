@@ -106,7 +106,6 @@ var LinkbotControls = (function(parent, doc) {
 					} else {
 						internalValue -= neg;
 					}
-					console.log(internalValue);
 					imgElement.style.transform = "rotate(" + deg + "deg)";
 					imgElement.style.webkitTransform  = "rotate(" + deg + "deg)";
 					inputElement.value = deg;
@@ -134,6 +133,23 @@ var LinkbotControls = (function(parent, doc) {
 					for (i = 0; i < changeRegister.length; i++) {
 						changeRegister[i](intValue);
 					}
+				},
+				setValueWithoutChange: function(value) {
+					var intValue, i;
+					intValue = parseInt(value);
+					if (isNaN(intValue)) {
+						inputElement.value = inputValue;
+						return;
+					}
+					internalValue = intValue;
+					intValue = intValue % 360;
+					while (intValue < 0) {
+						intValue = 360 + intValue; 
+					}
+					imgElement.style.transform = "rotate(" + intValue + "deg)";
+					imgElement.style.webkitTransform  = "rotate(" + intValue + "deg)";
+					inputValue = intValue;
+					inputElement.value = inputValue;
 				},
 				getValue: function() {
 					return inputValue;

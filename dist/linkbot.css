@@ -264,12 +264,11 @@ span.robomgr-right {
 
 #robomgr-control-panel {
 	position: fixed;
-	top: 50%;
-	left: 50%;
+	top: 0;
+	left: 270px;
 	width: 600px;
-	height: 776px;
-	margin-top: -388px;
-	margin-left: -300px;
+	max-height: 776px;
+	margin-top: 0;
 	background-color: #202020;
 	color: white;
 	z-index: 2000;
@@ -372,7 +371,7 @@ span.robomgr-right {
 #robomgr-overlay {
     position:fixed;
     top:0;
-    left:0;
+    left:270px;
     right:0;
     bottom:0;
     z-index:1500;

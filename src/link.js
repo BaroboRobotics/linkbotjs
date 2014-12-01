@@ -117,22 +117,22 @@ function Linkbot(_id) {
   this.moveForward = function() {
     joinDirection[0] = 1;
     joinDirection[2] = -1;
-    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+    baroboBridge.moveContinuous(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
   };
   this.moveBackward = function() {
     joinDirection[0] = -1;
     joinDirection[2] = 1;
-    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+    baroboBridge.moveContinuous(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
   };
   this.moveLeft = function() {
     joinDirection[0] = -1;
     joinDirection[2] = -1;
-    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+    baroboBridge.moveContinuous(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
   };
   this.moveRight = function() {
     joinDirection[0] = 1;
     joinDirection[2] = 1;
-    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+    baroboBridge.moveContinuous(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
   };
   this.moveJointContinuous = function(joint, direction) {
     if (joint >= 0 && joint <= 2) {
@@ -143,7 +143,7 @@ function Linkbot(_id) {
       } else {
         joinDirection[joint] = 0;
       }
-      baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+      baroboBridge.moveContinuous(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
       return true;
     }
     return false;
@@ -154,6 +154,8 @@ function Linkbot(_id) {
   };
 
   this.stop = function() {
+    joinDirection[0] = 0;
+    joinDirection[2] = 0;
     return baroboBridge.stop(bot._id);
   };
 
