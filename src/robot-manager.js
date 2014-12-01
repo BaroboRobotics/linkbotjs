@@ -75,8 +75,8 @@ function RobotManager(document) {
 
     function controlKnobChanged(value) {
       var j1, j2;
-      j1 = LinkbotControls.knob.getValue('position-joint-1');
-      j2 = LinkbotControls.knob.getValue('position-joint-2');
+      j1 = LinkbotControls.knob.getInternalValue('position-joint-1');
+      j2 = LinkbotControls.knob.getInternalValue('position-joint-2');
       _controlPanelRobot.linkbot.moveTo(j1, 0, j2);
     }
 

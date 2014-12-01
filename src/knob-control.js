@@ -29,6 +29,7 @@ var LinkbotControls = (function(parent, doc) {
 			var down = false;
 			var rad2deg = 180/Math.PI;
 			var inputValue = 0;
+			var internalValue = 0;
 			var changeRegister = [];
 
 			wrapper.setAttribute('class', 'linkbotjs-knob-container');
@@ -81,30 +82,47 @@ var LinkbotControls = (function(parent, doc) {
 					return center;
 				},
 				updateXY: function(x, y) {
-					var ydiff, xdiff, deg;
-					var position = getPosition(wrapper);
-					var box = [position.x, position.y, wrapper.offsetWidth, wrapper.offsetHeight];
-					var center = { x:(box[0] + (box[2] / 2)),
+					var ydiff, xdiff, deg, position, box, center, i, originalDeg, pos, neg;
+					originalDeg = inputValue;
+					position = getPosition(wrapper);
+					box = [position.x, position.y, wrapper.offsetWidth, wrapper.offsetHeight];
+					center = { x:(box[0] + (box[2] / 2)),
 						   y:(box[1] + (box[3] / 2))};
 					xdiff = center.x - x;
 					ydiff = center.y - y;
 					deg = ((Math.atan2(ydiff,xdiff) * rad2deg) + 270) % 360;
 					deg = Math.round(deg);
 
+					if (originalDeg >= deg) {
+						neg = originalDeg - deg;
+						pos = 360 - originalDeg + deg;
+
+					} else {
+						pos = deg - originalDeg;
+						neg = originalDeg + 360 - deg;
+					}
+					if (pos <= neg) {
+						internalValue += pos;
+					} else {
+						internalValue -= neg;
+					}
+					console.log(internalValue);
 					imgElement.style.transform = "rotate(" + deg + "deg)";
 					imgElement.style.webkitTransform  = "rotate(" + deg + "deg)";
 					inputElement.value = deg;
 					inputValue = deg;
-					for (var i in changeRegister) {
+					for (i = 0; i < changeRegister.length; i++) {
 						changeRegister[i](deg);
 					}
 				},
 				setValue: function(value) {
-					var intValue = parseInt(value);
+					var intValue, i;
+					intValue = parseInt(value);
 					if (isNaN(intValue)) {
 						inputElement.value = inputValue;
 						return;
 					}
+					internalValue = intValue;
 					intValue = intValue % 360;
 					while (intValue < 0) {
 						intValue = 360 + intValue; 
@@ -113,12 +131,15 @@ var LinkbotControls = (function(parent, doc) {
 					imgElement.style.webkitTransform  = "rotate(" + intValue + "deg)";
 					inputValue = intValue;
 					inputElement.value = inputValue;
-					for (var i in changeRegister) {
+					for (i = 0; i < changeRegister.length; i++) {
 						changeRegister[i](intValue);
 					}
 				},
 				getValue: function() {
 					return inputValue;
+				},
+				getInternalValue: function() {
+					return internalValue;
 				},
 				addChangeCallback: function(callback) {
 					changeRegister.push(callback);
@@ -178,6 +199,12 @@ var LinkbotControls = (function(parent, doc) {
 		}
 		
 		return null;
+	};
+	me.getInternalValue = function(id) {
+		var knob = knobsMap[id];
+		if (knob) {
+			return knob.getInternalValue();
+		}
 	};
 	me.addChangeCallback = function(id, callback) {
 		var knob = knobsMap[id];
