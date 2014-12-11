@@ -78,8 +78,9 @@ function Linkbot(_id) {
   this._wheelRadius = 1.75;
 
   this.color = function(r, g, b) {
+    var i = 0;
     baroboBridge.setLEDColor(bot._id, r, g, b);
-    for (var i in ledCallbacks) {
+    for (i = 0; i < ledCallbacks.length; i++) {
       ledCallbacks[i](bot._id, r, g, b);
     }
   };

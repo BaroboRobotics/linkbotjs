@@ -9,6 +9,10 @@ function RobotManager(document) {
     var _controlPanelRobot = null;
     var _robotStatusInterval = null; 
 
+    function _ledChanged(id, red, green, blue) {
+      manager.redraw();
+    }
+
     function _checkRobotStatus() {
       var robotList, color, r, i, bot, redraw;
       redraw = false;
@@ -102,6 +106,7 @@ function RobotManager(document) {
       document.getElementById('robomgr-tab-sensors-panel').className = 'robomgr-hide';
       document.getElementById('robomgr-tab-control').parentElement.className='robomgr-active';
       document.getElementById('robomgr-tab-sensors').parentElement.className='';
+      document.getElementById('linkbotjs-led-color').value = '#' + _colorToHex(r.linkbot.getColor());
       // TODO handle logic for robot control
       _controlPanelRobot = r;
       _controlPanelRobot.linkbot.angularSpeed(50, 0, 50);
@@ -162,8 +167,20 @@ function RobotManager(document) {
       _controlPanelRobot = null;
       _uiMenuSlide();
     }
-
-    function valueToHex(value) {
+    function _hexToRgb(hex) {
+      var bigint;
+      if (hex.substr(0, 1) === '#') {
+        bigint = parseInt(hex.substring(1), 16);
+      } else {
+        bigint = parseInt(hex, 16);
+      }
+      return {
+        'red':((bigint >> 16) & 255),
+        'green':((bigint >> 8) & 255),
+        'blue':(bigint & 255)
+      };
+    }
+    function _rgbToHex(value) {
       if (!value || value === null || value === "undefined") {
         return "00";
       }
@@ -175,10 +192,10 @@ function RobotManager(document) {
       return val;
     }
 
-    function colorToHex(color) {
-      var red = valueToHex(color.red);
-      var green = valueToHex(color.green);
-      var blue = valueToHex(color.blue);
+    function _colorToHex(color) {
+      var red = _rgbToHex(color.red);
+      var green = _rgbToHex(color.green);
+      var blue = _rgbToHex(color.blue);
       return red + green + blue;
     }
 
@@ -348,7 +365,7 @@ function RobotManager(document) {
         li.setAttribute('class', "robomgr--" + r.status);
         li.setAttribute('id', 'robomgr-id-' + r.id);
         if (r.linkbot) {
-          li.style.background = "#" + colorToHex(r.linkbot.getColor());
+          li.style.background = "#" + _colorToHex(r.linkbot.getColor());
         } else {
           li.style.background = "#606060";
         }
@@ -506,7 +523,6 @@ function RobotManager(document) {
           '       </div>',
           '     </div>',
           '   </div>',
-
           ' </div>',
           ' <div class="robomgr-row">',
           '   <div class="robomgr-control-col" style="visibility: hidden;"></div>',
@@ -527,11 +543,16 @@ function RobotManager(document) {
           '   </div>',
           ' </div>',
           ' <div class="robomgr-row" style="text-align: center;">accelerometer',
-          '   <div class="robomgr-control-poster" style="height: 300px; padding: 20px;">',
+          '   <div class="robomgr-control-poster" style="height: 275px; padding: 20px;">',
           '     <div style="float: left; width: 140px; height: 100%;"><div id="accel-xaxis" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="-5" data-max="5"></div><p style="padding-top: 10px;">x axis: <span id="accel-xaxis-value">0</span></p></div>',
           '     <div style="float: left; width: 140px; height: 100%;"><div id="accel-yaxis" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="-5" data-max="5"></div><p style="padding-top: 10px;">y axis: <span id="accel-yaxis-value">0</span></p></div>',
           '     <div style="float: left; width: 140px; height: 100%;"><div id="accel-zaxis" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="-5" data-max="5"></div><p style="padding-top: 10px;">z axis: <span id="accel-zaxis-value">0</span></p></div>',
           '     <div style="width: 130px; margin-left: 420px; height: 100%;"><div id="accel-mag" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="0" data-max="5"></div><p style="padding-top: 10px;">mag: <span id="accel-mag-value">0</span></p></div>',
+          '   </div>',
+          ' </div>',
+          ' <div class="robomgr-row" style="text-align: center;">LED Color',
+          '   <div class="robomgr-control-poster" style="padding: 10px 30px;">',
+          '     <input type="color" id="linkbotjs-led-color" />',
           '   </div>',
           ' </div>',
           '</div>'
@@ -545,6 +566,12 @@ function RobotManager(document) {
         controlPanel.addEventListener('click', function(e) {
           e.stopPropagation();
         });
+        var ledColorElement = controlPanel.querySelector('#linkbotjs-led-color');
+        ledColorElement.addEventListener('input', function(e) {
+          var value = _hexToRgb(ledColorElement.value);
+          _controlPanelRobot.linkbot.color(value.red, value.green, value.blue);
+        });
+        
         var imgElements = controlPanel.getElementsByClassName('robomgr-control-img');
         imgElements[0].addEventListener('click', function(e) {
           hideControlPanel();
@@ -740,6 +767,11 @@ function RobotManager(document) {
                 bot = new Linkbot(r.id);
                 if (bot._id !== null) {
                     results.push(manager.robots.ready(i, bot));
+                    bot.register({
+                      led: {
+                        callback: _ledChanged
+                      }
+                    });
                 } else {
                     results.push(manager.robots.fail(i));
                 }
@@ -767,5 +799,4 @@ function RobotManager(document) {
     this.selectedControlPanelRobot = function() {
       return _controlPanelRobot;
     };
-
 }
