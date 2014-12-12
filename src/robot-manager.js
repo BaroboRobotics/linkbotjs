@@ -246,6 +246,9 @@ function RobotManager(document) {
             if (!destination || destination === null) {
                 return true;
             }
+            if (destination == source) {
+                return true;
+            }
             var srcId = source.getAttribute('id').replace(/robomgr-id-/, '');
             var destId = destination.getAttribute('id').replace(/robomgr-id-/, '');
             var olElement = destination.parentElement;
@@ -283,6 +286,15 @@ function RobotManager(document) {
         var spanBtn = manager.element.querySelector('span');
         var left = /robomgr-left/.test(spanBtn.className);
         if (!left) {
+            return;
+        }
+        _uiMenuSlide(e);
+    }
+
+    function _openMenuSlide(e) {
+        var spanBtn = manager.element.querySelector('span');
+        var left = /robomgr-left/.test(spanBtn.className);
+        if (left) {
             return;
         }
         _uiMenuSlide(e);
@@ -796,5 +808,13 @@ function RobotManager(document) {
 
     this.selectedControlPanelRobot = function() {
       return _controlPanelRobot;
+    };
+
+    this.openMenu = function() {
+        _openMenuSlide();
+    };
+
+    this.closeMenu = function() {
+        _closeMenuSlide();
     };
 }

@@ -94,6 +94,12 @@ var Linkbots = (function(exports, doc) {
             element.innerText = crumbs.join(" // ");
         }
     };
+    exports.openSideMenu = function() {
+        manager.openMenu();
+    };
+    exports.closeSideMenu = function() {
+        manager.closeMenu();
+    };
     exports.storage = storage;
 
     LinkbotControls.knob.init();

@@ -374,6 +374,9 @@ baroboBridge = (function(main) {
             if (!destination || destination === null) {
                 return true;
             }
+            if (destination == source) {
+                return true;
+            }
             var srcId = source.getAttribute('id').replace(/robomgr-id-/, '');
             var destId = destination.getAttribute('id').replace(/robomgr-id-/, '');
             var olElement = destination.parentElement;
@@ -411,6 +414,15 @@ baroboBridge = (function(main) {
         var spanBtn = manager.element.querySelector('span');
         var left = /robomgr-left/.test(spanBtn.className);
         if (!left) {
+            return;
+        }
+        _uiMenuSlide(e);
+    }
+
+    function _openMenuSlide(e) {
+        var spanBtn = manager.element.querySelector('span');
+        var left = /robomgr-left/.test(spanBtn.className);
+        if (left) {
             return;
         }
         _uiMenuSlide(e);
@@ -924,6 +936,14 @@ baroboBridge = (function(main) {
 
     this.selectedControlPanelRobot = function() {
       return _controlPanelRobot;
+    };
+
+    this.openMenu = function() {
+        _openMenuSlide();
+    };
+
+    this.closeMenu = function() {
+        _closeMenuSlide();
     };
 }
 ;function Linkbot(_id) {
@@ -1926,6 +1946,12 @@ baroboBridge = (function(main) {
         if (element) {
             element.innerText = crumbs.join(" // ");
         }
+    };
+    exports.openSideMenu = function() {
+        manager.openMenu();
+    };
+    exports.closeSideMenu = function() {
+        manager.closeMenu();
     };
     exports.storage = storage;
 
