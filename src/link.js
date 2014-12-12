@@ -216,7 +216,7 @@ function Linkbot(_id) {
     return _results;
   };
 
-  this.unregister = function() {
+  this.unregister = function(includeLed) {
     try {
       if (wheelSlotCallback && wheelSlotCallback !== null) {
         baroboBridge.disableMotorSignals(bot._id);
@@ -248,6 +248,10 @@ function Linkbot(_id) {
     } catch (err) {
       console.log(err);
     }
-    ledCallbacks = [];
+    if (includeLed === undefined || includeLed === null) {
+      ledCallbacks = [];
+    } else if (includeLed) {
+      ledCallbacks = [];
+    }
   };
 }
