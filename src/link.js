@@ -21,9 +21,8 @@ function Linkbot(_id) {
   if (!baroboBridge.mock) {
     var blessedFW = baroboBridge.availableFirmwareVersions();
     if (blessedFW.indexOf(bot._firmwareVersion) < 0) {
-      idAsURI = encodeURIComponent(bot._id);
       baroboBridge.stop(bot._id);
-      document.location = "../LinkbotUpdate/index.html?badRobot=" + idAsURI;
+      document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(bot._id);
     }
   }
 
