@@ -113,7 +113,7 @@ input[type=color] {
   	-ms-transition: left .25s ease;
   	transition: left .25s ease;
 }
-#robomgr-container .robomgr-remove-btn, #robomgr-container .robomgr-beep-btn, #robomgr-container .robomgr-cntrpnl-btn {
+#robomgr-container .robomgr-remove-btn, #robomgr-container .robomgr-beep-btn, #robomgr-container .robomgr-cntrpnl-btn, #robomgr-container .robomgr-color-btn {
 	display: inline-block;
 	padding-top: 40px;
 	width: 30px;
@@ -125,6 +125,16 @@ input[type=color] {
 }
 #robomgr-container .robomgr-beep-btn {
 	background: transparent url('img/beep.png') no-repeat 6px 10px;
+}
+#robomgr-container .robomgr-color-btn {
+	background: transparent url('img/color.png') no-repeat 6px 10px;
+	background: transparent url('img/color.png') no-repeat 6px 10px;
+	border: none;
+	overflow: hidden;
+	padding-top: 50px;
+}
+#robomgr-container .robomgr-color-btn-title {
+	margin-left: -27px;
 }
 #robomgr-container .robomgr-cntrpnl-btn {
 	background: transparent url('img/control-panel.png') no-repeat 10px 10px;
@@ -269,7 +279,7 @@ span.robomgr-right {
 
 #robomgr-control-panel {
 	position: fixed;
-	top: 0;
+	top: 75px;
 	left: 270px;
 	width: 600px;
 	max-height: 776px;

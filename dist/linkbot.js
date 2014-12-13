@@ -491,12 +491,22 @@ baroboBridge = (function(main) {
     }
 
     function _robotLi(doc, r) {
-        var li = doc.createElement('li');
-        var div = doc.createElement('div');
-        var rm = doc.createElement('span');
-        rm.setAttribute('class', "robomgr-remove-btn");
-        rm.innerText = 'trash';
-        var beep = doc.createElement('span');
+        var li, div, trash, beep, color, colorSpan;
+        li = doc.createElement('li');
+        div = doc.createElement('div');
+        if (r && r.linkbot) {
+            color = doc.createElement('input');
+            color.type = "color";
+            color.className = 'robomgr-color-btn';
+            color.value = "#" + _colorToHex(r.linkbot.getColor());
+            colorSpan = doc.createElement('span');
+            colorSpan.className = 'robomgr-color-btn-title';
+            colorSpan.innerText = 'color';
+        }
+        trash = doc.createElement('span');
+        trash.setAttribute('class', "robomgr-remove-btn");
+        trash.innerText = 'trash';
+        beep = doc.createElement('span');
         beep.setAttribute('class', 'robomgr-beep-btn');
         beep.innerText = 'beep';
         li.setAttribute('draggable', 'true');
@@ -507,8 +517,12 @@ baroboBridge = (function(main) {
         } else {
             li.style.background = "#606060";
         }
+        if (r && r.linkbot) {
+            li.appendChild(color);
+            li.appendChild(colorSpan);
+        }
         li.appendChild(beep);
-        li.appendChild(rm);
+        li.appendChild(trash);
         div.setAttribute('class', 'robomgr-slide-element robomgr-slide-element-left');
         var htmlVal = ['',
             '<span id="robot-id-' + r.id + '-name" class="robomgr-robot-name">Linkbot ' + r.id + '</span><br/>',
@@ -523,7 +537,7 @@ baroboBridge = (function(main) {
         div.addEventListener('click', function(e) {
             _uiSlideOut(e, r);
         }, true);
-        rm.addEventListener('click', function(e) {
+        trash.addEventListener('click', function(e) {
             _uiRemoveFn(e, r.id);
         });
         beep.addEventListener('click', function(e) {
@@ -532,6 +546,12 @@ baroboBridge = (function(main) {
                 setTimeout(function() { r.linkbot.buzzerFrequency(0); }, 250);
             }
         });
+        if (r && r.linkbot) {
+            color.addEventListener('input', function (e) {
+                var value = _hexToRgb(color.value);
+                r.linkbot.color(value.red, value.green, value.blue);
+            });
+        }
         return li;
     }
 
