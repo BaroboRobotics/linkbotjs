@@ -491,18 +491,15 @@ baroboBridge = (function(main) {
     }
 
     function _robotLi(doc, r) {
-        var li, div, trash, beep, color, colorSpan;
+        var li, div, trash, beep, color, colorSpan, colorVal;
         li = doc.createElement('li');
         div = doc.createElement('div');
-        if (r && r.linkbot) {
-            color = doc.createElement('input');
-            color.type = "color";
-            color.className = 'robomgr-color-btn';
-            color.value = "#" + _colorToHex(r.linkbot.getColor());
-            colorSpan = doc.createElement('span');
-            colorSpan.className = 'robomgr-color-btn-title';
-            colorSpan.innerText = 'color';
-        }
+        color = doc.createElement('input');
+        color.type = "color";
+        color.className = 'robomgr-color-btn';
+        colorSpan = doc.createElement('span');
+        colorSpan.className = 'robomgr-color-btn-title';
+        colorSpan.innerText = 'color';
         trash = doc.createElement('span');
         trash.setAttribute('class', "robomgr-remove-btn");
         trash.innerText = 'trash';
@@ -512,15 +509,16 @@ baroboBridge = (function(main) {
         li.setAttribute('draggable', 'true');
         li.setAttribute('class', "robomgr--" + r.status);
         li.setAttribute('id', 'robomgr-id-' + r.id);
-        if (r.linkbot) {
-            li.style.background = "#" + _colorToHex(r.linkbot.getColor());
+        if (r && r.linkbot) {
+            colorVal = "#" + _colorToHex(r.linkbot.getColor());
+            li.style.background = colorVal;
+            color.value = colorVal;
         } else {
+            color.value = '#606060';
             li.style.background = "#606060";
         }
-        if (r && r.linkbot) {
-            li.appendChild(color);
-            li.appendChild(colorSpan);
-        }
+        li.appendChild(color);
+        li.appendChild(colorSpan);
         li.appendChild(beep);
         li.appendChild(trash);
         div.setAttribute('class', 'robomgr-slide-element robomgr-slide-element-left');
@@ -546,12 +544,14 @@ baroboBridge = (function(main) {
                 setTimeout(function() { r.linkbot.buzzerFrequency(0); }, 250);
             }
         });
-        if (r && r.linkbot) {
-            color.addEventListener('input', function (e) {
+        color.addEventListener('input', function (e) {
+            if (r && r.linkbot) {
                 var value = _hexToRgb(color.value);
                 r.linkbot.color(value.red, value.green, value.blue);
-            });
-        }
+            } else {
+                color.value = '#606060';
+            }
+        });
         return li;
     }
 
