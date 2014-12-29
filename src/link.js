@@ -6,6 +6,8 @@ function Linkbot(_id) {
   var buttonSlotCallback = null;
   var accelSlotCallback = null;
   var joinDirection = [0, 0, 0];
+  var granularity = 5;
+  var granularityEnabled = false;
 
   bot._id = _id;
   err = baroboBridge.connectRobot(_id);
@@ -199,7 +201,7 @@ function Linkbot(_id) {
         baroboBridge.setMotorEventThreshold(bot._id, wheelId, registerObject.distance);
         baroboBridge.motorChanged.connect(slot);
         wheelSlotCallback.push(slot);
-        _results.push(baroboBridge.enableMotorSignals(bot._id));
+        _results.push(baroboBridge.enableMotorSignals(bot._id, this.granularity, this.granularityEnabled));
       }
     }
     if (connections.accel && connections.accel !== null) {
@@ -213,6 +215,15 @@ function Linkbot(_id) {
       ledCallbacks.push(_ref.callback);
     }
     return _results;
+  };
+
+  /**
+   * Sets the granularity, must be set before registering wheel callbacks.
+   * @param _granularity Represents the minimum delta in degrees that the motors must move before emitting an encoder signal.
+   */
+  this.setGranularity = function(_granularity) {
+    this.granularity = parseInt(_granularity);
+    this.granularityEnabled = true;
   };
 
   this.unregister = function(includeLed) {
@@ -253,4 +264,11 @@ function Linkbot(_id) {
       ledCallbacks = [];
     }
   };
+  /**
+   * Button Constants.
+   * Used when registering button callbacks.
+   */
+  this.BUTTON_POWER = 0;
+  this.BUTTON_A = 1;
+  this.BUTTON_B = 2;
 }
