@@ -6,17 +6,15 @@ function Linkbot(_id) {
   var buttonSlotCallback = null;
   var accelSlotCallback = null;
   var joinDirection = [0, 0, 0];
-  var granularity = 5;
-  var granularityEnabled = false;
+  var BUTTON_POWER = 0;
+  var BUTTON_A = 1;
+  var BUTTON_B = 2;
 
   bot._id = _id;
   err = baroboBridge.connectRobot(_id);
   if (err < 0) {
     bot._id = null;
     return;
-  }
-  for (var m = 1; m <= 3; m++) {
-    baroboBridge.setMotorEventThreshold(bot._id, m, 1e10);
   }
   bot._wheelPositions = baroboBridge.getMotorAngles(bot._id);
   bot._firmwareVersion = baroboBridge.firmwareVersion(bot._id);
@@ -198,10 +196,9 @@ function Linkbot(_id) {
         registerObject = _ref[_wheelId];
         wheelId = parseInt(_wheelId);
         slot = wheelSlot(bot, wheelId, registerObject.callback, registerObject.data);
-        baroboBridge.setMotorEventThreshold(bot._id, wheelId, registerObject.distance);
         baroboBridge.motorChanged.connect(slot);
         wheelSlotCallback.push(slot);
-        _results.push(baroboBridge.enableMotorSignals(bot._id, this.granularity, this.granularityEnabled));
+        _results.push(baroboBridge.enableMotorSignals(bot._id, registerObject.distance, true));
       }
     }
     if (connections.accel && connections.accel !== null) {
@@ -215,15 +212,6 @@ function Linkbot(_id) {
       ledCallbacks.push(_ref.callback);
     }
     return _results;
-  };
-
-  /**
-   * Sets the granularity, must be set before registering wheel callbacks.
-   * @param _granularity Represents the minimum delta in degrees that the motors must move before emitting an encoder signal.
-   */
-  this.setGranularity = function(_granularity) {
-    this.granularity = parseInt(_granularity);
-    this.granularityEnabled = true;
   };
 
   this.unregister = function(includeLed) {
@@ -268,7 +256,9 @@ function Linkbot(_id) {
    * Button Constants.
    * Used when registering button callbacks.
    */
-  this.BUTTON_POWER = 0;
-  this.BUTTON_A = 1;
-  this.BUTTON_B = 2;
+  this.BUTTON_POWER = BUTTON_POWER;
+  this.BUTTON_A = BUTTON_A;
+  this.BUTTON_B = BUTTON_B;
+
 }
+

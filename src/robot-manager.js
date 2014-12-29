@@ -127,6 +127,9 @@ function RobotManager(document) {
             LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
             LinkbotControls.knob.get('position-joint-2').setValue(pos[3]);
         }
+        var btnPower = _controlPanelRobot.linkbot.BUTTON_POWER;
+        var btnA = _controlPanelRobot.linkbot.BUTTON_A;
+        var btnB = _controlPanelRobot.linkbot.BUTTON_B;
         _controlPanelRobot.linkbot.register({
             accel: {
                 callback: controlAccelChanged
@@ -146,17 +149,17 @@ function RobotManager(document) {
                 }
             },
             button: {
-                0: {
+                btnPower : {
                     callback: function(robot, data, event) {
                         console.log(event);
                     }
                 },
-                1: {
+                btnA: {
                     callback: function() {
                         console.log(event);
                     }
                 },
-                2: {
+                btnB: {
                     callback: function() {
                         console.log(event);
                     }

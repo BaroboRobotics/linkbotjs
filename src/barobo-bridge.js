@@ -6,7 +6,7 @@ baroboBridge = (function(main) {
       methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged', 'buzzerFrequency',
         'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals', 'enableAccelSignals', 'disableAccelSignals',
         'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'moveTo',
-        'scan', 'setMotorEventThreshold', 'stop', 'moveContinuous'];
+        'scan', 'stop', 'moveContinuous'];
       signals = ['accelChanged', 'motorChanged', 'buttonChanged'];
       obj = {
         mock: true

@@ -6,7 +6,7 @@ baroboBridge = (function(main) {
       methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged', 'buzzerFrequency',
         'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals', 'enableAccelSignals', 'disableAccelSignals',
         'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'moveTo',
-        'scan', 'setMotorEventThreshold', 'stop', 'moveContinuous'];
+        'scan', 'stop', 'moveContinuous'];
       signals = ['accelChanged', 'motorChanged', 'buttonChanged'];
       obj = {
         mock: true
@@ -255,6 +255,9 @@ baroboBridge = (function(main) {
             LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
             LinkbotControls.knob.get('position-joint-2').setValue(pos[3]);
         }
+        var btnPower = _controlPanelRobot.linkbot.BUTTON_POWER;
+        var btnA = _controlPanelRobot.linkbot.BUTTON_A;
+        var btnB = _controlPanelRobot.linkbot.BUTTON_B;
         _controlPanelRobot.linkbot.register({
             accel: {
                 callback: controlAccelChanged
@@ -274,17 +277,17 @@ baroboBridge = (function(main) {
                 }
             },
             button: {
-                0: {
+                btnPower : {
                     callback: function(robot, data, event) {
                         console.log(event);
                     }
                 },
-                1: {
+                btnA: {
                     callback: function() {
                         console.log(event);
                     }
                 },
-                2: {
+                btnB: {
                     callback: function() {
                         console.log(event);
                     }
@@ -974,17 +977,15 @@ baroboBridge = (function(main) {
   var buttonSlotCallback = null;
   var accelSlotCallback = null;
   var joinDirection = [0, 0, 0];
-  var granularity = 5;
-  var granularityEnabled = false;
+  var BUTTON_POWER = 0;
+  var BUTTON_A = 1;
+  var BUTTON_B = 2;
 
   bot._id = _id;
   err = baroboBridge.connectRobot(_id);
   if (err < 0) {
     bot._id = null;
     return;
-  }
-  for (var m = 1; m <= 3; m++) {
-    baroboBridge.setMotorEventThreshold(bot._id, m, 1e10);
   }
   bot._wheelPositions = baroboBridge.getMotorAngles(bot._id);
   bot._firmwareVersion = baroboBridge.firmwareVersion(bot._id);
@@ -1166,10 +1167,9 @@ baroboBridge = (function(main) {
         registerObject = _ref[_wheelId];
         wheelId = parseInt(_wheelId);
         slot = wheelSlot(bot, wheelId, registerObject.callback, registerObject.data);
-        baroboBridge.setMotorEventThreshold(bot._id, wheelId, registerObject.distance);
         baroboBridge.motorChanged.connect(slot);
         wheelSlotCallback.push(slot);
-        _results.push(baroboBridge.enableMotorSignals(bot._id, this.granularity, this.granularityEnabled));
+        _results.push(baroboBridge.enableMotorSignals(bot._id, registerObject.distance, true));
       }
     }
     if (connections.accel && connections.accel !== null) {
@@ -1183,15 +1183,6 @@ baroboBridge = (function(main) {
       ledCallbacks.push(_ref.callback);
     }
     return _results;
-  };
-
-  /**
-   * Sets the granularity, must be set before registering wheel callbacks.
-   * @param _granularity Represents the minimum delta in degrees that the motors must move before emitting an encoder signal.
-   */
-  this.setGranularity = function(_granularity) {
-    this.granularity = parseInt(_granularity);
-    this.granularityEnabled = true;
   };
 
   this.unregister = function(includeLed) {
@@ -1236,10 +1227,12 @@ baroboBridge = (function(main) {
    * Button Constants.
    * Used when registering button callbacks.
    */
-  this.BUTTON_POWER = 0;
-  this.BUTTON_A = 1;
-  this.BUTTON_B = 2;
+  this.BUTTON_POWER = BUTTON_POWER;
+  this.BUTTON_A = BUTTON_A;
+  this.BUTTON_B = BUTTON_B;
+
 }
+
 ;function Storage(config) {
   var settings = (config) ? config : {
     DBNAME: "robotsdb",
