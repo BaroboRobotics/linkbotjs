@@ -278,10 +278,12 @@ function RobotManager(document) {
         var idInput;
         e.preventDefault();
         idInput = manager.element.querySelector('input#robotInput');
-        manager.add(idInput.value);
-        idInput.value = "";
-        manager.connect();
-        manager.redraw();
+        if (idInput.value && idInput.value.length == 4) {
+            manager.add(idInput.value.toUpperCase());
+            idInput.value = "";
+            manager.connect();
+            manager.redraw();
+        }
     }
 
     function _closeMenuSlide(e) {
@@ -444,10 +446,9 @@ function RobotManager(document) {
     }
 
     function _constructElement(doc) {
-        var addBtn, el, controlPanel, overlay, pulloutBtn, slideOverlay, btn;
+        var addBtn, el, controlPanel, overlay, pulloutBtn, btn;
         el = doc.createElement('div');
-        slideOverlay = doc.createElement('div');
-        slideOverlay.setAttribute('id', 'robomgr-slideout-overlay');
+
         overlay = doc.createElement('div');
         overlay.setAttribute('id', 'robomgr-overlay');
         overlay.setAttribute('class', 'robomgr-hide');
@@ -472,8 +473,6 @@ function RobotManager(document) {
         pulloutBtn = el.querySelector('.robomgr-pullout');
         addBtn.addEventListener('click', _uiAdd);
         pulloutBtn.addEventListener('click', _uiMenuSlide);
-
-        slideOverlay.addEventListener('click', _closeMenuSlide);
 
         controlPanel = doc.createElement('div');
         controlPanel.setAttribute('class', 'robomgr-hide');
@@ -586,7 +585,6 @@ function RobotManager(document) {
         ].join('');
         controlPanel.innerHTML = controlPanelHtml;
         // Order matters.
-        el.appendChild(slideOverlay);
         el.appendChild(overlay);
         el.appendChild(controlPanel);
         overlay.addEventListener('click', hideControlPanel);
