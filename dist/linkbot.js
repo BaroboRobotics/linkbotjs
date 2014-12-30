@@ -243,7 +243,6 @@ baroboBridge = (function(main) {
         document.getElementById('robomgr-tab-sensors-panel').className = 'robomgr-hide';
         document.getElementById('robomgr-tab-control').parentElement.className='robomgr-active';
         document.getElementById('robomgr-tab-sensors').parentElement.className='';
-        document.getElementById('linkbotjs-led-color').value = '#' + _colorToHex(r.linkbot.getColor());
         // TODO handle logic for robot control
         _controlPanelRobot = r;
         _controlPanelRobot.linkbot.angularSpeed(50, 0, 50);
@@ -555,6 +554,14 @@ baroboBridge = (function(main) {
                 color.value = '#606060';
             }
         });
+        color.addEventListener('change', function (e) {
+            if (r && r.linkbot) {
+                var value = _hexToRgb(color.value);
+                r.linkbot.color(value.red, value.green, value.blue);
+            } else {
+                color.value = '#606060';
+            }
+        });
         return li;
     }
 
@@ -711,11 +718,6 @@ baroboBridge = (function(main) {
             '     <div style="width: 130px; margin-left: 420px; height: 100%;"><div id="accel-mag" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="0" data-max="5"></div><p style="padding-top: 10px;">mag: <span id="accel-mag-value">0</span></p></div>',
             '   </div>',
             ' </div>',
-            ' <div class="robomgr-row" style="text-align: center;">LED Color',
-            '   <div class="robomgr-control-poster" style="padding: 10px 30px;">',
-            '     <input type="color" id="linkbotjs-led-color" />',
-            '   </div>',
-            ' </div>',
             '</div>'
         ].join('');
         controlPanel.innerHTML = controlPanelHtml;
@@ -726,11 +728,6 @@ baroboBridge = (function(main) {
         overlay.addEventListener('click', hideControlPanel);
         controlPanel.addEventListener('click', function(e) {
             e.stopPropagation();
-        });
-        var ledColorElement = controlPanel.querySelector('#linkbotjs-led-color');
-        ledColorElement.addEventListener('input', function(e) {
-            var value = _hexToRgb(ledColorElement.value);
-            _controlPanelRobot.linkbot.color(value.red, value.green, value.blue);
         });
 
         var imgElements = controlPanel.getElementsByClassName('robomgr-control-img');
