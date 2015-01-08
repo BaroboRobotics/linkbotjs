@@ -1,4 +1,5 @@
 var Linkbots = (function(exports, doc) {
+    var startOpen = false;
     var manager = new RobotManager(doc);
     var storage = new Storage();
     var source = null;
@@ -100,6 +101,9 @@ var Linkbots = (function(exports, doc) {
     exports.closeSideMenu = function() {
         manager.closeMenu();
     };
+    exports.startOpen = function(val) {
+        startOpen = val;
+    };
     exports.storage = storage;
 
     LinkbotControls.knob.init();
@@ -121,6 +125,9 @@ var Linkbots = (function(exports, doc) {
             var newOnLoad = function() {
                 originalOnLoad();
                 addRobotManager();
+                if (startOpen) {
+                    manager.openMenu();
+                }
             };
             window.onload = newOnLoad;
         } else {

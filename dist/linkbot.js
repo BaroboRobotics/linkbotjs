@@ -243,7 +243,9 @@ baroboBridge = (function(main) {
         document.getElementById('robomgr-tab-sensors-panel').className = 'robomgr-hide';
         document.getElementById('robomgr-tab-control').parentElement.className='robomgr-active';
         document.getElementById('robomgr-tab-sensors').parentElement.className='';
-        // TODO handle logic for robot control
+        if (_controlPanelRobot && _controlPanelRobot !== null) {
+            _controlPanelRobot.linkbot.unregister(false);
+        }
         _controlPanelRobot = r;
         _controlPanelRobot.linkbot.angularSpeed(50, 0, 50);
         LinkbotControls.slider.get('speed-joint-1').setValue(50);
@@ -440,7 +442,7 @@ baroboBridge = (function(main) {
         spanBtn = manager.element.querySelector('span');
         container = document.querySelector('#robomgr-container');
         left = /robomgr-left/.test(spanBtn.className);
-        overlay = document.getElementById('robomgr-slideout-overlay');
+
         if (left) {
             var slideElements = document.getElementsByClassName('robomgr-slide-element');
             for (i = 0; i < slideElements.length; i++) {
@@ -449,14 +451,12 @@ baroboBridge = (function(main) {
             spanBtn.className = 'robomgr-pulloutbtn robomgr-right';
             container.className = 'robomgr-container-hidden';
             document.body.style.marginLeft = '';
-            overlay.style.display = 'none';
             //clearInterval(_robotStatusInterval);
             _robotStatusInterval = null;
         } else {
             spanBtn.className = 'robomgr-pulloutbtn robomgr-left';
             container.className = 'robomgr-container-open';
             document.body.style.marginLeft = '300px';
-            overlay.style.display = 'block';
            // _checkRobotStatus();
             //_robotStatusInterval = setInterval(_checkRobotStatus, 3000);
         }
@@ -672,7 +672,7 @@ baroboBridge = (function(main) {
             '         <div id="speed-joint-2" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 2: <span id="speed-joint-2-value">10</span></p>',
             '       </div>',
             '     </div>',
-            '     acceleration',
+            '     <!-- acceleration',
             '     <div class="robomgr-control-poster" style="padding: 10px;">',
             '       <div style="float: left; width: 110px;">',
             '         <div id="acceleration-joint-1" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 1: <span id="acceleration-joint-1-value">10</span></p>',
@@ -680,7 +680,7 @@ baroboBridge = (function(main) {
             '       <div style="margin-left: 132px; width: 110px;">',
             '         <div id="acceleration-joint-2" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 2: <span id="acceleration-joint-2-value">10</span></p>',
             '       </div>',
-            '     </div>',
+            '     </div> -->',
             '   </div>',
             ' </div>',
             ' <div class="robomgr-row">',
@@ -747,12 +747,14 @@ baroboBridge = (function(main) {
             document.getElementById('speed-joint-2-value').innerText = value;
             controlSpeedChanged(value);
         });
+        /*
         LinkbotControls.slider.addChangeCallback('acceleration-joint-1', function(value) {
             document.getElementById('acceleration-joint-1-value').innerText = value;
         });
         LinkbotControls.slider.addChangeCallback('acceleration-joint-2', function(value) {
             document.getElementById('acceleration-joint-2-value').innerText = value;
         });
+        */
         LinkbotControls.slider.addChangeCallback('buzzer-frequency-id', function(value) {
             document.getElementById('buzzer-frequency-id-value').innerText = value;
         });
@@ -1870,6 +1872,7 @@ baroboBridge = (function(main) {
 	return parent;
 }(LinkbotControls || {}, document));
 ;var Linkbots = (function(exports, doc) {
+    var startOpen = false;
     var manager = new RobotManager(doc);
     var storage = new Storage();
     var source = null;
@@ -1971,6 +1974,9 @@ baroboBridge = (function(main) {
     exports.closeSideMenu = function() {
         manager.closeMenu();
     };
+    exports.startOpen = function(val) {
+        startOpen = val;
+    };
     exports.storage = storage;
 
     LinkbotControls.knob.init();
@@ -1992,6 +1998,9 @@ baroboBridge = (function(main) {
             var newOnLoad = function() {
                 originalOnLoad();
                 addRobotManager();
+                if (startOpen) {
+                    manager.openMenu();
+                }
             };
             window.onload = newOnLoad;
         } else {
