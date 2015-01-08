@@ -115,6 +115,9 @@ var Linkbots = (function(exports, doc) {
         doc.body.style.marginTop = "90px";
         doc.body.appendChild(manager.topNav);
         doc.body.appendChild(manager.element);
+        if (startOpen) {
+            manager.openMenu();
+        }
     }
 
     if(window.attachEvent) {
@@ -125,9 +128,6 @@ var Linkbots = (function(exports, doc) {
             var newOnLoad = function() {
                 originalOnLoad();
                 addRobotManager();
-                if (startOpen) {
-                    manager.openMenu();
-                }
             };
             window.onload = newOnLoad;
         } else {

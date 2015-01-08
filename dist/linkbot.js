@@ -1988,6 +1988,9 @@ baroboBridge = (function(main) {
         doc.body.style.marginTop = "90px";
         doc.body.appendChild(manager.topNav);
         doc.body.appendChild(manager.element);
+        if (startOpen) {
+            manager.openMenu();
+        }
     }
 
     if(window.attachEvent) {
@@ -1998,9 +2001,6 @@ baroboBridge = (function(main) {
             var newOnLoad = function() {
                 originalOnLoad();
                 addRobotManager();
-                if (startOpen) {
-                    manager.openMenu();
-                }
             };
             window.onload = newOnLoad;
         } else {
