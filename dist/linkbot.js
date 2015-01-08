@@ -259,10 +259,7 @@ baroboBridge = (function(main) {
             LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
             LinkbotControls.knob.get('position-joint-2').setValue(pos[3]);
         }
-        var btnPower = _controlPanelRobot.linkbot.BUTTON_POWER;
-        var btnA = _controlPanelRobot.linkbot.BUTTON_A;
-        var btnB = _controlPanelRobot.linkbot.BUTTON_B;
-        _controlPanelRobot.linkbot.register({
+        var regObj = {
             accel: {
                 callback: controlAccelChanged
             },
@@ -280,24 +277,24 @@ baroboBridge = (function(main) {
                     }
                 }
             },
-            button: {
-                btnPower : {
-                    callback: function(robot, data, event) {
-                        console.log(event);
-                    }
-                },
-                btnA: {
-                    callback: function() {
-                        console.log(event);
-                    }
-                },
-                btnB: {
-                    callback: function() {
-                        console.log(event);
-                    }
-                }
+            button: { }
+        };
+        regObj.button[_controlPanelRobot.linkbot.BUTTON_POWER] = {
+            callback: function() {
+                console.log(event);
             }
-        });
+        };
+        regObj.button[_controlPanelRobot.linkbot.BUTTON_A] = {
+            callback: function() {
+                console.log(event);
+            }
+        };
+        regObj.button[_controlPanelRobot.linkbot.BUTTON_B] = {
+            callback: function() {
+                console.log(event);
+            }
+        };
+        _controlPanelRobot.linkbot.register(regObj);
 
     }
 
