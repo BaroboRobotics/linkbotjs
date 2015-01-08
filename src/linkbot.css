@@ -491,3 +491,6 @@ span.robomgr-right {
 	cursor: default;
 	background-color: #df4623;
 }
+.noscroll {
+	overflow: hidden;
+}

@@ -237,6 +237,9 @@ baroboBridge = (function(main) {
         var overlay = document.getElementById('robomgr-overlay');
         overlay.className = '';
         var linkbotName = document.getElementById('robomgr-control-panel-linkbot');
+        if (document.body.className.indexOf('noscroll') == -1) {
+            document.body.className += ' noscroll';
+        }
         linkbotName.innerText = 'Linkbot ' + r.id;
         // Set tabs correctly.
         document.getElementById('robomgr-tab-control-panel').className = '';
@@ -304,6 +307,16 @@ baroboBridge = (function(main) {
         var overlay = document.getElementById('robomgr-overlay');
         controlPanel.setAttribute('class', 'robomgr-hide');
         overlay.setAttribute('class', 'robomgr-hide');
+        var data = document.body.className;
+        if (data) {
+            document.body.className = '';
+            data = data.split(" ");
+            for (i = 0; i < data.length; i++) {
+                if (data[i] != 'noscroll') {
+                    document.body.className += ' ' + data[i];
+                }
+            }
+        }
         _controlPanelRobot.linkbot.unregister(false);
         _controlPanelRobot = null;
         _uiMenuSlide();
