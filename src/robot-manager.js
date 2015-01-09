@@ -128,8 +128,8 @@ function RobotManager(document) {
         LinkbotControls.slider.get('buzzer-frequency-id').setValue(440);
         pos = _controlPanelRobot.linkbot.wheelPositions();
         if (pos) {
-            LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
-            LinkbotControls.knob.get('position-joint-2').setValue(pos[3]);
+            LinkbotControls.knob.get('position-joint-1').setValueWithoutChange(pos[0]);
+            LinkbotControls.knob.get('position-joint-2').setValueWithoutChange(pos[2]);
         }
         var regObj = {
             accel: {
