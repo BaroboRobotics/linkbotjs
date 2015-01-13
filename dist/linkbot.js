@@ -5,7 +5,7 @@ baroboBridge = (function(main) {
     } else {
       methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged', 'buzzerFrequency',
         'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals', 'enableAccelSignals', 'disableAccelSignals',
-        'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'moveTo',
+        'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'moveTo', 'move',
         'scan', 'stop', 'moveContinuous'];
       signals = ['accelChanged', 'motorChanged', 'buttonChanged'];
       obj = {
@@ -247,6 +247,7 @@ baroboBridge = (function(main) {
         document.getElementById('robomgr-tab-control').parentElement.className='robomgr-active';
         document.getElementById('robomgr-tab-sensors').parentElement.className='';
         if (_controlPanelRobot && _controlPanelRobot !== null) {
+            _controlPanelRobot.linkbot.stop();
             _controlPanelRobot.linkbot.unregister(false);
         }
         _controlPanelRobot = r;
@@ -314,6 +315,7 @@ baroboBridge = (function(main) {
                 }
             }
         }
+        _controlPanelRobot.linkbot.stop();
         _controlPanelRobot.linkbot.unregister(false);
         _controlPanelRobot = null;
         _uiMenuSlide();
@@ -412,6 +414,11 @@ baroboBridge = (function(main) {
             return false;
         }
         return true;
+    }
+    
+    function _uiRefresh(e) {
+        e.preventDefault();
+        _checkRobotStatus();
     }
 
     function _uiAdd(e) {
@@ -584,7 +591,7 @@ baroboBridge = (function(main) {
     }
 
     function _constructElement(doc) {
-        var addBtn, el, controlPanel, overlay, pulloutBtn, btn;
+        var addBtn, refreshBtn, el, controlPanel, overlay, pulloutBtn, btn;
         el = doc.createElement('div');
 
         overlay = doc.createElement('div');
@@ -602,14 +609,17 @@ baroboBridge = (function(main) {
             '      <label for="robotInput" id="robotInputLabel" class="sr-only">Linkbot ID</label>',
             '      <input name="robotInput" id="robotInput" type="text" placeholder="Linkbot ID" />',
             '      <button id="robomgr-add">Add</button>',
+            '      <button id="robomgr-refresh"></button>',
             '    </div>',
             '  </form><ol id="robomgr-robot-list"></ol>',
             '</div>'
         ].join('');
         el.innerHTML = htmlVal;
-        addBtn = el.querySelector('button');
+        addBtn = el.querySelector('button#robomgr-add');
+        refreshBtn = el.querySelector('button#robomgr-refresh');
         pulloutBtn = el.querySelector('.robomgr-pullout');
         addBtn.addEventListener('click', _uiAdd);
+        refreshBtn.addEventListener('click', _uiRefresh);
         pulloutBtn.addEventListener('click', _uiMenuSlide);
 
         controlPanel = doc.createElement('div');
