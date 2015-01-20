@@ -19,18 +19,6 @@ function getPosition(element) {
     return { x: xPosition, y: yPosition };
 }
 
-function rgbToHex(value) {
-    if (!value || value === null || value === "undefined") {
-        return "00";
-    }
-    var val = Math.round(value);
-    val = val.toString(16);
-    if (val.length < 2) {
-        val = "0" + val;
-    }
-    return val;
-}
-
 function hexToRgb(hex) {
     var bigint;
     if (hex.substr(0, 1) === '#') {
@@ -1052,11 +1040,10 @@ if(window.attachEvent) {
 } else {
     if(window.onload) {
         var originalOnLoad = window.onload;
-        var newOnLoad = function() {
+        window.onload = function() {
             originalOnLoad();
             addUI();
         };
-        window.onload = newOnLoad;
     } else {
         window.onload = addUI;
     }

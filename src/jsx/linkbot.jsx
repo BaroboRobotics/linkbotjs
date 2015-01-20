@@ -16,7 +16,7 @@ function addCallback(id, func) {
     return token;
 }
 
-function genericCallback(error, result) {
+function genericCallback(error) {
     if (error.code !== 0) {
         // TODO add error handling code here.
         window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
@@ -112,7 +112,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     
     bot.enums = asyncBaroboBridge.enumerationConstants();
     
-    asyncBaroboBridge.connectRobot(id, addCallback(id, function(error, data) {
+    asyncBaroboBridge.connectRobot(id, addCallback(id, function(error) {
         if (0 == error.code) {
             status = 1;
             bot.event.trigger('changed');
@@ -154,7 +154,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             if (0 == error.code) {
                 callback(data);
             } else {
-                callback({red:-1,green:-1,blue:-1});
+                callback({red:96,green:96,blue:96});
             }
         }));
     };
@@ -163,7 +163,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             if (0 == error.code) {
                 callback(colorToHex(data));
             } else {
-                callback('000000');
+                callback('606060');
             }
         }));
         
@@ -289,8 +289,9 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.connect = function() {
+        var token;
         if (status == 0) {
-            var token = addCallback(id, function(error, data) {
+            token = addCallback(id, function(error) {
                 if (0 == error.code) {
                     status = 1;
                     bot.event.trigger('changed');
@@ -298,7 +299,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             });
             asyncBaroboBridge.connectRobot(id, token);
         } else {
-            var token = addCallback(id, function(error, data) {
+            token = addCallback(id, function(error) {
                 if (0 != error.code) {
                     status = 0;
                     bot.event.trigger('changed');
@@ -309,17 +310,25 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
     // This is a deprecated method.
     bot.register = function(connections) {
+        var obj, token;
         if (status == 0 || typeof(connections) == 'undefined') {
             return;
         }
         if (connections.hasOwnProperty('button')) {
             buttonEventCallbacks.hasOwnProperty(id) || (buttonEventCallbacks[id] = []);
             for (var buttonId in connections.button) {
-                var obj =  connections.button[buttonId];
-                buttonEventCallbacks[id].push({robot:bot, buttonId:buttonId, callback:obj.callback, data:obj.data});
+                if (connections.button.hasOwnProperty(buttonId)) {
+                    obj = connections.button[buttonId];
+                    buttonEventCallbacks[id].push({
+                        robot: bot,
+                        buttonId: buttonId,
+                        callback: obj.callback,
+                        data: obj.data
+                    });
+                }
             }
             if (buttonEventCallbacks[id].length > 0) {
-                var token = addCallback(id, genericCallback);
+                token = addCallback(id, genericCallback);
                 asyncBaroboBridge.enableButtonEvents (id, token, true);
             }
         }
@@ -327,37 +336,45 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             var granularity = 5.0;
             encoderEventCallbacks.hasOwnProperty(id) || (encoderEventCallbacks[id] = []);
             for (var wheelId in connections.wheel) {
-                var obj = connections.wheel[wheelId];
-                encoderEventCallbacks[id].push({robot:bot, wheelId:wheelId, callback:obj.callback, data:obj.data});
-                if (obj.hasOwnProperty('distance') && obj.distance < granularity) {
-                    granularity = obj.distance;
+                if (connections.wheel.hasOwnProperty(wheelId)) {
+                    obj = connections.wheel[wheelId];
+                    encoderEventCallbacks[id].push({
+                        robot: bot,
+                        wheelId: wheelId,
+                        callback: obj.callback,
+                        data: obj.data
+                    });
+                    if (obj.hasOwnProperty('distance') && obj.distance < granularity) {
+                        granularity = obj.distance;
+                    }
                 }
             }
             if (encoderEventCallbacks[id].length > 0) {
-                var token = addCallback(id, genericCallback);
+                token = addCallback(id, genericCallback);
                 asyncBaroboBridge.enableEncoderEvents(id, token, granularity, true);
             }
         }
         if (connections.hasOwnProperty('accel')) {
-            var obj = connections.accel;
+            obj = connections.accel;
             accelerometerEventCallbacks.hasOwnProperty(id) || (accelerometerEventCallbacks[id] = []);
             accelerometerEventCallbacks[id].push({robot:bot, callback:obj.callback, data:obj.data});
-            var token = addCallback(id, genericCallback);
+            token = addCallback(id, genericCallback);
             asyncBaroboBridge.enableAccelerometerEvents(id, token, true);
         }
     };
     // This is a deprecated method.
     bot.unregister = function() {
+        var token;
         if (buttonEventCallbacks.hasOwnProperty(id) && buttonEventCallbacks[id].length > 0) {
-            var token = addCallback(id, genericCallback);
+            token = addCallback(id, genericCallback);
             asyncBaroboBridge.enableButtonEvents (id, token, false);
         }
         if (encoderEventCallbacks.hasOwnProperty(id) && encoderEventCallbacks[id].length > 0) {
-            var token = addCallback(id, genericCallback);
+            token = addCallback(id, genericCallback);
             asyncBaroboBridge.enableEncoderEvents(id, token, 5.0, false);
         }
         if (accelerometerEventCallbacks.hasOwnProperty(id) && accelerometerEventCallbacks[id].length > 0) {
-            var token = addCallback(id, genericCallback);
+            token = addCallback(id, genericCallback);
             asyncBaroboBridge.enableAccelerometerEvents(id, token, false);
         }
     };
@@ -590,8 +607,9 @@ module.exports.Linkbot = function Linkbot(_id) {
     };
 
     bot.connect = function() {
+        var err;
         if (status == 0) {
-            var err = baroboBridge.connectRobot(id);
+            err = baroboBridge.connectRobot(id);
             if (err < 0) {
                 status = 0;
             } else {
@@ -602,7 +620,7 @@ module.exports.Linkbot = function Linkbot(_id) {
             var color = baroboBridge.getLEDColor(bot.id);
             if (color.red === 0 && color.green === 0 && color.blue === 0) {
                 // Attempt to re-connect.
-                var err = baroboBridge.connectRobot(id);
+                err = baroboBridge.connectRobot(id);
                 if (err < 0) {
                     status = 0;
                 } else {

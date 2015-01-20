@@ -10,22 +10,19 @@ try {
 } catch(e) {
     db = null;
     // TODO implement alternative storage engines.
-    this.remove = function(name, callback) {
+    module.exports.remove = function() {
         window.console.log('OpenDatabase not available');
     };
-    this.add = function(name, status, callback) {
+    module.exports.add = function() {
         window.console.log('OpenDatabase not available');
     };
-    this.getAll = function(callback) {
+    module.exports.getAll = function() {
         window.console.log('OpenDatabase not available');
     };
-    this.updateOrder = function(callback) {
+    module.exports.updateOrder = function() {
         window.console.log('OpenDatabase not available');
     };
-    this.printRows = function() {
-        window.console.log('OpenDatabase not available');
-    };
-    this.changePosition = function(currentPosition, newPosition, callback) {
+    module.exports.changePosition = function() {
         window.console.log('OpenDatabase not available');
     };
 }
@@ -43,7 +40,7 @@ if (db !== null) {
     module.exports.remove = function(name, callback) {
         db.transaction(function(tx) {
             tx.executeSql("DELETE FROM " + settings.TABLE + " WHERE name = ?", [name],
-                function(tx, result) {
+                function() {
                     if (callback) {
                         callback(true);
                     }

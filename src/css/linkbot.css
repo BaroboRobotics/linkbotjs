@@ -40,7 +40,7 @@ input[type=color] {
     transition: left .5s ease;
 }
 #ljs-left-menu-container.ljs-open {
-    left: 0px;
+    left: 0;
     -webkit-transition: left .5s ease;
     -moz-transition: left .5s ease;
     -o-transition: left .5s ease;
