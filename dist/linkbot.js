@@ -19431,7 +19431,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         };
     },
     setValue: function(value, callChanged) {
-        var degValue, val, _callChanged;
+        var degValue, val, _callChanged, dispDeg;
         degValue = parseInt(value);
         if (isNaN(degValue)) {
             return;
@@ -19446,15 +19446,15 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         while (degValue < 0) {
             degValue = 360 + degValue;
         }
-
+        dispDeg = 360 - degValue;
         this.setState({display:degValue + '\xB0',
             value:val, degValue:degValue,
             mouseDown:this.state.mouseDown,
             updateValue:this.state.updateValue});
 
         var imgElement = this.refs.knobImg.getDOMNode();
-        imgElement.style.transform = "rotate(" + degValue + "deg)";
-        imgElement.style.webkitTransform  = "rotate(" + degValue + "deg)";
+        imgElement.style.transform = "rotate(" + dispDeg + "deg)";
+        imgElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
         if (_callChanged) {
             this.props.hasChanged({value: value, degValue: degValue});
         }
@@ -19497,7 +19497,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         }
     },
     handleClick: function(e) {
-        var x, y, ydiff, xdiff, deg, position, box, center, originalDeg, pos, neg, wrapper, value;
+        var x, y, ydiff, xdiff, deg, position, box, center, originalDeg, pos, neg, wrapper, value, dispDeg;
         if (e.target.tagName == 'INPUT') {
             return;
         }
@@ -19515,7 +19515,8 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         ydiff = center.y - y;
         deg = ((Math.atan2(ydiff,xdiff) * rad2deg) + 270) % 360;
         deg = Math.round(deg);
-
+        dispDeg = deg;
+        deg = 360 - deg;
         if (originalDeg >= deg) {
             neg = originalDeg - deg;
             pos = 360 - originalDeg + deg;
@@ -19529,8 +19530,8 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             value -= neg;
         }
         var imgElement = this.refs.knobImg.getDOMNode();
-        imgElement.style.transform = "rotate(" + deg + "deg)";
-        imgElement.style.webkitTransform  = "rotate(" + deg + "deg)";
+        imgElement.style.transform = "rotate(" + dispDeg + "deg)";
+        imgElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
         this.setState({display:deg+ '\xB0',
             value:value,
             degValue:deg,
@@ -19885,10 +19886,12 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             this.state.linkbot.stop();
             this.state.linkbot.unregister(false);
         }
+        /*
         if (linkbot.status == "offline") {
             uiEvents.trigger('hide-control-panel');
             return;
         }
+        */
         this.refs.overlay.getDOMNode().style.display = 'block';
         this.refs.controlPanel.getDOMNode().style.display = 'block';
         var regObj = {
