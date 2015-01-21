@@ -236,8 +236,17 @@ var KnobControl = React.createClass({
             display: this.props.value + '\xB0',
             degValue: (this.props.value % 360),
             mouseDown: false,
-            updateValue: true
+            locked: false,
+            changed: false
         };
+    },
+    unlock: function() {
+        this.setState({display:this.state.degValue + '\xB0',
+            value:this.state.value,
+            degValue:this.state.degValue,
+            mouseDown:this.state.mouseDown,
+            locked:false,
+            changed:false});
     },
     setValue: function(value, callChanged) {
         var degValue, val, _callChanged, dispDeg;
@@ -256,11 +265,20 @@ var KnobControl = React.createClass({
             degValue = 360 + degValue;
         }
         dispDeg = 360 - degValue;
-        this.setState({display:degValue + '\xB0',
-            value:val, degValue:degValue,
-            mouseDown:this.state.mouseDown,
-            updateValue:this.state.updateValue});
-
+        if (this.state.locked || this.state.changed) {
+            this.setState({display:this.state.display,
+                value:val, degValue:degValue,
+                mouseDown:this.state.mouseDown,
+                locked:this.state.locked,
+                changed:this.state.changed});
+            
+        } else {
+            this.setState({display:degValue + '\xB0',
+                value:val, degValue:degValue,
+                mouseDown:this.state.mouseDown,
+                locked:this.state.locked,
+                changed:this.state.changed});
+        }
         var imgElement = this.refs.knobImg.getDOMNode();
         imgElement.style.transform = "rotate(" + dispDeg + "deg)";
         imgElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
@@ -268,15 +286,78 @@ var KnobControl = React.createClass({
             this.props.hasChanged({value: value, degValue: degValue});
         }
     },
+    getValue: function() {
+        return {value: this.state.value, degValue: this.state.degValue};
+    },
+    getInputValue: function() {
+        return this.state.display;
+    },
     handleInputChange: function(e) {
         e.preventDefault();
-        var inputElement = this.refs.knobInput.getDOMNode();
-        this.setValue(inputElement.value);
+        //var inputElement = this.refs.knobInput.getDOMNode();
+        //this.setValue(inputElement.value);
+        if (!this.state.changed) {
+            this.setState({
+                display: event.target.value,
+                value: this.state.value,
+                degValue: this.state.degValue,
+                mouseDown: this.state.mouseDown,
+                locked: true,
+                changed: true
+            });
+        } else {
+            this.setState({display:event.target.value,
+                value:this.state.value,
+                degValue:this.state.degValue,
+                mouseDown:this.state.mouseDown,
+                locked:this.state.locked,
+                changed:this.state.changed});
+        }
     },
     handleInputClick: function(e) {
         e.preventDefault();
         var inputElement = this.refs.knobInput.getDOMNode();
-        inputElement.setSelectionRange(0, inputElement.value.length - 1);
+        //inputElement.setSelectionRange(0, inputElement.value.length - 1);
+        inputElement.select();
+        
+    },
+    handleOnFocus: function(e) {
+        if (this.state.changed) {
+            this.setState({
+                display: this.state.display,
+                value: this.state.value,
+                degValue: this.state.degValue,
+                mouseDown: this.state.mouseDown,
+                locked: true,
+                changed: this.state.changed
+            });
+        } else {
+            this.setState({
+                display: this.state.value,
+                value: this.state.value,
+                degValue: this.state.degValue,
+                mouseDown: this.state.mouseDown,
+                locked: true,
+                changed: this.state.changed
+            });
+        }
+    },
+    handleOnBlur: function(e) {
+        if (!this.state.changed) {
+            this.setState({display:this.state.degValue + '\xB0',
+                value:this.state.value,
+                degValue:this.state.degValue,
+                mouseDown:this.state.mouseDown,
+                locked:false,
+                changed:this.state.changed});
+        } else {
+            this.setState({display:this.state.display,
+                value:this.state.value,
+                degValue:this.state.degValue,
+                mouseDown:this.state.mouseDown,
+                locked:this.state.locked,
+                changed:this.state.changed});
+        }
     },
     handleMouseDown: function(e) {
         if (e.target.tagName == 'INPUT') {
@@ -287,7 +368,8 @@ var KnobControl = React.createClass({
             value:this.state.value,
             degValue:this.state.degValue,
             mouseDown:true,
-            updateValue:this.state.updateValue});
+            locked:this.state.locked,
+            changed:this.state.changed});
     },
     handleMouseUp: function(e) {
         if (e.target.tagName == 'INPUT') {
@@ -298,7 +380,8 @@ var KnobControl = React.createClass({
             value:this.state.value,
             degValue:this.state.degValue,
             mouseDown:false,
-            updateValue:this.state.updateValue});
+            locked:this.state.locked,
+            changed:this.state.changed});
     },
     handleMouseMove: function(e) {
         if (this.state.mouseDown) {
@@ -341,14 +424,24 @@ var KnobControl = React.createClass({
         var imgElement = this.refs.knobImg.getDOMNode();
         imgElement.style.transform = "rotate(" + dispDeg + "deg)";
         imgElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
+        if (this.state.locked) {
+            var inputElement = this.refs.knobInput.getDOMNode();
+            inputElement.blur();
+        }
         this.setState({display:deg+ '\xB0',
             value:value,
             degValue:deg,
             mouseDown:this.state.mouseDown,
-            updateValue:this.state.updateValue});
+            locked:false,
+            changed:false});
         this.props.hasChanged({value:value, degValue:deg});
     },
     render: function() {
+        var inputClass = "ljs-knob";
+        if (this.state.changed) {
+            inputClass += " ljs-knob-locked";
+            
+        }
         return (
             <div {...this.props} className="ljs-knob-container" ref="wrapper"
                 onClick={this.handleClick}
@@ -356,9 +449,11 @@ var KnobControl = React.createClass({
                 onMouseDown={this.handleMouseDown}
                 onMouseUp={this.handleMouseUp}>
                 <img width="100%" src="" draggable="false" ref="knobImg" />
-                <input type="text" className="ljs-knob" value={this.state.display} ref="knobInput"
+                <input type="text" className={inputClass} value={this.state.display} ref="knobInput"
                     onClick={this.handleInputClick}
-                    onChange={this.handleInputChange} />
+                    onChange={this.handleInputChange}
+                    onFocus={this.handleOnFocus}
+                    onBlur={this.handleOnBlur} />
             </div>
         );
     }
@@ -695,12 +790,12 @@ var ControlPanel = React.createClass({
             this.state.linkbot.stop();
             this.state.linkbot.unregister(false);
         }
-        /*
+
         if (linkbot.status == "offline") {
             uiEvents.trigger('hide-control-panel');
             return;
         }
-        */
+
         this.refs.overlay.getDOMNode().style.display = 'block';
         this.refs.controlPanel.getDOMNode().style.display = 'block';
         var regObj = {
@@ -811,7 +906,7 @@ var ControlPanel = React.createClass({
             z: this.state.z,
             mag: this.state.mag
         });
-        this.state.linkbot.moveTo(data.value, 0, this.state.wheel2);
+        this.state.linkbot.driveTo(data.value, 0, this.state.wheel2);
     },
     knob2Changed: function(data) {
         this.setState({
@@ -827,7 +922,7 @@ var ControlPanel = React.createClass({
             z: this.state.z,
             mag: this.state.mag
         });
-        this.state.linkbot.moveTo(this.state.wheel1, 0, data.value);
+        this.state.linkbot.driveTo(this.state.wheel1, 0, data.value);
         
     },
     motor1Up: function() {
@@ -919,8 +1014,19 @@ var ControlPanel = React.createClass({
         setTimeout(function() { me.state.linkbot.buzzerFrequency(0); }, 250);
     },
     moveButtonPressed: function() {
+        var v1, v2;
+        v1 = parseInt(this.refs.knobJoint1.getInputValue());
+        v2 = parseInt(this.refs.knobJoint2.getInputValue());
+        if (isNaN(v1)) {
+            v1 = this.state.wheel1;
+        }
+        if (isNaN(v2)) {
+            v2 = this.state.wheel2;
+        }
         this.state.linkbot.angularSpeed(this.state.m1Value, 0, this.state.m2Value);
-        this.state.linkbot.moveTo(this.state.wheel1, 0, this.state.wheel2);
+        this.state.linkbot.moveTo(v1, 0, v2);
+        this.refs.knobJoint1.unlock();
+        this.refs.knobJoint2.unlock();
     },
     hideAll: function() {
         uiEvents.trigger('hide');

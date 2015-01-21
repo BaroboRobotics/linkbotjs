@@ -18440,6 +18440,9 @@ module.exports.Events = events;
 var eventlib = require('./event.jsx');
 var manager = require('./manager.jsx');
 
+
+var firmwareVersions = asyncBaroboBridge.availableFirmwareVersions();
+var enumConstants = asyncBaroboBridge.enumerationConstants();
 var requestId = 0;
 var callbacks = {};
 var buttonEventCallbacks = {};
@@ -18547,12 +18550,34 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
     
-    bot.enums = asyncBaroboBridge.enumerationConstants();
+    bot.enums = enumConstants;
+    bot.firmwareVerions = firmwareVersions;
+
+    function checkVersions(error, data) {
+        if (0 === error.code) {
+            var valid = false, i = 0, version = "0.0.0";
+            version = 'v' + data.major + '.' + data.minor + '.' + data.patch;
+            window.console.log('checking version: ' + version);
+            for (i = 0; i < firmwareVersions.length; i++) {
+                if (version === firmwareVersions[i]) {
+                    window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
+                    valid = true;
+                    break;
+                }
+            }
+            if (!valid) {
+                document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
+            }
+        } else {
+            window.console.warn('error occurred checking firmware version [' + error.category + '] :: ' + error.message);
+        }
+    }
     
     asyncBaroboBridge.connectRobot(id, addCallback(id, function(error) {
         if (0 == error.code) {
             status = 1;
             bot.event.trigger('changed');
+            asyncBaroboBridge.getVersions(id, addCallback(id, checkVersions));
         }
     }));
     
@@ -18636,6 +18661,20 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         if (status != 0) {
             var token = addCallback(id, genericCallback);
             asyncBaroboBridge.moveTo(id, token, 7, r1, r2, r3);
+        }
+    };
+
+    bot.drive = function(r1, r2, r3) {
+        if (status != 0) {
+            var token = addCallback(id, genericCallback);
+            asyncBaroboBridge.drive(id, token, 7, r1, r2, r3);
+        }
+    };
+
+    bot.driveTo = function(r1, r2, r3) {
+        if (status != 0) {
+            var token = addCallback(id, genericCallback);
+            asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
         }
     };
 
@@ -19427,8 +19466,17 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             display: this.props.value + '\xB0',
             degValue: (this.props.value % 360),
             mouseDown: false,
-            updateValue: true
+            locked: false,
+            changed: false
         };
+    },
+    unlock: function() {
+        this.setState({display:this.state.degValue + '\xB0',
+            value:this.state.value,
+            degValue:this.state.degValue,
+            mouseDown:this.state.mouseDown,
+            locked:false,
+            changed:false});
     },
     setValue: function(value, callChanged) {
         var degValue, val, _callChanged, dispDeg;
@@ -19447,11 +19495,20 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             degValue = 360 + degValue;
         }
         dispDeg = 360 - degValue;
-        this.setState({display:degValue + '\xB0',
-            value:val, degValue:degValue,
-            mouseDown:this.state.mouseDown,
-            updateValue:this.state.updateValue});
-
+        if (this.state.locked || this.state.changed) {
+            this.setState({display:this.state.display,
+                value:val, degValue:degValue,
+                mouseDown:this.state.mouseDown,
+                locked:this.state.locked,
+                changed:this.state.changed});
+            
+        } else {
+            this.setState({display:degValue + '\xB0',
+                value:val, degValue:degValue,
+                mouseDown:this.state.mouseDown,
+                locked:this.state.locked,
+                changed:this.state.changed});
+        }
         var imgElement = this.refs.knobImg.getDOMNode();
         imgElement.style.transform = "rotate(" + dispDeg + "deg)";
         imgElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
@@ -19459,15 +19516,78 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             this.props.hasChanged({value: value, degValue: degValue});
         }
     },
+    getValue: function() {
+        return {value: this.state.value, degValue: this.state.degValue};
+    },
+    getInputValue: function() {
+        return this.state.display;
+    },
     handleInputChange: function(e) {
         e.preventDefault();
-        var inputElement = this.refs.knobInput.getDOMNode();
-        this.setValue(inputElement.value);
+        //var inputElement = this.refs.knobInput.getDOMNode();
+        //this.setValue(inputElement.value);
+        if (!this.state.changed) {
+            this.setState({
+                display: event.target.value,
+                value: this.state.value,
+                degValue: this.state.degValue,
+                mouseDown: this.state.mouseDown,
+                locked: true,
+                changed: true
+            });
+        } else {
+            this.setState({display:event.target.value,
+                value:this.state.value,
+                degValue:this.state.degValue,
+                mouseDown:this.state.mouseDown,
+                locked:this.state.locked,
+                changed:this.state.changed});
+        }
     },
     handleInputClick: function(e) {
         e.preventDefault();
         var inputElement = this.refs.knobInput.getDOMNode();
-        inputElement.setSelectionRange(0, inputElement.value.length - 1);
+        //inputElement.setSelectionRange(0, inputElement.value.length - 1);
+        inputElement.select();
+        
+    },
+    handleOnFocus: function(e) {
+        if (this.state.changed) {
+            this.setState({
+                display: this.state.display,
+                value: this.state.value,
+                degValue: this.state.degValue,
+                mouseDown: this.state.mouseDown,
+                locked: true,
+                changed: this.state.changed
+            });
+        } else {
+            this.setState({
+                display: this.state.value,
+                value: this.state.value,
+                degValue: this.state.degValue,
+                mouseDown: this.state.mouseDown,
+                locked: true,
+                changed: this.state.changed
+            });
+        }
+    },
+    handleOnBlur: function(e) {
+        if (!this.state.changed) {
+            this.setState({display:this.state.degValue + '\xB0',
+                value:this.state.value,
+                degValue:this.state.degValue,
+                mouseDown:this.state.mouseDown,
+                locked:false,
+                changed:this.state.changed});
+        } else {
+            this.setState({display:this.state.display,
+                value:this.state.value,
+                degValue:this.state.degValue,
+                mouseDown:this.state.mouseDown,
+                locked:this.state.locked,
+                changed:this.state.changed});
+        }
     },
     handleMouseDown: function(e) {
         if (e.target.tagName == 'INPUT') {
@@ -19478,7 +19598,8 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             value:this.state.value,
             degValue:this.state.degValue,
             mouseDown:true,
-            updateValue:this.state.updateValue});
+            locked:this.state.locked,
+            changed:this.state.changed});
     },
     handleMouseUp: function(e) {
         if (e.target.tagName == 'INPUT') {
@@ -19489,7 +19610,8 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             value:this.state.value,
             degValue:this.state.degValue,
             mouseDown:false,
-            updateValue:this.state.updateValue});
+            locked:this.state.locked,
+            changed:this.state.changed});
     },
     handleMouseMove: function(e) {
         if (this.state.mouseDown) {
@@ -19532,14 +19654,24 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         var imgElement = this.refs.knobImg.getDOMNode();
         imgElement.style.transform = "rotate(" + dispDeg + "deg)";
         imgElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
+        if (this.state.locked) {
+            var inputElement = this.refs.knobInput.getDOMNode();
+            inputElement.blur();
+        }
         this.setState({display:deg+ '\xB0',
             value:value,
             degValue:deg,
             mouseDown:this.state.mouseDown,
-            updateValue:this.state.updateValue});
+            locked:false,
+            changed:false});
         this.props.hasChanged({value:value, degValue:deg});
     },
     render: function() {
+        var inputClass = "ljs-knob";
+        if (this.state.changed) {
+            inputClass += " ljs-knob-locked";
+            
+        }
         return (
             React.createElement("div", React.__spread({},  this.props, {className: "ljs-knob-container", ref: "wrapper", 
                 onClick: this.handleClick, 
@@ -19547,9 +19679,11 @@ var KnobControl = React.createClass({displayName: "KnobControl",
                 onMouseDown: this.handleMouseDown, 
                 onMouseUp: this.handleMouseUp}), 
                 React.createElement("img", {width: "100%", src: "", draggable: "false", ref: "knobImg"}), 
-                React.createElement("input", {type: "text", className: "ljs-knob", value: this.state.display, ref: "knobInput", 
+                React.createElement("input", {type: "text", className: inputClass, value: this.state.display, ref: "knobInput", 
                     onClick: this.handleInputClick, 
-                    onChange: this.handleInputChange})
+                    onChange: this.handleInputChange, 
+                    onFocus: this.handleOnFocus, 
+                    onBlur: this.handleOnBlur})
             )
         );
     }
@@ -19886,12 +20020,12 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             this.state.linkbot.stop();
             this.state.linkbot.unregister(false);
         }
-        /*
+
         if (linkbot.status == "offline") {
             uiEvents.trigger('hide-control-panel');
             return;
         }
-        */
+
         this.refs.overlay.getDOMNode().style.display = 'block';
         this.refs.controlPanel.getDOMNode().style.display = 'block';
         var regObj = {
@@ -20002,7 +20136,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             z: this.state.z,
             mag: this.state.mag
         });
-        this.state.linkbot.moveTo(data.value, 0, this.state.wheel2);
+        this.state.linkbot.driveTo(data.value, 0, this.state.wheel2);
     },
     knob2Changed: function(data) {
         this.setState({
@@ -20018,7 +20152,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             z: this.state.z,
             mag: this.state.mag
         });
-        this.state.linkbot.moveTo(this.state.wheel1, 0, data.value);
+        this.state.linkbot.driveTo(this.state.wheel1, 0, data.value);
         
     },
     motor1Up: function() {
@@ -20110,8 +20244,19 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
         setTimeout(function() { me.state.linkbot.buzzerFrequency(0); }, 250);
     },
     moveButtonPressed: function() {
+        var v1, v2;
+        v1 = parseInt(this.refs.knobJoint1.getInputValue());
+        v2 = parseInt(this.refs.knobJoint2.getInputValue());
+        if (isNaN(v1)) {
+            v1 = this.state.wheel1;
+        }
+        if (isNaN(v2)) {
+            v2 = this.state.wheel2;
+        }
         this.state.linkbot.angularSpeed(this.state.m1Value, 0, this.state.m2Value);
-        this.state.linkbot.moveTo(this.state.wheel1, 0, this.state.wheel2);
+        this.state.linkbot.moveTo(v1, 0, v2);
+        this.refs.knobJoint1.unlock();
+        this.refs.knobJoint2.unlock();
     },
     hideAll: function() {
         uiEvents.trigger('hide');

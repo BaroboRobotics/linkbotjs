@@ -251,6 +251,10 @@ input[type=color] {
     font-size: 20px;
     margin-left: 3px;
 }
+.ljs-knob-locked {
+    outline-offset: -2px;
+    outline: -webkit-focus-ring-color auto 5px;
+}
 /**
  * Slider
  */

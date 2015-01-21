@@ -3,6 +3,9 @@
 var eventlib = require('./event.jsx');
 var manager = require('./manager.jsx');
 
+
+var firmwareVersions = asyncBaroboBridge.availableFirmwareVersions();
+var enumConstants = asyncBaroboBridge.enumerationConstants();
 var requestId = 0;
 var callbacks = {};
 var buttonEventCallbacks = {};
@@ -110,12 +113,34 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
     
-    bot.enums = asyncBaroboBridge.enumerationConstants();
+    bot.enums = enumConstants;
+    bot.firmwareVerions = firmwareVersions;
+
+    function checkVersions(error, data) {
+        if (0 === error.code) {
+            var valid = false, i = 0, version = "0.0.0";
+            version = 'v' + data.major + '.' + data.minor + '.' + data.patch;
+            window.console.log('checking version: ' + version);
+            for (i = 0; i < firmwareVersions.length; i++) {
+                if (version === firmwareVersions[i]) {
+                    window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
+                    valid = true;
+                    break;
+                }
+            }
+            if (!valid) {
+                document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
+            }
+        } else {
+            window.console.warn('error occurred checking firmware version [' + error.category + '] :: ' + error.message);
+        }
+    }
     
     asyncBaroboBridge.connectRobot(id, addCallback(id, function(error) {
         if (0 == error.code) {
             status = 1;
             bot.event.trigger('changed');
+            asyncBaroboBridge.getVersions(id, addCallback(id, checkVersions));
         }
     }));
     
@@ -199,6 +224,20 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         if (status != 0) {
             var token = addCallback(id, genericCallback);
             asyncBaroboBridge.moveTo(id, token, 7, r1, r2, r3);
+        }
+    };
+
+    bot.drive = function(r1, r2, r3) {
+        if (status != 0) {
+            var token = addCallback(id, genericCallback);
+            asyncBaroboBridge.drive(id, token, 7, r1, r2, r3);
+        }
+    };
+
+    bot.driveTo = function(r1, r2, r3) {
+        if (status != 0) {
+            var token = addCallback(id, genericCallback);
+            asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
         }
     };
 
