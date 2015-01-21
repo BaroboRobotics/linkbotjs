@@ -672,7 +672,8 @@ var RobotManagerSideMenu = React.createClass({
             me.hideMenu();
         });
         uiEvents.on('show-menu', function() {
-           me.showMenu();
+            me.showMenu();
+            manager.refresh();
         });
     },
     hideMenu: function() {

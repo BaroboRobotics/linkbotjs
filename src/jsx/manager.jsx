@@ -109,3 +109,10 @@ storageLib.getAll(function(bots) {
         events.trigger('changed', 1);
     }
 });
+
+events.on('dongle', function() {
+    // Refresh
+    for (var i = 0; i < robots.length; i++) {
+        robots[i].connect();
+    }
+});

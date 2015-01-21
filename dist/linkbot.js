@@ -19902,7 +19902,8 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
             me.hideMenu();
         });
         uiEvents.on('show-menu', function() {
-           me.showMenu();
+            me.showMenu();
+            manager.refresh();
         });
     },
     hideMenu: function() {
@@ -20499,6 +20500,13 @@ storageLib.getAll(function(bots) {
     }
     if (bots.length > 0) {
         events.trigger('changed', 1);
+    }
+});
+
+events.on('dongle', function() {
+    // Refresh
+    for (var i = 0; i < robots.length; i++) {
+        robots[i].connect();
     }
 });
 
