@@ -33,7 +33,7 @@ window.Linkbots = (function(){
     };
 
     if(window.attachEvent) {
-        window.attachEvent('onload', addUI);
+        window.attachEvent('onload', uimanager.addUI);
     } else {
         if(window.onload) {
             var originalOnLoad = window.onload;
@@ -45,10 +45,9 @@ window.Linkbots = (function(){
                 }
             };
         } else {
-            window.onload = addUI;
+            window.onload = uimanager.addUI;
         }
     }
-
 
     return mod;
 
