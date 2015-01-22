@@ -33,7 +33,12 @@ window.Linkbots = (function(){
     };
 
     if(window.attachEvent) {
-        window.attachEvent('onload', uimanager.addUI);
+        window.attachEvent('onload', function() {
+            uimanager.addUI();
+            if (startOpen) {
+                uimanager.uiEvents.trigger('show-menu');
+            }
+        });
     } else {
         if(window.onload) {
             var originalOnLoad = window.onload;
@@ -45,7 +50,12 @@ window.Linkbots = (function(){
                 }
             };
         } else {
-            window.onload = uimanager.addUI;
+            window.onload = function() {
+                uimanager.addUI();
+                if (startOpen) {
+                    uimanager.uiEvents.trigger('show-menu');
+                }
+            }
         }
     }
 
