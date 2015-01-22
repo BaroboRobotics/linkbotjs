@@ -1132,7 +1132,7 @@ var ControlPanel = React.createClass({
 
 module.exports.uiEvents = uiEvents;
 
-function addUI() {
+module.exports.addUI = function() {
     var sideMenuDiv = document.createElement('div');
     var controlPanelDiv = document.createElement('div');
     var navMenuDiv = document.createElement('div');
@@ -1144,18 +1144,3 @@ function addUI() {
     React.render(<RobotManagerSideMenu><Robots /></RobotManagerSideMenu>, sideMenuDiv);
     React.render(<TopNavigation />, navMenuDiv);
 }
-
-if(window.attachEvent) {
-    window.attachEvent('onload', addUI);
-} else {
-    if(window.onload) {
-        var originalOnLoad = window.onload;
-        window.onload = function() {
-            originalOnLoad();
-            addUI();
-        };
-    } else {
-        window.onload = addUI;
-    }
-}
-

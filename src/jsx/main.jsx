@@ -5,6 +5,7 @@ var uimanager = require('./manager-ui.jsx');
 
 window.Linkbots = (function(){
     var mod = {};
+    var startOpen = false;
 
     mod.addRobot = function(id) {
         manager.addRobot(id);
@@ -27,7 +28,28 @@ window.Linkbots = (function(){
     mod.scan = function() {
         return baroboBridge.scan();
     };
-    
+    mod.startOpen = function(value) {
+        startOpen = value;
+    };
+
+    if(window.attachEvent) {
+        window.attachEvent('onload', addUI);
+    } else {
+        if(window.onload) {
+            var originalOnLoad = window.onload;
+            window.onload = function() {
+                originalOnLoad();
+                uimanager.addUI();
+                if (startOpen) {
+                    uimanager.uiEvents.trigger('show-menu');
+                }
+            };
+        } else {
+            window.onload = addUI;
+        }
+    }
+
+
     return mod;
 
 })();

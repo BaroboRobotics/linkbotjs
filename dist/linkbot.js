@@ -19201,6 +19201,7 @@ var uimanager = require('./manager-ui.jsx');
 
 window.Linkbots = (function(){
     var mod = {};
+    var startOpen = false;
 
     mod.addRobot = function(id) {
         manager.addRobot(id);
@@ -19223,7 +19224,28 @@ window.Linkbots = (function(){
     mod.scan = function() {
         return baroboBridge.scan();
     };
-    
+    mod.startOpen = function(value) {
+        startOpen = value;
+    };
+
+    if(window.attachEvent) {
+        window.attachEvent('onload', addUI);
+    } else {
+        if(window.onload) {
+            var originalOnLoad = window.onload;
+            window.onload = function() {
+                originalOnLoad();
+                uimanager.addUI();
+                if (startOpen) {
+                    uimanager.uiEvents.trigger('show-menu');
+                }
+            };
+        } else {
+            window.onload = addUI;
+        }
+    }
+
+
     return mod;
 
 })();
@@ -20362,7 +20384,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
 
 module.exports.uiEvents = uiEvents;
 
-function addUI() {
+module.exports.addUI = function() {
     var sideMenuDiv = document.createElement('div');
     var controlPanelDiv = document.createElement('div');
     var navMenuDiv = document.createElement('div');
@@ -20374,21 +20396,6 @@ function addUI() {
     React.render(React.createElement(RobotManagerSideMenu, null, React.createElement(Robots, null)), sideMenuDiv);
     React.render(React.createElement(TopNavigation, null), navMenuDiv);
 }
-
-if(window.attachEvent) {
-    window.attachEvent('onload', addUI);
-} else {
-    if(window.onload) {
-        var originalOnLoad = window.onload;
-        window.onload = function() {
-            originalOnLoad();
-            addUI();
-        };
-    } else {
-        window.onload = addUI;
-    }
-}
-
 
 },{"./event.jsx":148,"./manager.jsx":152,"react":147}],152:[function(require,module,exports){
 "use strict";
