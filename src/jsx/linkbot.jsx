@@ -107,6 +107,10 @@ function colorToHex(color) {
     return red + green + blue;
 }
 
+module.exports.startFirmwareUpdate = function() {
+    asyncBaroboBridge.firmwareUpdate();
+};
+
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var bot = this;
     var statuses = {0:"offline", 1:"ready", 2:"acquired"};

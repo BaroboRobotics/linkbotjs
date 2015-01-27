@@ -487,3 +487,9 @@ input[type=color] {
     padding: 5px 15px 16px;
     color: #fff;
 }
+
+.ljs-firmware-update {
+    bottom: 100px;
+    position: absolute;
+    left: 45px;
+}

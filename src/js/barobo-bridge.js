@@ -55,7 +55,7 @@ var asyncBaroboBridge = (function(main) {
             'getLedColor', 'getVersions', 'resetEncoderRevs', 'setBuzzerFrequency', 'setJointSpeeds',
             'setJointStates', 'setLedColor', 'move', 'moveContinuous', 'moveTo', 'drive', 'driveTo',
             'motorPower', 'stop', 'enableButtonEvents', 'enableEncoderEvents', 'enableJointEvents',
-            'enableAccelerometerEvents'];
+            'enableAccelerometerEvents', 'firmwareUpdate'];
         signals = ['requestComplete', 'dongleEvent', 'buttonEvent', 'encoderEvent', 'jointEvent', 'accelerometerEvent'];
         obj = {
             mock: true

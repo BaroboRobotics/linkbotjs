@@ -3,6 +3,7 @@
 var React = require('react');
 var manager = require('./manager.jsx');
 var eventlib = require('./event.jsx');
+var linkbotLib = require('./linkbot.jsx');
 
 var uiEvents = eventlib.Events.extend({});
 var rad2deg = 180/Math.PI;
@@ -700,6 +701,10 @@ var RobotManagerSideMenu = React.createClass({
             uiEvents.trigger('show-menu');
         }
     },
+    handleFirmwareUpdate: function(e) {
+        e.preventDefault();
+        linkbotLib.startFirmwareUpdate();
+    },
     render: function() {
         return (
             <div id="ljs-left-menu-container" ref="container">
@@ -709,6 +714,9 @@ var RobotManagerSideMenu = React.createClass({
                 <div className="ljs-content">
                     <AddRobotForm />
                     {this.props.children}
+                    <div className="ljs-firmware-update">
+                        <button onClick={this.handleFirmwareUpdate} className="ljs-btn">Start Firmware Updater</button>
+                    </div>
                 </div>
             </div>
         );

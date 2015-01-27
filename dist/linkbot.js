@@ -55,7 +55,7 @@ var asyncBaroboBridge = (function(main) {
             'getLedColor', 'getVersions', 'resetEncoderRevs', 'setBuzzerFrequency', 'setJointSpeeds',
             'setJointStates', 'setLedColor', 'move', 'moveContinuous', 'moveTo', 'drive', 'driveTo',
             'motorPower', 'stop', 'enableButtonEvents', 'enableEncoderEvents', 'enableJointEvents',
-            'enableAccelerometerEvents'];
+            'enableAccelerometerEvents', 'firmwareUpdate'];
         signals = ['requestComplete', 'dongleEvent', 'buttonEvent', 'encoderEvent', 'jointEvent', 'accelerometerEvent'];
         obj = {
             mock: true
@@ -18544,6 +18544,10 @@ function colorToHex(color) {
     return red + green + blue;
 }
 
+module.exports.startFirmwareUpdate = function() {
+    asyncBaroboBridge.firmwareUpdate();
+};
+
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var bot = this;
     var statuses = {0:"offline", 1:"ready", 2:"acquired"};
@@ -19277,6 +19281,7 @@ window.Linkbots = (function(){
 var React = require('react');
 var manager = require('./manager.jsx');
 var eventlib = require('./event.jsx');
+var linkbotLib = require('./linkbot.jsx');
 
 var uiEvents = eventlib.Events.extend({});
 var rad2deg = 180/Math.PI;
@@ -19974,6 +19979,10 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
             uiEvents.trigger('show-menu');
         }
     },
+    handleFirmwareUpdate: function(e) {
+        e.preventDefault();
+        linkbotLib.startFirmwareUpdate();
+    },
     render: function() {
         return (
             React.createElement("div", {id: "ljs-left-menu-container", ref: "container"}, 
@@ -19982,7 +19991,10 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
                 ), 
                 React.createElement("div", {className: "ljs-content"}, 
                     React.createElement(AddRobotForm, null), 
-                    this.props.children
+                    this.props.children, 
+                    React.createElement("div", {className: "ljs-firmware-update"}, 
+                        React.createElement("button", {onClick: this.handleFirmwareUpdate, className: "ljs-btn"}, "Start Firmware Updater")
+                    )
                 )
             )
         );
@@ -20431,7 +20443,7 @@ module.exports.addUI = function() {
     React.render(React.createElement(TopNavigation, null), navMenuDiv);
 }
 
-},{"./event.jsx":148,"./manager.jsx":152,"react":147}],152:[function(require,module,exports){
+},{"./event.jsx":148,"./linkbot.jsx":149,"./manager.jsx":152,"react":147}],152:[function(require,module,exports){
 "use strict";
 
 var botlib = require('./linkbot.jsx');
