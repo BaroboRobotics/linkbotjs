@@ -250,6 +250,9 @@ var KnobControl = React.createClass({
     },
     setValue: function(value, callChanged) {
         var degValue, val, _callChanged, dispDeg;
+        if (this.state.mouseDown) {
+            return; // Set Value does not function when the mouse is down.
+        }
         degValue = parseInt(value);
         if (isNaN(degValue)) {
             return;
@@ -894,6 +897,10 @@ var ControlPanel = React.createClass({
         });
     },
     knob1Changed: function(data) {
+        if (this.state.wheel1 === data.value) {
+            return;
+        }
+        var me = this;
         this.setState({
             linkbot:this.state.linkbot,
             title:this.state.title,
@@ -906,10 +913,15 @@ var ControlPanel = React.createClass({
             y: this.state.y,
             z: this.state.z,
             mag: this.state.mag
+        }, function() {
+            me.state.linkbot.driveTo(data.value, 0, me.state.wheel2);
         });
-        this.state.linkbot.driveTo(data.value, 0, this.state.wheel2);
     },
     knob2Changed: function(data) {
+        if (this.state.wheel2 === data.value) {
+            return;
+        }
+        var me = this;
         this.setState({
             linkbot:this.state.linkbot,
             title:this.state.title,
@@ -922,9 +934,9 @@ var ControlPanel = React.createClass({
             y: this.state.y,
             z: this.state.z,
             mag: this.state.mag
+        }, function() {
+            me.state.linkbot.driveTo(me.state.wheel1, 0, data.value);
         });
-        this.state.linkbot.driveTo(this.state.wheel1, 0, data.value);
-        
     },
     motor1Up: function() {
         this.state.linkbot.moveJointContinuous(0, 1);

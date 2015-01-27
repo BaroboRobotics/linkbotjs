@@ -36,6 +36,8 @@ asyncBaroboBridge.dongleEvent.connect(
     function (error) {
         if (error.code == 0) {
             manager.trigger('dongle');
+        } else {
+            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
         }
     }
 );
@@ -141,6 +143,8 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             status = 1;
             bot.event.trigger('changed');
             asyncBaroboBridge.getVersions(id, addCallback(id, checkVersions));
+        } else {
+            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
         }
     }));
     
@@ -274,6 +278,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
     bot.moveJointContinuous = function(joint, direction) {
+        var token;
         if (joint >= 0 && joint <= 2) {
             if (direction > 0) {
                 joinDirection[joint] = 1;
@@ -281,9 +286,13 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 joinDirection[joint] = -1;
             } else {
                 joinDirection[joint] = 0;
+                // Special call for stopping so it relaxes the motor.
+                token = addCallback(id, genericCallback);
+                asyncBaroboBridge.stop(id, token, (1 << joint));
+                return true;
             }
             if (status != 0) {
-                var token = addCallback(id, genericCallback);
+                token = addCallback(id, genericCallback);
                 asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
             }
             return true;
@@ -297,7 +306,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                     callback(data);
                     
                 } else {
-                    callback({values:[], timestamp:-1});
+                    callback({values:[0, 0, 0], timestamp:-1});
                 }
             });
             asyncBaroboBridge.getJointAngles (id, token);
@@ -334,6 +343,8 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 if (0 == error.code) {
                     status = 1;
                     bot.event.trigger('changed');
+                } else {
+                    window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
                 }
             });
             asyncBaroboBridge.connectRobot(id, token);
@@ -342,6 +353,8 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 if (0 != error.code) {
                     status = 0;
                     bot.event.trigger('changed');
+                } else {
+                    window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
                 }
             });
             asyncBaroboBridge.getLedColor(id, token);

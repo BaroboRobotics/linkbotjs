@@ -28,10 +28,14 @@ module.exports.moveRobot = function(from, to) {
 };
 
 module.exports.addRobot = function(id) {
-    var robot = findRobot(id);
+    if (typeof id == 'undefined' || id == null || id.length < 3) {
+        return;
+    }
+    var identifier = id.toUpperCase();
+    var robot = findRobot(identifier);
     if (!robot) {
-        robots.push(new botlib.AsyncLinkbot(id));
-        storageLib.add(id, 0);
+        robots.push(new botlib.AsyncLinkbot(identifier));
+        storageLib.add(identifier, 0);
         events.trigger('changed', 1);
     }
 };
