@@ -19244,6 +19244,12 @@ window.Linkbots = (function(){
     mod.startOpen = function(value) {
         startOpen = value;
     };
+    mod.managerEvents = function() {
+        return manager.event;
+    };
+    mod.uiEvents = function() {
+        return uimanager.uiEvents;
+    };
 
     if(window.attachEvent) {
         window.attachEvent('onload', function() {
