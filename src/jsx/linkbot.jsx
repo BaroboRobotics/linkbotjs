@@ -108,6 +108,7 @@ function colorToHex(color) {
 }
 
 module.exports.startFirmwareUpdate = function() {
+    manager.disconnectAll();
     asyncBaroboBridge.firmwareUpdate();
 };
 

@@ -18545,6 +18545,7 @@ function colorToHex(color) {
 }
 
 module.exports.startFirmwareUpdate = function() {
+    manager.disconnectAll();
     asyncBaroboBridge.firmwareUpdate();
 };
 
@@ -20501,6 +20502,12 @@ module.exports.refresh = function() {
         robots[i].connect();
     }
 };
+
+module.exports.disconnectAll = function() {
+    for (var i = 0; i < robots.length; i++) {
+        robots[i].disconnect();
+    }
+}
 
 module.exports.event = events;
 

@@ -54,6 +54,12 @@ module.exports.refresh = function() {
     }
 };
 
+module.exports.disconnectAll = function() {
+    for (var i = 0; i < robots.length; i++) {
+        robots[i].disconnect();
+    }
+}
+
 module.exports.event = events;
 
 module.exports.removeRobot = function(id) {
