@@ -134,7 +134,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                     break;
                 }
             }
-            if (!valid) {
+            if (!valid && window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
                 document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
             }
         } else {
