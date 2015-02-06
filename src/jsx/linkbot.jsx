@@ -660,13 +660,6 @@ module.exports.Linkbot = function Linkbot(_id) {
         }
     };
 
-    bot.disconnect = function() {
-        bot.stop();
-        bot.unregister();
-        bot.status = "offline";
-        return id;
-    };
-
     bot.connect = function() {
         var err;
         if (status == 0) {
