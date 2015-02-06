@@ -337,6 +337,10 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.disconnect = function() {
         bot.stop();
         bot.unregister();
+
+        var token = addCallback(id, genericCallback);
+        asyncBaroboBridge.disconnectRobot(id, token);
+
         bot.status = "offline";
         return id;
     };
