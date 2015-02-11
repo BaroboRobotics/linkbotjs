@@ -48,7 +48,7 @@ module.exports.getRobots = function() {
     return robots;
 };
 
-module.exports.refresh = function() {
+module.exports.connectAll = function() {
     for (var i = 0; i < robots.length; i++) {
         robots[i].connect();
     }
@@ -59,6 +59,12 @@ module.exports.disconnectAll = function() {
         robots[i].disconnect();
     }
 }
+
+module.exports.refresh = function() {
+    // TODO: If any robot has an error while trying to connect, disconnect and
+    // reconnect once. This should fix simple communications interruptions.
+    module.exports.connectAll();
+};
 
 module.exports.event = events;
 
@@ -120,9 +126,22 @@ storageLib.getAll(function(bots) {
     }
 });
 
-events.on('dongle', function() {
-    // Refresh
-    for (var i = 0; i < robots.length; i++) {
-        robots[i].connect();
+// Dongle events of the same value may occur consecutively (i.e., two
+// dongleDowns in a row), so track the state and only perform actions on state
+// changes.
+
+var dongle = null;
+
+events.on('dongleUp', function() {
+    if (!dongle || dongle === 'down') {
+        dongle = 'up';
+        module.exports.connectAll();
+    }
+});
+
+events.on('dongleDown', function() {
+    if (!dongle || dongle === 'up') {
+        dongle = 'down';
+        module.exports.disconnectAll();
     }
 });

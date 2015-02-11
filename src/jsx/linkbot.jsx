@@ -35,8 +35,9 @@ asyncBaroboBridge.requestComplete.connect(
 asyncBaroboBridge.dongleEvent.connect(
     function (error) {
         if (error.code == 0) {
-            manager.event.trigger('dongle');
+            manager.event.trigger('dongleUp');
         } else {
+            manager.event.trigger('dongleDown');
             window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
         }
     }
@@ -108,7 +109,6 @@ function colorToHex(color) {
 }
 
 module.exports.startFirmwareUpdate = function() {
-    manager.disconnectAll();
     asyncBaroboBridge.firmwareUpdate();
 };
 
