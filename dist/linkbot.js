@@ -18472,7 +18472,7 @@ asyncBaroboBridge.requestComplete.connect(
 asyncBaroboBridge.dongleEvent.connect(
     function (error) {
         if (error.code == 0) {
-            manager.trigger('dongle');
+            manager.event.trigger('dongle');
         } else {
             window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
         }
