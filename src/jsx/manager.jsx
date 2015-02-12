@@ -16,6 +16,16 @@ function findRobot(id) {
     }
     return undefined;
 }
+function connectAll() {
+    for (var i = 0; i < robots.length; i++) {
+        robots[i].connect();
+    }
+}
+function disconnectAll() {
+    for (var i = 0; i < robots.length; i++) {
+        robots[i].disconnect();
+    }
+}
 
 module.exports.moveRobot = function(from, to) {
     storageLib.changePosition(from, to, function(success){
@@ -48,22 +58,14 @@ module.exports.getRobots = function() {
     return robots;
 };
 
-module.exports.connectAll = function() {
-    for (var i = 0; i < robots.length; i++) {
-        robots[i].connect();
-    }
-};
+module.exports.connectAll = connectAll;
 
-module.exports.disconnectAll = function() {
-    for (var i = 0; i < robots.length; i++) {
-        robots[i].disconnect();
-    }
-}
+module.exports.disconnectAll = disconnectAll;
 
 module.exports.refresh = function() {
     // TODO: If any robot has an error while trying to connect, disconnect and
     // reconnect once. This should fix simple communications interruptions.
-    module.exports.connectAll();
+    connectAll();
 };
 
 module.exports.event = events;
@@ -135,13 +137,13 @@ var dongle = null;
 events.on('dongleUp', function() {
     if (!dongle || dongle === 'down') {
         dongle = 'up';
-        module.exports.connectAll();
+        connectAll();
     }
 });
 
 events.on('dongleDown', function() {
     if (!dongle || dongle === 'up') {
         dongle = 'down';
-        module.exports.disconnectAll();
+        disconnectAll();
     }
 });
