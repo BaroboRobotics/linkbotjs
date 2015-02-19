@@ -18525,6 +18525,24 @@ asyncBaroboBridge.accelerometerEvent.connect(
     }
 );
 
+try {
+    asyncBaroboBridge.acquire.connect(
+        function() {
+            var acquisition = manager.acquire(1);
+            var id = acquisition.robots.length > 0 ? acquisition.robots[0].id : "";
+            asyncBaroboBridge.fulfillAcquire(id);
+        }
+    );
+
+    asyncBaroboBridge.relinquish.connect(
+        function(id) {
+            manager.relinquish(manager.getRobot(id));
+        }
+    );
+}
+catch (e) {
+    console.log("No support for C++ robot acquisition, feature disabled. Reason: " + e);
+}
 
 function rgbToHex(value) {
     if (!value || value === null || value === "undefined") {
