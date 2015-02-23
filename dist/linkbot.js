@@ -18574,10 +18574,25 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var id = _id;
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
+    var driveToValue = null;
+    var driveToCalled = true;
     
     bot.enums = enumConstants;
     bot.firmwareVerions = firmwareVersions;
 
+    function driveToCallback(error) {
+        driveToCalled = false;
+        if (error.code !== 0) {
+            // TODO add error handling code here.
+            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+        } else {
+            if (driveToValue !== null) {
+                bot.driveTo(driveToValue[0], driveToValue[1], driveToValue[2]);
+            }
+            
+        }
+    }
+    
     function checkVersions(error, data) {
         if (0 === error.code) {
             var valid = false, i = 0, version = "0.0.0";
@@ -18700,8 +18715,13 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
 
     bot.driveTo = function(r1, r2, r3) {
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
-            asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
+            if (driveToCalled) {
+                driveToValue = [r1, r2, r3];
+            } else {
+                driveToCalled = true;
+                var token = addCallback(id, genericCallback);
+                asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
+            }
         }
     };
 
