@@ -18575,7 +18575,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
     var driveToValue = null;
-    var driveToCalled = true;
+    var driveToCalled = false;
     
     bot.enums = enumConstants;
     bot.firmwareVerions = firmwareVersions;
@@ -18719,7 +18719,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 driveToValue = [r1, r2, r3];
             } else {
                 driveToCalled = true;
-                var token = addCallback(id, genericCallback);
+                var token = addCallback(id, driveToCallback);
                 asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
             }
         }
