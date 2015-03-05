@@ -18615,6 +18615,8 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     
     asyncBaroboBridge.connectRobot(id, addCallback(id, function(error) {
         if (0 == error.code) {
+            // If a TCP tunnel is currently active for this robot, it starts
+            // acquired.
             try {
                 status = asyncBaroboBridge.isTunnelActive(id) ? 2 : 1;
             }
