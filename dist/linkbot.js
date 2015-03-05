@@ -18615,7 +18615,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     
     asyncBaroboBridge.connectRobot(id, addCallback(id, function(error) {
         if (0 == error.code) {
-            status = 1;
+            try {
+                status = asyncBaroboBridge.isTunnelActive(id) ? 2 : 1;
+            }
+            catch (e) {
+                status = 1;
+            }
             bot.event.trigger('changed');
             asyncBaroboBridge.getVersions(id, addCallback(id, checkVersions));
         } else {
