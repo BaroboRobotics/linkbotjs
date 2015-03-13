@@ -470,26 +470,48 @@ input[type=color] {
     border-radius: 15px;
 }
 
-#ljs-top-navigation .ljs-top-nav-breadcrumbs, #ljs-top-navigation .ljs-top-nav-title {
-    margin: 2px 0 0;
-}
-
 #ljs-top-navigation .ljs-top-nav-breadcrumbs {
-    color: #000;
+    color: #d8d8d8;
     font-weight: bold;
-    padding-left: 15px;
+    padding-left: 0;
     font-size: 14px;
 }
 
 #ljs-top-navigation .ljs-top-nav-title {
-    font-size: 28px;
+    font-size: 40px;
     background-color: #2d2c2c;
-    padding: 5px 15px 16px;
-    color: #fff;
+    padding: 4px 0;
+    margin: 1px 0 0;
+    color: white;
+}
+
+#ljs-top-navigation .ljs-top-nav-breadcrumbs {
+    margin: 10px 0 0 0;
 }
 
 .ljs-firmware-update {
     bottom: 100px;
     position: absolute;
     left: 45px;
+}
+ul.ljs-top-nav-breadcrumbs {
+    list-style: none;
+}
+
+ul.ljs-top-nav-breadcrumbs>li {
+    display: inline-block;
+}
+
+ul.ljs-top-nav-breadcrumbs>li>a {
+    color: #d8d8d8;
+    text-decoration: none;
+}
+ul.ljs-top-nav-breadcrumbs>li>a:hover {
+    text-decoration: underline;
+}
+
+ul.ljs-top-nav-breadcrumbs>li+li:before {
+    padding: 0 5px;
+    color: #ccc;
+    content: "/\00a0/\00a0";
 }

@@ -31,6 +31,18 @@ window.Linkbots = (function(){
     mod.startOpen = function(value) {
         startOpen = value;
     };
+    mod.setNavigationTitle = function(title) {
+        manager.setNavigationTitle(title);
+    };
+    mod.addNavigationItem = function(navItemObject) {
+        manager.addNavigationItem(navItemObject);
+    };
+    mod.setNavigationItems = function(navItemArray) {
+        manager.setNavigationItems(navItemArray);
+    };
+    mod.addNavigationItems = function(navItemArray) {
+        manager.addNavigationItems(navItemArray);
+    };
     mod.managerEvents = manager.event;
     mod.uiEvents = uimanager.uiEvents;
 

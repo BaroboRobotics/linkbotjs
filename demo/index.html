@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
+        <title>LinkbotJS Demo</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -26,6 +26,10 @@
         <input type="text" class="linkbotjs-knob" />
         
         <script src="../dist/linkbot.js"></script>
-
+        <script>
+            Linkbots.setNavigationItems([{title:'Home', url:'#home'},
+                {title:'Demo', url:'#demo'}]);
+            Linkbots.setNavigationTitle('Demo');
+        </script>
     </body>
 </html>

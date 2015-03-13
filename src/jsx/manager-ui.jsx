@@ -724,17 +724,43 @@ var RobotManagerSideMenu = React.createClass({
 });
 
 var TopNavigation = React.createClass({
-   render: function() {
-       return (
-           <div id="ljs-top-navigation">
-               <h1 className="ljs-logo"><a href="/index.html">Linkbot Labs</a></h1>
-               <div className="ljs-top-nav-info">
-                   <p id="ljs-top-nav-breadcrumbs" className="ljs-top-nav-breadcrumbs">&nbsp;</p>
-                   <h1 id="ljs-top-nav-title" className="ljs-top-nav-title">&nbsp;</h1>
-               </div>
-           </div>
-       );
-   }
+    componentWillMount: function() {
+        var me = this;
+        manager.event.on('navigation-changed', function() {
+            me.setState({
+                items: manager.getNavigationItems(),
+                title: manager.getNavigationTitle()
+            });
+        });
+    },
+    // Set the initial state synchronously
+    getInitialState: function() {
+        return {
+            items: manager.getNavigationItems(),
+            title: manager.getNavigationTitle()
+        };
+    },
+    render: function() {
+        var title = this.state.title;
+        var navItems = this.state.items.map(function(item, i) {
+            return (
+                <li data-id={i}>
+                    <a href={item.url}>{item.title}</a>
+                </li>
+            );
+        });
+        return (
+            <div id="ljs-top-navigation">
+                <h1 className="ljs-logo"><a href="/index.html">Linkbot Labs</a></h1>
+                <div className="ljs-top-nav-info">
+                    <ul id="ljs-top-nav-breadcrumbs" className="ljs-top-nav-breadcrumbs">
+                        {navItems}
+                    </ul>
+                    <h1 id="ljs-top-nav-title" className="ljs-top-nav-title">{title}</h1>
+                </div>
+            </div>
+        );
+    }
 });
 
 var ControlPanel = React.createClass({

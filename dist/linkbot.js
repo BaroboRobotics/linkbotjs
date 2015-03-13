@@ -18965,6 +18965,18 @@ window.Linkbots = (function(){
     mod.startOpen = function(value) {
         startOpen = value;
     };
+    mod.setNavigationTitle = function(title) {
+        manager.setNavigationTitle(title);
+    };
+    mod.addNavigationItem = function(navItemObject) {
+        manager.addNavigationItem(navItemObject);
+    };
+    mod.setNavigationItems = function(navItemArray) {
+        manager.setNavigationItems(navItemArray);
+    };
+    mod.addNavigationItems = function(navItemArray) {
+        manager.addNavigationItems(navItemArray);
+    };
     mod.managerEvents = manager.event;
     mod.uiEvents = uimanager.uiEvents;
 
@@ -19725,17 +19737,43 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
 });
 
 var TopNavigation = React.createClass({displayName: "TopNavigation",
-   render: function() {
-       return (
-           React.createElement("div", {id: "ljs-top-navigation"}, 
-               React.createElement("h1", {className: "ljs-logo"}, React.createElement("a", {href: "/index.html"}, "Linkbot Labs")), 
-               React.createElement("div", {className: "ljs-top-nav-info"}, 
-                   React.createElement("p", {id: "ljs-top-nav-breadcrumbs", className: "ljs-top-nav-breadcrumbs"}, " "), 
-                   React.createElement("h1", {id: "ljs-top-nav-title", className: "ljs-top-nav-title"}, " ")
-               )
-           )
-       );
-   }
+    componentWillMount: function() {
+        var me = this;
+        manager.event.on('navigation-changed', function() {
+            me.setState({
+                items: manager.getNavigationItems(),
+                title: manager.getNavigationTitle()
+            });
+        });
+    },
+    // Set the initial state synchronously
+    getInitialState: function() {
+        return {
+            items: manager.getNavigationItems(),
+            title: manager.getNavigationTitle()
+        };
+    },
+    render: function() {
+        var title = this.state.title;
+        var navItems = this.state.items.map(function(item, i) {
+            return (
+                React.createElement("li", {"data-id": i}, 
+                    React.createElement("a", {href: item.url}, item.title)
+                )
+            );
+        });
+        return (
+            React.createElement("div", {id: "ljs-top-navigation"}, 
+                React.createElement("h1", {className: "ljs-logo"}, React.createElement("a", {href: "/index.html"}, "Linkbot Labs")), 
+                React.createElement("div", {className: "ljs-top-nav-info"}, 
+                    React.createElement("ul", {id: "ljs-top-nav-breadcrumbs", className: "ljs-top-nav-breadcrumbs"}, 
+                        navItems
+                    ), 
+                    React.createElement("h1", {id: "ljs-top-nav-title", className: "ljs-top-nav-title"}, title)
+                )
+            )
+        );
+    }
 });
 
 var ControlPanel = React.createClass({displayName: "ControlPanel",
@@ -20174,6 +20212,13 @@ var eventlib = require('./event.jsx');
 var storageLib = require('./storage.jsx');
 
 var robots = [];
+var navigationItems =  [];
+var title = document.title;
+
+if (title.length === 0) {
+    title = "Linkbot Labs";
+}
+navigationItems.push({'title':title, 'url':'#'});
 
 var events = eventlib.Events.extend({});
 
@@ -20288,6 +20333,55 @@ module.exports.relinquish = function(bot) {
     }
 };
 
+module.exports.getNavigationTitle = function() {
+    return title;
+};
+module.exports.setNavigationTitle = function(newTitle) {
+    title = newTitle;
+};
+module.exports.getNavigationItems = function() {
+    return navigationItems;
+};
+
+module.exports.addNavigationItem = function(item) {
+    if (item !== null && typeof(item) !== 'undefined' && typeof item === 'object') {
+        if (item.title && item.url) {
+            navigationItems.push(item);
+            events.trigger('navigation-changed', 1);
+        }
+    }
+};
+module.exports.addNavigationItems = function(items) {
+    var changed = false;
+    if (items !== null && Array.isArray(items)) {
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            if (item !== null && typeof(item) !== 'undefined' && typeof item === 'object') {
+                if (item.title && item.url) {
+                    navigationItems.push(item);
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            events.trigger('navigation-changed', 1);
+        }
+    }
+};
+module.exports.setNavigationItems = function(items) {
+    navigationItems = [];
+    if (items !== null && Array.isArray(items)) {
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            if (item !== null && typeof(item) !== 'undefined' && typeof item === 'object') {
+                if (item.title && item.url) {
+                    navigationItems.push(item);
+                }
+            }
+        }
+    }
+    events.trigger('navigation-changed', 1);
+};
 storageLib.getAll(function(bots) {
     for (var i = 0; i < bots.length; i++) {
         robots.push(new botlib.AsyncLinkbot(bots[i].name));
