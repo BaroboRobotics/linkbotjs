@@ -151,8 +151,8 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         } else {
             if (driveToValue !== null) {
                 bot.driveTo(driveToValue[0], driveToValue[1], driveToValue[2]);
+                driveToValue = null;
             }
-            
         }
     }
     
