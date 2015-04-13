@@ -18448,6 +18448,7 @@ var callbacks = {};
 var buttonEventCallbacks = {};
 var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
+var jointEventCallbacks = {};
 
 function addCallback(id, func) {
     var token = requestId++;
@@ -18510,7 +18511,11 @@ asyncBaroboBridge.encoderEvent.connect(
 );
 asyncBaroboBridge.jointEvent.connect(
     function(id, jointNumber, eventType, timestamp) {
-        // TODO implement this.
+        var objs = jointEventCallbacks[id];
+        for (var i = 0; i < objs.length; i++) {
+            var obj = objs[i];
+            obj.callback(obj.robot, obj.data, {jointNumber: jointNumber, eventType: eventType, timestamp: timestamp});
+        }
     }
 );
 asyncBaroboBridge.accelerometerEvent.connect(
@@ -18556,6 +18561,10 @@ function rgbToHex(value) {
     return val;
 }
 
+function sign(value) {
+    return (value > 0) - (value < 0);
+}
+
 function colorToHex(color) {
     var red = rgbToHex(color.red);
     var green = rgbToHex(color.green);
@@ -18575,12 +18584,15 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
     var driveToValue = null;
+    var driveToPos = null;
     var driveToCalled = false;
+    var limiter = 50;
     
     bot.enums = enumConstants;
     bot.firmwareVerions = firmwareVersions;
 
     function driveToCallback(error) {
+        console.log('fuck me');
         driveToCalled = false;
         if (error.code !== 0) {
             // TODO add error handling code here.
@@ -18589,6 +18601,20 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             if (driveToValue !== null) {
                 bot.driveTo(driveToValue[0], driveToValue[1], driveToValue[2]);
                 driveToValue = null;
+            }
+        }
+    }
+    function driveToLimitedCallback(error) {
+        driveToCalled = false;
+        if (error.code !== 0) {
+            // TODO add error handling code here.
+            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+        } else {
+            if (driveToValue !== null) {
+                console.log('called drive to limiter : (' + driveToValue[0] + ', ' + driveToValue[1] + ', ' + driveToValue[2] + ')');
+                var location = [driveToValue[0], driveToValue[1], driveToValue[2]];
+                driveToValue = null;
+                bot.driveToLimiter(location[0], location[1], location[2]);
             }
         }
     }
@@ -18721,6 +18747,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.driveTo = function(r1, r2, r3) {
+        console.log('fuck me!');
         if (status != 0) {
             if (driveToCalled) {
                 driveToValue = [r1, r2, r3];
@@ -18728,6 +18755,57 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 driveToCalled = true;
                 var token = addCallback(id, driveToCallback);
                 asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
+            }
+        }
+    };
+
+    bot.driveToLimiter = function(r1, r2, r3, p1, p2, p3) {
+        console.log({r1:r1, r2:r2, r3:r3, p1:p1, p2:p2, p3:p3});
+        if (status != 0) {
+            if (typeof(p1) !== 'undefined' && typeof(p2) !== 'undefined' && typeof(p3) !== 'undefined') {
+                driveToPos = [p1, p2, p3];
+            }
+            if (driveToCalled) {
+                driveToValue = [r1, r2, r3];
+            } else {
+                driveToCalled = true;
+                var setvalue = false, location = [r1, r2, r3];
+
+                if (Math.abs(driveToPos[0] - r1) > limiter) {
+                    setvalue = true;
+                    if (driveToPos[0] < r1) {
+                        location[0] = driveToPos[0] + limiter;
+                    } else {
+                        location[0] = driveToPos[0] - limiter;
+                    }
+                }
+                if (Math.abs(driveToPos[1] - r2) > limiter) {
+                    setvalue = true;
+                    if (driveToPos[1] < r2) {
+                        location[1] = driveToPos[1] + limiter;
+                    } else {
+                        location[1] = driveToPos[1] - limiter;
+                    }
+                }
+                if (Math.abs(driveToPos[2] - r3) > limiter) {
+                    setvalue = true;
+                    if (driveToPos[2] < r3) {
+                        location[2] = driveToPos[2] + limiter;
+                    } else {
+                        location[2] = driveToPos[2] - limiter;
+                    }
+                }
+                console.log('position = (' + driveToPos[0] + ', ' + driveToPos[1] + ', ' + driveToPos[2] + ')');
+                console.log('location = (' + location[0] + ', ' + location[1] + ', ' + location[2] + ')');
+                console.log('called = (' + r1 + ', ' + r2 + ', ' + r3 + ')')
+                var token = addCallback(id, driveToLimitedCallback);
+                asyncBaroboBridge.driveTo(id, token, 7, location[0], location[1], location[2]);
+                if (setvalue) {
+                    driveToValue = [r1, r2, r3];
+                    bot.wheelPositions(function(data) {
+                        driveToPos = data.values;
+                    });
+                }
             }
         }
     };
@@ -18797,6 +18875,19 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 }
             });
             asyncBaroboBridge.getJointAngles (id, token);
+        }
+    };
+
+    bot.getJointSpeeds = function(callback) {
+        if (status != 0) {
+            var token = addCallback(id, function(error, data) {
+                if (error.code == 0) {
+                    callback(data);
+                } else {
+                    window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+                }
+            });
+            asyncBaroboBridge.getJointSpeeds(id, token);
         }
     };
 
@@ -18897,6 +18988,13 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 asyncBaroboBridge.enableEncoderEvents(id, token, granularity, true);
             }
         }
+        if (connections.hasOwnProperty('joint')) {
+            obj = connections.joint;
+            jointEventCallbacks.hasOwnProperty(id) || (jointEventCallbacks[id] = []);
+            jointEventCallbacks[id].push({robot:bot, callback:obj.callback, data:obj.data});
+            token = addCallback(id, genericCallback);
+            asyncBaroboBridge.enableJointEvents(id, token, true);
+        }
         if (connections.hasOwnProperty('accel')) {
             obj = connections.accel;
             accelerometerEventCallbacks.hasOwnProperty(id) || (accelerometerEventCallbacks[id] = []);
@@ -18919,6 +19017,10 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         if (accelerometerEventCallbacks.hasOwnProperty(id) && accelerometerEventCallbacks[id].length > 0) {
             token = addCallback(id, genericCallback);
             asyncBaroboBridge.enableAccelerometerEvents(id, token, false);
+        }
+        if (jointEventCallbacks.hasOwnProperty(id) && jointEventCallbacks[id].length > 0) {
+            token = addCallback(id, genericCallback);
+            asyncBaroboBridge.enableJointEvents(id, token, false);
         }
     };
     bot.event = eventlib.Events.extend({});
@@ -19020,6 +19122,7 @@ var linkbotLib = require('./linkbot.jsx');
 
 var uiEvents = eventlib.Events.extend({});
 var rad2deg = 180/Math.PI;
+var positions = [0, 0, 0];
 
 function getPosition(element) {
     var xPosition = 0;
@@ -19876,15 +19979,24 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                 0: {
                     distance: 1,
                     callback: function(robot, data, event) {
+                        positions[0] = event.position;
+                        console.log('wheel 0 = ' + positions[0]);
                         me.refs.knobJoint1.setValue(event.position, false);
                     }
                 },
                 2: {
                     distance: 1,
                     callback: function(robot, data, event) {
+                        positions[2] = event.position;
+                        console.log('wheel 2 = ' + positions[2]);
                         me.refs.knobJoint2.setValue(event.position, false);
                     }
                 }
+            },
+            joint: {
+              callback: function(jointNumber, eventType, timestamp) {
+                  // TODO implement this.
+              }
             },
             button: { }
         };
@@ -19903,8 +20015,9 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                 window.console.log('B button pressed');
             }
         };
-        linkbot.angularSpeed(50, 0, 50);
-        
+
+        //linkbot.angularSpeed(50, 0, 50);
+
         this.setState({
             linkbot:linkbot,
             title:linkbot.id,
@@ -19924,6 +20037,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             me.refs.speedJoint2.setValue(50);
             linkbot.wheelPositions(function(data) {
                 var pos = data.values;
+                positions = pos;
                 me.setState({
                     linkbot:me.state.linkbot,
                     title:me.state.title,
@@ -19942,11 +20056,31 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                 });
             });
         });
+        linkbot.getJointSpeeds(function(data) {
+            var d1 = Math.round(data[0]);
+            var d2 = Math.round(data[2]);
+            me.setState({
+                linkbot:me.state.linkbot,
+                title:me.state.title,
+                m1Value: d1,
+                m2Value: d2,
+                wheel1: me.state.wheel1,
+                wheel2: me.state.wheel2,
+                freq: me.state.freq,
+                x: me.state.x,
+                y: me.state.y,
+                z: me.state.z,
+                mag: me.state.mag
+            });
+            me.refs.speedJoint1.setValue(d1);
+            me.refs.speedJoint2.setValue(d2);
+        });
     },
     knob1Changed: function(data) {
         if (this.state.wheel1 === data.value) {
             return;
         }
+        console.log('w1 was:' + positions[0] + ' w1: ' + data.value + ' difference: ' + (positions[0] - data.value) );
         var me = this;
         this.setState({
             linkbot:this.state.linkbot,
@@ -19961,7 +20095,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             z: this.state.z,
             mag: this.state.mag
         }, function() {
-            me.state.linkbot.driveTo(data.value, 0, me.state.wheel2);
+            me.state.linkbot.driveToLimiter(data.value, 0, positions[2], positions[0], 0, positions[2]);
         });
     },
     knob2Changed: function(data) {
@@ -19969,6 +20103,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             return;
         }
         var me = this;
+        console.log('w2 was:' + positions[2] + ' w2: ' + data.value + ' difference: ' + (positions[2] - data.value) );
         this.setState({
             linkbot:this.state.linkbot,
             title:this.state.title,
@@ -19982,7 +20117,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             z: this.state.z,
             mag: this.state.mag
         }, function() {
-            me.state.linkbot.driveTo(me.state.wheel1, 0, data.value);
+            me.state.linkbot.driveToLimiter(positions[0], 0, data.value, positions[0], 0, positions[2]);
         });
     },
     motor1Up: function() {

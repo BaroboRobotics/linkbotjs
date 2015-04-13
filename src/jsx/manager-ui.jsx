@@ -7,6 +7,7 @@ var linkbotLib = require('./linkbot.jsx');
 
 var uiEvents = eventlib.Events.extend({});
 var rad2deg = 180/Math.PI;
+var positions = [0, 0, 0];
 
 function getPosition(element) {
     var xPosition = 0;
@@ -863,15 +864,24 @@ var ControlPanel = React.createClass({
                 0: {
                     distance: 1,
                     callback: function(robot, data, event) {
+                        positions[0] = event.position;
+                        console.log('wheel 0 = ' + positions[0]);
                         me.refs.knobJoint1.setValue(event.position, false);
                     }
                 },
                 2: {
                     distance: 1,
                     callback: function(robot, data, event) {
+                        positions[2] = event.position;
+                        console.log('wheel 2 = ' + positions[2]);
                         me.refs.knobJoint2.setValue(event.position, false);
                     }
                 }
+            },
+            joint: {
+              callback: function(jointNumber, eventType, timestamp) {
+                  // TODO implement this.
+              }
             },
             button: { }
         };
@@ -890,8 +900,9 @@ var ControlPanel = React.createClass({
                 window.console.log('B button pressed');
             }
         };
-        linkbot.angularSpeed(50, 0, 50);
-        
+
+        //linkbot.angularSpeed(50, 0, 50);
+
         this.setState({
             linkbot:linkbot,
             title:linkbot.id,
@@ -911,6 +922,7 @@ var ControlPanel = React.createClass({
             me.refs.speedJoint2.setValue(50);
             linkbot.wheelPositions(function(data) {
                 var pos = data.values;
+                positions = pos;
                 me.setState({
                     linkbot:me.state.linkbot,
                     title:me.state.title,
@@ -929,11 +941,31 @@ var ControlPanel = React.createClass({
                 });
             });
         });
+        linkbot.getJointSpeeds(function(data) {
+            var d1 = Math.round(data[0]);
+            var d2 = Math.round(data[2]);
+            me.setState({
+                linkbot:me.state.linkbot,
+                title:me.state.title,
+                m1Value: d1,
+                m2Value: d2,
+                wheel1: me.state.wheel1,
+                wheel2: me.state.wheel2,
+                freq: me.state.freq,
+                x: me.state.x,
+                y: me.state.y,
+                z: me.state.z,
+                mag: me.state.mag
+            });
+            me.refs.speedJoint1.setValue(d1);
+            me.refs.speedJoint2.setValue(d2);
+        });
     },
     knob1Changed: function(data) {
         if (this.state.wheel1 === data.value) {
             return;
         }
+        console.log('w1 was:' + positions[0] + ' w1: ' + data.value + ' difference: ' + (positions[0] - data.value) );
         var me = this;
         this.setState({
             linkbot:this.state.linkbot,
@@ -948,7 +980,7 @@ var ControlPanel = React.createClass({
             z: this.state.z,
             mag: this.state.mag
         }, function() {
-            me.state.linkbot.driveTo(data.value, 0, me.state.wheel2);
+            me.state.linkbot.driveToLimiter(data.value, 0, positions[2], positions[0], 0, positions[2]);
         });
     },
     knob2Changed: function(data) {
@@ -956,6 +988,7 @@ var ControlPanel = React.createClass({
             return;
         }
         var me = this;
+        console.log('w2 was:' + positions[2] + ' w2: ' + data.value + ' difference: ' + (positions[2] - data.value) );
         this.setState({
             linkbot:this.state.linkbot,
             title:this.state.title,
@@ -969,7 +1002,7 @@ var ControlPanel = React.createClass({
             z: this.state.z,
             mag: this.state.mag
         }, function() {
-            me.state.linkbot.driveTo(me.state.wheel1, 0, data.value);
+            me.state.linkbot.driveToLimiter(positions[0], 0, data.value, positions[0], 0, positions[2]);
         });
     },
     motor1Up: function() {
