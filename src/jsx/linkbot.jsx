@@ -155,7 +155,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.firmwareVerions = firmwareVersions;
 
     function driveToCallback(error) {
-        console.log('fuck me');
         driveToCalled = false;
         if (error.code !== 0) {
             // TODO add error handling code here.
@@ -174,7 +173,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
         } else {
             if (driveToValue !== null) {
-                console.log('called drive to limiter : (' + driveToValue[0] + ', ' + driveToValue[1] + ', ' + driveToValue[2] + ')');
                 var location = [driveToValue[0], driveToValue[1], driveToValue[2]];
                 driveToValue = null;
                 bot.driveToLimiter(location[0], location[1], location[2]);
@@ -310,7 +308,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.driveTo = function(r1, r2, r3) {
-        console.log('fuck me!');
         if (status != 0) {
             if (driveToCalled) {
                 driveToValue = [r1, r2, r3];
@@ -323,7 +320,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.driveToLimiter = function(r1, r2, r3, p1, p2, p3) {
-        console.log({r1:r1, r2:r2, r3:r3, p1:p1, p2:p2, p3:p3});
         if (status != 0) {
             if (typeof(p1) !== 'undefined' && typeof(p2) !== 'undefined' && typeof(p3) !== 'undefined') {
                 driveToPos = [p1, p2, p3];
@@ -358,9 +354,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                         location[2] = driveToPos[2] - limiter;
                     }
                 }
-                console.log('position = (' + driveToPos[0] + ', ' + driveToPos[1] + ', ' + driveToPos[2] + ')');
-                console.log('location = (' + location[0] + ', ' + location[1] + ', ' + location[2] + ')');
-                console.log('called = (' + r1 + ', ' + r2 + ', ' + r3 + ')')
                 var token = addCallback(id, driveToLimitedCallback);
                 asyncBaroboBridge.driveTo(id, token, 7, location[0], location[1], location[2]);
                 if (setvalue) {

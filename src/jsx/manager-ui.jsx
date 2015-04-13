@@ -865,7 +865,6 @@ var ControlPanel = React.createClass({
                     distance: 1,
                     callback: function(robot, data, event) {
                         positions[0] = event.position;
-                        console.log('wheel 0 = ' + positions[0]);
                         me.refs.knobJoint1.setValue(event.position, false);
                     }
                 },
@@ -873,7 +872,6 @@ var ControlPanel = React.createClass({
                     distance: 1,
                     callback: function(robot, data, event) {
                         positions[2] = event.position;
-                        console.log('wheel 2 = ' + positions[2]);
                         me.refs.knobJoint2.setValue(event.position, false);
                     }
                 }
@@ -965,7 +963,6 @@ var ControlPanel = React.createClass({
         if (this.state.wheel1 === data.value) {
             return;
         }
-        console.log('w1 was:' + positions[0] + ' w1: ' + data.value + ' difference: ' + (positions[0] - data.value) );
         var me = this;
         this.setState({
             linkbot:this.state.linkbot,
@@ -988,7 +985,6 @@ var ControlPanel = React.createClass({
             return;
         }
         var me = this;
-        console.log('w2 was:' + positions[2] + ' w2: ' + data.value + ' difference: ' + (positions[2] - data.value) );
         this.setState({
             linkbot:this.state.linkbot,
             title:this.state.title,
