@@ -43,6 +43,32 @@ window.Linkbots = (function(){
     mod.addNavigationItems = function(navItemArray) {
         manager.addNavigationItems(navItemArray);
     };
+    mod.setPathways = function(pathways) {
+        var config = asyncBaroboBridge.configuration;
+        if (!config) {
+            config = {pathways:[]};
+        } else if (!config.hasOwnProperty('pathways')) {
+            config.pathways = [];
+        }
+        if (Array.isArray(pathways)) {
+            config.pathways = config.pathways.concat(pathways);
+        } else {
+            config.pathways.push(pathways);
+        }
+        asyncBaroboBridge.configuration = config;
+        if (JSON.stringify(asyncBaroboBridge.configuration) !== JSON.stringify(config)) {
+            throw {message:'Unable to write to the configuration file', error:1};
+        }
+    };
+    mod.getPathways = function() {
+        var config = asyncBaroboBridge.configuration;
+        if (!config) {
+            return [];
+        } else if (!config.hasOwnProperty('pathways')) {
+            return [];
+        }
+        return config.pathways;
+    };
     mod.managerEvents = manager.event;
     mod.uiEvents = uimanager.uiEvents;
 

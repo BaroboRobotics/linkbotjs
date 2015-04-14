@@ -1,49 +1,6 @@
 /**
  * This class exists for testing outside of Barobo browser.
  */
-var baroboBridge = (function(main) {
-    "use strict";
-    
-    if (main.baroboBridge && main.baroboBridge !== null) {
-        return main.baroboBridge;
-    } else {
-        var _i, _j, _len, _len1, obj, signals, methods, k;
-        methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged', 'buzzerFrequency',
-            'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals', 'enableAccelSignals', 'disableAccelSignals',
-            'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'moveTo', 'move',
-            'scan', 'stop', 'moveContinuous'];
-        signals = ['accelChanged', 'motorChanged', 'buttonChanged'];
-        obj = {
-            mock: true
-        };
-        var randomInt = function(min,max) {
-            return Math.floor(Math.random()*(max-min+1)+min);
-        };
-        var colorMap = {};
-        var emptyFunction = function() { };
-        for (_i = 0, _len = methods.length; _i < _len; _i++) {
-            k = methods[_i];
-            obj[k] = emptyFunction;
-        }
-        for (_j = 0, _len1 = signals.length; _j < _len1; _j++) {
-            k = signals[_j];
-            obj[k] = {
-                connect: emptyFunction,
-                disconnect: emptyFunction
-            };
-        }
-        obj.getLEDColor = function(id) {
-            if (!colorMap[id]) {
-                colorMap[id] = {red:randomInt(0,255), green:randomInt(0,255), blue:randomInt(0,255)};
-            }
-            return colorMap[id];
-        };
-        obj.setLEDColor = function(id, r, g, b) {
-            colorMap[id] = {red:r, green:g, blue:b};
-        };
-        return obj;
-    }
-})(this);
 var asyncBaroboBridge = (function(main) {
     "use strict";
     if (main.asyncBaroboBridge && main.asyncBaroboBridge !== null) {
@@ -136,6 +93,7 @@ process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -19071,6 +19029,32 @@ window.Linkbots = (function(){
     };
     mod.addNavigationItems = function(navItemArray) {
         manager.addNavigationItems(navItemArray);
+    };
+    mod.setPathways = function(pathways) {
+        var config = asyncBaroboBridge.configuration;
+        if (!config) {
+            config = {pathways:[]};
+        } else if (!config.hasOwnProperty('pathways')) {
+            config.pathways = [];
+        }
+        if (Array.isArray(pathways)) {
+            config.pathways = config.pathways.concat(pathways);
+        } else {
+            config.pathways.push(pathways);
+        }
+        asyncBaroboBridge.configuration = config;
+        if (JSON.stringify(asyncBaroboBridge.configuration) !== JSON.stringify(config)) {
+            throw {message:'Unable to write to the configuration file', error:1};
+        }
+    };
+    mod.getPathways = function() {
+        var config = asyncBaroboBridge.configuration;
+        if (!config) {
+            return [];
+        } else if (!config.hasOwnProperty('pathways')) {
+            return [];
+        }
+        return config.pathways;
     };
     mod.managerEvents = manager.event;
     mod.uiEvents = uimanager.uiEvents;
