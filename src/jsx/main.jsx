@@ -51,9 +51,9 @@ window.Linkbots = (function(){
             config.pathways = [];
         }
         if (Array.isArray(pathways)) {
-            config.pathways = config.pathways.concat(pathways);
+            config.pathways = pathways;
         } else {
-            config.pathways.push(pathways);
+            config.pathways = [pathways];
         }
         asyncBaroboBridge.configuration = config;
         if (JSON.stringify(asyncBaroboBridge.configuration) !== JSON.stringify(config)) {
