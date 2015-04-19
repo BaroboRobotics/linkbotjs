@@ -5,6 +5,7 @@ var eventlib = require('./event.jsx');
 var storageLib = require('./storage.jsx');
 
 var robots = [];
+var pingRobots = [];
 var navigationItems =  [];
 var title = document.title;
 
@@ -69,10 +70,27 @@ module.exports.connectAll = connectAll;
 
 module.exports.disconnectAll = disconnectAll;
 
+function batchcallPings() {
+    var p, token;
+    if (pingRobots.length > 0) {
+        p = pingRobots.splice(0, 8);
+        token = botlib.addCallbacks(p, batchcallPings);
+        asyncBaroboBridge.sendRobotPing(p, token);
+    }
+}
+
 module.exports.refresh = function() {
     // TODO: If any robot has an error while trying to connect, disconnect and
     // reconnect once. This should fix simple communications interruptions.
-    connectAll();
+    var i = 0, token, pinged;
+    pingRobots = [];
+    for (i = 0; i < robots.length; i++) {
+        pingRobots.push(robots[i].id);
+    }
+    pinged = pingRobots.splice(0, 8);
+    token = botlib.addCallbacks(pinged, batchcallPings);
+    asyncBaroboBridge.sendRobotPing(pinged, token);
+    //connectAll();
 };
 
 module.exports.event = events;
@@ -201,5 +219,26 @@ events.on('dongleDown', function() {
     if (!dongle || dongle === 'up') {
         dongle = 'down';
         disconnectAll();
+    }
+});
+
+asyncBaroboBridge.robotEvent.connect(function(id, version) {
+    var robot = findRobot(id);
+    robot.connect();
+});
+
+asyncBaroboBridge.robotEvent.connect(function(id, version) {
+    console.log('robot event triggered with ID: ' + id + ' and version: ' + version);
+    var robot = findRobot(id);
+    if (robot) {
+        robot.connect();
+    }
+});
+
+asyncBaroboBridge.disconnectRobot.connect(function(id, timestamp) {
+    console.log('disconnect robot triggered with ID: ' + id + ' and timestamp: ' + timestamp);
+    var robot = findRobot(id);
+    if (robot) {
+        robot.disconnect();
     }
 });

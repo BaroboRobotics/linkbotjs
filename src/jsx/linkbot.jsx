@@ -29,8 +29,10 @@ function genericCallback(error) {
 
 asyncBaroboBridge.requestComplete.connect(
     function (id, token, error, result) {
-        callbacks[id][token](error, result);
-        delete callbacks[id][token];
+        if (callbacks[id][token]) {
+            callbacks[id][token](error, result);
+            delete callbacks[id][token];
+        }
     }
 );
 asyncBaroboBridge.dongleEvent.connect(
@@ -137,6 +139,16 @@ function colorToHex(color) {
 
 module.exports.startFirmwareUpdate = function() {
     asyncBaroboBridge.firmwareUpdate();
+};
+
+module.exports.addCallbacks = function(ids, func) {
+    var token = requestId++;
+    for (var i = 0; i < ids.length; i++) {
+        var id = ids[i];
+        callbacks.hasOwnProperty(id) || (callbacks[id] = {});
+        callbacks[id][token] = func;
+    }
+    return token;
 };
 
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
