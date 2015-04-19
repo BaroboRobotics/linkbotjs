@@ -222,10 +222,6 @@ events.on('dongleDown', function() {
     }
 });
 
-asyncBaroboBridge.robotEvent.connect(function(id, version) {
-    var robot = findRobot(id);
-    robot.connect();
-});
 
 asyncBaroboBridge.robotEvent.connect(function(id, version) {
     console.log('robot event triggered with ID: ' + id + ' and version: ' + version);
@@ -235,7 +231,7 @@ asyncBaroboBridge.robotEvent.connect(function(id, version) {
     }
 });
 
-asyncBaroboBridge.disconnectRobot.connect(function(id, timestamp) {
+asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
     console.log('disconnect robot triggered with ID: ' + id + ' and timestamp: ' + timestamp);
     var robot = findRobot(id);
     if (robot) {
