@@ -12,15 +12,18 @@ var asyncBaroboBridge = (function(main) {
             'getLedColor', 'getVersions', 'resetEncoderRevs', 'setBuzzerFrequency', 'setJointSpeeds',
             'setJointStates', 'setLedColor', 'move', 'moveContinuous', 'moveTo', 'drive', 'driveTo',
             'motorPower', 'stop', 'enableButtonEvents', 'enableEncoderEvents', 'enableJointEvents',
-            'enableAccelerometerEvents', 'firmwareUpdate'];
-        signals = ['requestComplete', 'dongleEvent', 'buttonEvent', 'encoderEvent', 'jointEvent', 'accelerometerEvent'];
+            'enableAccelerometerEvents', 'firmwareUpdate', 'sendRobotPing'];
+        signals = ['requestComplete', 'dongleEvent', 'buttonEvent', 'encoderEvent', 'jointEvent', 'accelerometerEvent',
+            'robotEvent', 'connectionTerminated'];
         obj = {
             mock: true
         };
+        /*
         var randomInt = function(min,max) {
             return Math.floor(Math.random()*(max-min+1)+min);
         };
         var colorMap = {};
+         */
         var emptyFunction = function() { };
         for (_i = 0, _len = methods.length; _i < _len; _i++) {
             k = methods[_i];
@@ -18424,8 +18427,10 @@ function genericCallback(error) {
 
 asyncBaroboBridge.requestComplete.connect(
     function (id, token, error, result) {
-        callbacks[id][token](error, result);
-        delete callbacks[id][token];
+        if (callbacks[id][token]) {
+            callbacks[id][token](error, result);
+            delete callbacks[id][token];
+        }
     }
 );
 asyncBaroboBridge.dongleEvent.connect(
@@ -18532,6 +18537,16 @@ function colorToHex(color) {
 
 module.exports.startFirmwareUpdate = function() {
     asyncBaroboBridge.firmwareUpdate();
+};
+
+module.exports.addCallbacks = function(ids, func) {
+    var token = requestId++;
+    for (var i = 0; i < ids.length; i++) {
+        var id = ids[i];
+        callbacks.hasOwnProperty(id) || (callbacks[id] = {});
+        callbacks[id][token] = func;
+    }
+    return token;
 };
 
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
@@ -20320,6 +20335,7 @@ var eventlib = require('./event.jsx');
 var storageLib = require('./storage.jsx');
 
 var robots = [];
+var pingRobots = [];
 var navigationItems =  [];
 var title = document.title;
 
@@ -20384,10 +20400,27 @@ module.exports.connectAll = connectAll;
 
 module.exports.disconnectAll = disconnectAll;
 
+function batchcallPings() {
+    var p, token;
+    if (pingRobots.length > 0) {
+        p = pingRobots.splice(0, 8);
+        token = botlib.addCallbacks(p, batchcallPings);
+        asyncBaroboBridge.sendRobotPing(p, token);
+    }
+}
+
 module.exports.refresh = function() {
     // TODO: If any robot has an error while trying to connect, disconnect and
     // reconnect once. This should fix simple communications interruptions.
-    connectAll();
+    var i = 0, token, pinged;
+    pingRobots = [];
+    for (i = 0; i < robots.length; i++) {
+        pingRobots.push(robots[i].id);
+    }
+    pinged = pingRobots.splice(0, 8);
+    token = botlib.addCallbacks(pinged, batchcallPings);
+    asyncBaroboBridge.sendRobotPing(pinged, token);
+    //connectAll();
 };
 
 module.exports.event = events;
@@ -20516,6 +20549,23 @@ events.on('dongleDown', function() {
     if (!dongle || dongle === 'up') {
         dongle = 'down';
         disconnectAll();
+    }
+});
+
+
+asyncBaroboBridge.robotEvent.connect(function(id, version) {
+    console.log('robot event triggered with ID: ' + id + ' and version: ' + version);
+    var robot = findRobot(id);
+    if (robot) {
+        robot.connect();
+    }
+});
+
+asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
+    console.log('disconnect robot triggered with ID: ' + id + ' and timestamp: ' + timestamp);
+    var robot = findRobot(id);
+    if (robot) {
+        robot.disconnect();
     }
 });
 

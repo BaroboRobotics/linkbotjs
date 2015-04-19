@@ -12,15 +12,18 @@ var asyncBaroboBridge = (function(main) {
             'getLedColor', 'getVersions', 'resetEncoderRevs', 'setBuzzerFrequency', 'setJointSpeeds',
             'setJointStates', 'setLedColor', 'move', 'moveContinuous', 'moveTo', 'drive', 'driveTo',
             'motorPower', 'stop', 'enableButtonEvents', 'enableEncoderEvents', 'enableJointEvents',
-            'enableAccelerometerEvents', 'firmwareUpdate'];
-        signals = ['requestComplete', 'dongleEvent', 'buttonEvent', 'encoderEvent', 'jointEvent', 'accelerometerEvent'];
+            'enableAccelerometerEvents', 'firmwareUpdate', 'sendRobotPing'];
+        signals = ['requestComplete', 'dongleEvent', 'buttonEvent', 'encoderEvent', 'jointEvent', 'accelerometerEvent',
+            'robotEvent', 'connectionTerminated'];
         obj = {
             mock: true
         };
+        /*
         var randomInt = function(min,max) {
             return Math.floor(Math.random()*(max-min+1)+min);
         };
         var colorMap = {};
+         */
         var emptyFunction = function() { };
         for (_i = 0, _len = methods.length; _i < _len; _i++) {
             k = methods[_i];
