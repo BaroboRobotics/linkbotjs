@@ -486,7 +486,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         return id;
     };
 
-    bot.connect = function() {
+    bot.connect = function(callback) {
         var token;
         if (status == 0) {
             token = addCallback(id, function(error) {
@@ -495,6 +495,9 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                     bot.event.trigger('changed');
                 } else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+                }
+                if (callback) {
+                    callback(error);
                 }
             });
             asyncBaroboBridge.connectRobot(id, token);
@@ -505,6 +508,9 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                     bot.event.trigger('changed');
                 } else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+                }
+                if (callback) {
+                    callback(error);
                 }
             });
             asyncBaroboBridge.getLedColor(id, token);

@@ -18883,7 +18883,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         return id;
     };
 
-    bot.connect = function() {
+    bot.connect = function(callback) {
         var token;
         if (status == 0) {
             token = addCallback(id, function(error) {
@@ -18892,6 +18892,9 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                     bot.event.trigger('changed');
                 } else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+                }
+                if (callback) {
+                    callback(error);
                 }
             });
             asyncBaroboBridge.connectRobot(id, token);
@@ -18902,6 +18905,9 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                     bot.event.trigger('changed');
                 } else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+                }
+                if (callback) {
+                    callback(error);
                 }
             });
             asyncBaroboBridge.getLedColor(id, token);
@@ -19633,8 +19639,17 @@ var RobotItem = React.createClass({displayName: "RobotItem",
     handleBeep: function(e) {
         var me = this;
         e.stopPropagation();
-        me.props.linkbot.buzzerFrequency(500);
-        setTimeout(function() { me.props.linkbot.buzzerFrequency(0); }, 250);
+        if (me.props.linkbot.status == "offline") {
+            uiEvents.trigger('show-full-spinner');
+            me.props.linkbot.connect(function(error) {
+               uiEvents.trigger('hide-full-spinner');
+            });
+        } else {
+            me.props.linkbot.buzzerFrequency(500);
+            setTimeout(function () {
+                me.props.linkbot.buzzerFrequency(0);
+            }, 250);
+        }
     },
     handleTrash: function(e) {
         e.stopPropagation();
@@ -19645,6 +19660,12 @@ var RobotItem = React.createClass({displayName: "RobotItem",
         var style = {
             backgroundColor: this.state.color
         };
+        var buttonClass = "ljs-beep-btn";
+        var buttonName = "beep";
+        if (this.props.linkbot.status === 'offline') {
+            buttonClass = "ljs-connect-btn";
+            buttonName = "connect";
+        }
         return (
             React.createElement("li", React.__spread({},  this.props, {style: style}), 
                 React.createElement("input", {type: "color", className: "ljs-color-btn", onInput: this.handleColorChange}), 
@@ -19652,7 +19673,7 @@ var RobotItem = React.createClass({displayName: "RobotItem",
                 React.createElement("span", {className: "ljs-remove-btn", onClick: this.handleTrash}, "trash"), 
                 React.createElement("div", {className: "ljs-slide-element", ref: "slideElement", onClick: this.handleSlide}, 
                     React.createElement("span", {className: "ljs-robot-name"}, "Linkbot ", this.props.linkbot.id), 
-                    React.createElement("span", {className: "ljs-beep-btn", onClick: this.handleBeep}, "beep"), 
+                    React.createElement("span", {className: buttonClass, onClick: this.handleBeep}, buttonName), 
                     React.createElement("br", null), 
                     React.createElement("span", {className: "ljs-robot-status"}, this.props.linkbot.status)
                     
@@ -20311,20 +20332,62 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
     }
 });
 
+var MainOverlay = React.createClass({displayName: "MainOverlay",
+    componentWillMount: function() {
+        var me = this;
+        uiEvents.on('show-full-spinner', function() {
+            me.setState({
+                show: true
+            });
+        });
+        uiEvents.on('hide-full-spinner', function() {
+            me.setState({
+                show: false
+            });
+        });
+    },
+    handleClick: function(e) {
+        e.stopPropagation();
+    },
+    // Set the initial state synchronously
+    getInitialState: function() {
+        return {
+            show: false
+        };
+    },
+    render: function() {
+        var divStyle = {display:'none'};
+        if (this.state.show) {
+            divStyle = {display:'block'};
+        }
+        return (
+            React.createElement("div", null, 
+                React.createElement("div", {id: "ljs-overlay-full", style: divStyle, ref: "overlay", onClick: this.handleClick}, 
+                    React.createElement("div", {id: "ljs-overlay-spinner"})
+                )
+            )
+        );
+
+    }
+});
+
 module.exports.uiEvents = uiEvents;
 
 module.exports.addUI = function() {
     var sideMenuDiv = document.createElement('div');
     var controlPanelDiv = document.createElement('div');
     var navMenuDiv = document.createElement('div');
+    var mainOverlayDiv = document.createElement('div');
     document.body.appendChild(sideMenuDiv);
     document.body.appendChild(navMenuDiv);
     document.body.appendChild(controlPanelDiv);
+    document.body.appendChild(mainOverlayDiv);
     document.body.style.marginTop = "90px";
     React.render(React.createElement(ControlPanel, null), controlPanelDiv);
     React.render(React.createElement(RobotManagerSideMenu, null, React.createElement(Robots, null)), sideMenuDiv);
     React.render(React.createElement(TopNavigation, null), navMenuDiv);
-}
+    React.render(React.createElement(MainOverlay, null), mainOverlayDiv);
+};
 
 },{"./event.jsx":148,"./linkbot.jsx":149,"./manager.jsx":152,"react":147}],152:[function(require,module,exports){
 "use strict";

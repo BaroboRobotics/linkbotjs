@@ -527,8 +527,17 @@ var RobotItem = React.createClass({
     handleBeep: function(e) {
         var me = this;
         e.stopPropagation();
-        me.props.linkbot.buzzerFrequency(500);
-        setTimeout(function() { me.props.linkbot.buzzerFrequency(0); }, 250);
+        if (me.props.linkbot.status == "offline") {
+            uiEvents.trigger('show-full-spinner');
+            me.props.linkbot.connect(function(error) {
+               uiEvents.trigger('hide-full-spinner');
+            });
+        } else {
+            me.props.linkbot.buzzerFrequency(500);
+            setTimeout(function () {
+                me.props.linkbot.buzzerFrequency(0);
+            }, 250);
+        }
     },
     handleTrash: function(e) {
         e.stopPropagation();
@@ -539,6 +548,12 @@ var RobotItem = React.createClass({
         var style = {
             backgroundColor: this.state.color
         };
+        var buttonClass = "ljs-beep-btn";
+        var buttonName = "beep";
+        if (this.props.linkbot.status === 'offline') {
+            buttonClass = "ljs-connect-btn";
+            buttonName = "connect";
+        }
         return (
             <li {...this.props} style={style}>
                 <input type="color" className="ljs-color-btn" onInput={this.handleColorChange} />
@@ -546,7 +561,7 @@ var RobotItem = React.createClass({
                 <span className="ljs-remove-btn" onClick={this.handleTrash}>trash</span>
                 <div className="ljs-slide-element" ref="slideElement" onClick={this.handleSlide}>
                     <span className="ljs-robot-name">Linkbot {this.props.linkbot.id}</span>
-                    <span className="ljs-beep-btn" onClick={this.handleBeep}>beep</span>
+                    <span className={buttonClass} onClick={this.handleBeep}>{buttonName}</span>
                     <br />
                     <span className="ljs-robot-status">{this.props.linkbot.status}</span>
                     
@@ -1205,17 +1220,59 @@ var ControlPanel = React.createClass({
     }
 });
 
+var MainOverlay = React.createClass({
+    componentWillMount: function() {
+        var me = this;
+        uiEvents.on('show-full-spinner', function() {
+            me.setState({
+                show: true
+            });
+        });
+        uiEvents.on('hide-full-spinner', function() {
+            me.setState({
+                show: false
+            });
+        });
+    },
+    handleClick: function(e) {
+        e.stopPropagation();
+    },
+    // Set the initial state synchronously
+    getInitialState: function() {
+        return {
+            show: false
+        };
+    },
+    render: function() {
+        var divStyle = {display:'none'};
+        if (this.state.show) {
+            divStyle = {display:'block'};
+        }
+        return (
+            <div>
+                <div id="ljs-overlay-full" style={divStyle} ref="overlay" onClick={this.handleClick}>
+                    <div id="ljs-overlay-spinner"></div>
+                </div>
+            </div>
+        );
+
+    }
+});
+
 module.exports.uiEvents = uiEvents;
 
 module.exports.addUI = function() {
     var sideMenuDiv = document.createElement('div');
     var controlPanelDiv = document.createElement('div');
     var navMenuDiv = document.createElement('div');
+    var mainOverlayDiv = document.createElement('div');
     document.body.appendChild(sideMenuDiv);
     document.body.appendChild(navMenuDiv);
     document.body.appendChild(controlPanelDiv);
+    document.body.appendChild(mainOverlayDiv);
     document.body.style.marginTop = "90px";
     React.render(<ControlPanel />, controlPanelDiv);
     React.render(<RobotManagerSideMenu><Robots /></RobotManagerSideMenu>, sideMenuDiv);
     React.render(<TopNavigation />, navMenuDiv);
-}
+    React.render(<MainOverlay />, mainOverlayDiv);
+};
