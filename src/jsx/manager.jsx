@@ -223,9 +223,9 @@ events.on('dongleDown', function() {
 });
 
 
-asyncBaroboBridge.robotEvent.connect(function(id, version) {
-    console.log('robot event triggered with ID: ' + id + ' and version: ' + version);
-    var robot = findRobot(id);
+asyncBaroboBridge.robotEvent.connect(function(ev) {
+    console.log('robot event triggered with ID: ' + ev.serialId + ' and version: ' + ev.firmwareVersion);
+    var robot = findRobot(ev.serialId);
     if (robot) {
         robot.connect();
     }
