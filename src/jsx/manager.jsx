@@ -99,6 +99,7 @@ module.exports.removeRobot = function(id) {
     var index, robot;
     robot = findRobot(id);
     if (robot) {
+        robot.disconnect();
         index = robots.indexOf(robot);
         robots.splice(index, 1);
         storageLib.remove(id, function(success) {
