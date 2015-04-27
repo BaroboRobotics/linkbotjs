@@ -57,7 +57,7 @@ window.Linkbots = (function(){
         }
         asyncBaroboBridge.configuration = config;
         if (JSON.stringify(asyncBaroboBridge.configuration) !== JSON.stringify(config)) {
-            throw {message:'Unable to write to the configuration file', error:1};
+            uimanager.uiEvents.trigger('add-error', 'Unable to write pathways to the configuration file');
         }
     };
     mod.getPathways = function() {

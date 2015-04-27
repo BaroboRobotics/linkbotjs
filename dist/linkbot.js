@@ -19064,7 +19064,7 @@ window.Linkbots = (function(){
         }
         asyncBaroboBridge.configuration = config;
         if (JSON.stringify(asyncBaroboBridge.configuration) !== JSON.stringify(config)) {
-            throw {message:'Unable to write to the configuration file', error:1};
+            uimanager.uiEvents.trigger('add-error', 'Unable to write pathways to the configuration file');
         }
     };
     mod.getPathways = function() {
@@ -19868,11 +19868,15 @@ var TopNavigation = React.createClass({displayName: "TopNavigation",
             title: manager.getNavigationTitle()
         };
     },
+    openHelp: function(e) {
+        uiEvents.trigger('show-help');
+    },
     render: function() {
         var title = this.state.title;
         var navItems = this.state.items.map(function(item, i) {
+            var key = "nav-item" + i;
             return (
-                React.createElement("li", {"data-id": i}, 
+                React.createElement("li", {"data-id": i, key: key}, 
                     React.createElement("a", {href: item.url}, item.title)
                 )
             );
@@ -19885,6 +19889,9 @@ var TopNavigation = React.createClass({displayName: "TopNavigation",
                         navItems
                     ), 
                     React.createElement("h1", {id: "ljs-top-nav-title", className: "ljs-top-nav-title"}, title)
+                ), 
+                React.createElement("div", {className: "ljs-top-nav-help"}, 
+                    React.createElement("a", {className: "ljs-top-nav-help-link", onClick: this.openHelp})
                 )
             )
         );
@@ -20371,21 +20378,161 @@ var MainOverlay = React.createClass({displayName: "MainOverlay",
     }
 });
 
+var ErrorConsole = React.createClass({displayName: "ErrorConsole",
+    componentWillMount: function() {
+        var me = this;
+
+        uiEvents.on('add-error', function(error) {
+            var errors = me.state.errors.slice();
+            errors.unshift(error);
+            me.setState({
+                show: true,
+                errors: errors
+            });
+        });
+        uiEvents.on('hide-console', function() {
+            me.setState({
+                show: false,
+                errors: me.state.errors
+            });
+        });
+    },
+    handleClick: function(e) {
+        e.stopPropagation();
+    },
+    close: function(e) {
+        this.setState({
+            show: false,
+            errors: this.state.errors
+        });
+    },
+    // Set the initial state synchronously
+    getInitialState: function() {
+        return {
+            show: false,
+            errors:[]
+        };
+    },
+    render: function() {
+        var divStyle = {display:'none'};
+        var clzz = "ljs-modal ljs-fade";
+        if (this.state.show) {
+            divStyle = {display:'block'};
+            clzz = "ljs-modal ljs-fade ljs-in";
+        }
+        var errorItems = this.state.errors.map(function(error, i) {
+            var key = 'error-item' + i;
+            return (
+                React.createElement("li", {"data-id": i, key: key}, 
+                   error
+                )
+            );
+        });
+        return (
+            React.createElement("div", null, 
+                React.createElement("div", {id: "ljs-error-console", style: divStyle, className: clzz, ref: "overlay", onClick: this.handleClick}, 
+                    React.createElement("div", {className: "ljs-modal-dialog"}, 
+                        React.createElement("div", {className: "ljs-modal-content"}, 
+                            React.createElement("div", {className: "ljs-modal-header"}, 
+                                React.createElement("h4", {className: "ljs-modal-title"}, "Error Log")
+                            ), 
+                            React.createElement("div", {className: "ljs-modal-body"}, 
+                                React.createElement("ul", null, 
+                                    errorItems
+                                )
+                            ), 
+                            React.createElement("div", {className: "ljs-modal-footer"}, 
+                                React.createElement("button", {type: "button", className: "ljs-btn ljs-primary-btn", onClick: this.close}, "Close")
+                            )
+                        )
+                    )
+                )
+            )
+        );
+    }
+});
+var HelpDialog = React.createClass({displayName: "HelpDialog",
+    componentWillMount: function() {
+        var me = this;
+
+        uiEvents.on('show-help', function() {
+            me.setState({
+                show: true
+            });
+        });
+        uiEvents.on('hide-help', function() {
+            me.setState({
+                show: false
+            });
+        });
+    },
+    handleClick: function(e) {
+        e.stopPropagation();
+    },
+    close: function(e) {
+        this.setState({
+            show: false
+        });
+    },
+    // Set the initial state synchronously
+    getInitialState: function() {
+        return {
+            show: false
+        };
+    },
+    render: function() {
+        var divStyle = {display:'none'};
+        var clzz = "ljs-modal ljs-fade";
+        if (this.state.show) {
+            divStyle = {display:'block'};
+            clzz = "ljs-modal ljs-fade ljs-in";
+        }
+        return (
+            React.createElement("div", null, 
+                React.createElement("div", {id: "ljs-error-console", style: divStyle, className: clzz, ref: "overlay", onClick: this.handleClick}, 
+                    React.createElement("div", {className: "ljs-modal-dialog"}, 
+                        React.createElement("div", {className: "ljs-modal-content"}, 
+                            React.createElement("div", {className: "ljs-modal-header"}, 
+                                React.createElement("h4", {className: "ljs-modal-title"}, "Help")
+                            ), 
+                            React.createElement("div", {className: "ljs-modal-body"}, 
+                                React.createElement("ul", null, 
+                                    React.createElement("li", null, React.createElement("a", {href: "http://wiki.linkbotlabs.com/wiki/Learning_Python_3_with_the_Linkbot/FAQ"}, "FAQ / Wiki")), 
+                                    React.createElement("li", null, React.createElement("a", {href: "http://www.barobo.com/forums/forum/troubleshootinghelp/"}, "Help / Forums"))
+                                )
+                            ), 
+                            React.createElement("div", {className: "ljs-modal-footer"}, 
+                                React.createElement("button", {type: "button", className: "ljs-btn ljs-primary-btn", onClick: this.close}, "Close")
+                            )
+                        )
+                    )
+                )
+            )
+        );
+    }
+});
+
 module.exports.uiEvents = uiEvents;
 
 module.exports.addUI = function() {
     var sideMenuDiv = document.createElement('div');
     var controlPanelDiv = document.createElement('div');
     var navMenuDiv = document.createElement('div');
+    var helpDiv = document.createElement('div');
+    var consoleDiv = document.createElement('div');
     var mainOverlayDiv = document.createElement('div');
     document.body.appendChild(sideMenuDiv);
     document.body.appendChild(navMenuDiv);
     document.body.appendChild(controlPanelDiv);
+    document.body.appendChild(helpDiv);
+    document.body.appendChild(consoleDiv);
     document.body.appendChild(mainOverlayDiv);
     document.body.style.marginTop = "90px";
     React.render(React.createElement(ControlPanel, null), controlPanelDiv);
     React.render(React.createElement(RobotManagerSideMenu, null, React.createElement(Robots, null)), sideMenuDiv);
     React.render(React.createElement(TopNavigation, null), navMenuDiv);
+    React.render(React.createElement(HelpDialog, null), helpDiv);
+    React.render(React.createElement(ErrorConsole, null), consoleDiv);
     React.render(React.createElement(MainOverlay, null), mainOverlayDiv);
 };
 

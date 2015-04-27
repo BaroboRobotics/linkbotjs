@@ -756,11 +756,15 @@ var TopNavigation = React.createClass({
             title: manager.getNavigationTitle()
         };
     },
+    openHelp: function(e) {
+        uiEvents.trigger('show-help');
+    },
     render: function() {
         var title = this.state.title;
         var navItems = this.state.items.map(function(item, i) {
+            var key = "nav-item" + i;
             return (
-                <li data-id={i}>
+                <li data-id={i} key={key}>
                     <a href={item.url}>{item.title}</a>
                 </li>
             );
@@ -773,6 +777,9 @@ var TopNavigation = React.createClass({
                         {navItems}
                     </ul>
                     <h1 id="ljs-top-nav-title" className="ljs-top-nav-title">{title}</h1>
+                </div>
+                <div className="ljs-top-nav-help">
+                    <a className="ljs-top-nav-help-link" onClick={this.openHelp}></a>
                 </div>
             </div>
         );
@@ -1259,20 +1266,160 @@ var MainOverlay = React.createClass({
     }
 });
 
+var ErrorConsole = React.createClass({
+    componentWillMount: function() {
+        var me = this;
+
+        uiEvents.on('add-error', function(error) {
+            var errors = me.state.errors.slice();
+            errors.unshift(error);
+            me.setState({
+                show: true,
+                errors: errors
+            });
+        });
+        uiEvents.on('hide-console', function() {
+            me.setState({
+                show: false,
+                errors: me.state.errors
+            });
+        });
+    },
+    handleClick: function(e) {
+        e.stopPropagation();
+    },
+    close: function(e) {
+        this.setState({
+            show: false,
+            errors: this.state.errors
+        });
+    },
+    // Set the initial state synchronously
+    getInitialState: function() {
+        return {
+            show: false,
+            errors:[]
+        };
+    },
+    render: function() {
+        var divStyle = {display:'none'};
+        var clzz = "ljs-modal ljs-fade";
+        if (this.state.show) {
+            divStyle = {display:'block'};
+            clzz = "ljs-modal ljs-fade ljs-in";
+        }
+        var errorItems = this.state.errors.map(function(error, i) {
+            var key = 'error-item' + i;
+            return (
+                <li data-id={i} key={key}>
+                   {error}
+                </li>
+            );
+        });
+        return (
+            <div>
+                <div id="ljs-error-console" style={divStyle} className={clzz} ref="overlay" onClick={this.handleClick}>
+                    <div className="ljs-modal-dialog">
+                        <div className="ljs-modal-content">
+                            <div className="ljs-modal-header">
+                                <h4 className="ljs-modal-title">Error Log</h4>
+                            </div>
+                            <div className="ljs-modal-body">
+                                <ul>
+                                    {errorItems}
+                                </ul>
+                            </div>
+                            <div className="ljs-modal-footer">
+                                <button type="button" className="ljs-btn ljs-primary-btn" onClick={this.close}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+});
+var HelpDialog = React.createClass({
+    componentWillMount: function() {
+        var me = this;
+
+        uiEvents.on('show-help', function() {
+            me.setState({
+                show: true
+            });
+        });
+        uiEvents.on('hide-help', function() {
+            me.setState({
+                show: false
+            });
+        });
+    },
+    handleClick: function(e) {
+        e.stopPropagation();
+    },
+    close: function(e) {
+        this.setState({
+            show: false
+        });
+    },
+    // Set the initial state synchronously
+    getInitialState: function() {
+        return {
+            show: false
+        };
+    },
+    render: function() {
+        var divStyle = {display:'none'};
+        var clzz = "ljs-modal ljs-fade";
+        if (this.state.show) {
+            divStyle = {display:'block'};
+            clzz = "ljs-modal ljs-fade ljs-in";
+        }
+        return (
+            <div>
+                <div id="ljs-error-console" style={divStyle} className={clzz} ref="overlay" onClick={this.handleClick}>
+                    <div className="ljs-modal-dialog">
+                        <div className="ljs-modal-content">
+                            <div className="ljs-modal-header">
+                                <h4 className="ljs-modal-title">Help</h4>
+                            </div>
+                            <div className="ljs-modal-body">
+                                <ul>
+                                    <li><a href="http://wiki.linkbotlabs.com/wiki/Learning_Python_3_with_the_Linkbot/FAQ">FAQ / Wiki</a></li>
+                                    <li><a href="http://www.barobo.com/forums/forum/troubleshootinghelp/">Help / Forums</a></li>
+                                </ul>
+                            </div>
+                            <div className="ljs-modal-footer">
+                                <button type="button" className="ljs-btn ljs-primary-btn" onClick={this.close}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+});
+
 module.exports.uiEvents = uiEvents;
 
 module.exports.addUI = function() {
     var sideMenuDiv = document.createElement('div');
     var controlPanelDiv = document.createElement('div');
     var navMenuDiv = document.createElement('div');
+    var helpDiv = document.createElement('div');
+    var consoleDiv = document.createElement('div');
     var mainOverlayDiv = document.createElement('div');
     document.body.appendChild(sideMenuDiv);
     document.body.appendChild(navMenuDiv);
     document.body.appendChild(controlPanelDiv);
+    document.body.appendChild(helpDiv);
+    document.body.appendChild(consoleDiv);
     document.body.appendChild(mainOverlayDiv);
     document.body.style.marginTop = "90px";
     React.render(<ControlPanel />, controlPanelDiv);
     React.render(<RobotManagerSideMenu><Robots /></RobotManagerSideMenu>, sideMenuDiv);
     React.render(<TopNavigation />, navMenuDiv);
+    React.render(<HelpDialog />, helpDiv);
+    React.render(<ErrorConsole />, consoleDiv);
     React.render(<MainOverlay />, mainOverlayDiv);
 };
