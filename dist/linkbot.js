@@ -20498,7 +20498,8 @@ var HelpDialog = React.createClass({displayName: "HelpDialog",
                             React.createElement("div", {className: "ljs-modal-body"}, 
                                 React.createElement("ul", null, 
                                     React.createElement("li", null, React.createElement("a", {href: "http://wiki.linkbotlabs.com/wiki/Learning_Python_3_with_the_Linkbot/FAQ"}, "FAQ / Wiki")), 
-                                    React.createElement("li", null, React.createElement("a", {href: "http://www.barobo.com/forums/forum/troubleshootinghelp/"}, "Help / Forums"))
+                                    React.createElement("li", null, React.createElement("a", {href: "http://www.barobo.com/forums/forum/troubleshootinghelp/"}, "Help / Forums")), 
+                                    React.createElement("li", null, React.createElement("a", {href: "https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form"}, "Bug Report"))
                                 )
                             ), 
                             React.createElement("div", {className: "ljs-modal-footer"}, 
