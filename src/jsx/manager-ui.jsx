@@ -554,6 +554,12 @@ var RobotItem = React.createClass({
             buttonClass = "ljs-connect-btn";
             buttonName = "connect";
         }
+        var statusClass = 'ljs-robot-status';
+        if (this.props.linkbot.status === 'ready') {
+            statusClass += ' ljs-icon-ready-status';
+        } else if (this.props.linkbot.status === 'acquired') {
+            statusClass += ' ljs-icon-acquired-status';
+        }
         return (
             <li {...this.props} style={style}>
                 <input type="color" className="ljs-color-btn" onInput={this.handleColorChange} />
@@ -563,7 +569,7 @@ var RobotItem = React.createClass({
                     <span className="ljs-robot-name">Linkbot {this.props.linkbot.id}</span>
                     <span className={buttonClass} onClick={this.handleBeep}>{buttonName}</span>
                     <br />
-                    <span className="ljs-robot-status">{this.props.linkbot.status}</span>
+                    <span className={statusClass}>{this.props.linkbot.status}</span>
                     
                 </div>
             </li>

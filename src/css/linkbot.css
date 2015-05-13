@@ -139,7 +139,8 @@ input[type=color] {
     margin-bottom: 20px;
     margin-top: 0;
     width: 265px;
-    height: 230px;
+    min-height: 230px;
+    height: 75%;
 }
 #ljs-left-menu-container ol li {
     position: relative;
@@ -229,6 +230,18 @@ input[type=color] {
 }
 #ljs-left-menu-container .ljs-slide-element .ljs-robot-status {
     font-size: 10px;
+}
+#ljs-left-menu-container .ljs-slide-element .ljs-icon-ready-status {
+    display: inline-block;
+    padding-left: 20px;
+    padding-top: 2px;
+    background: transparent url('img/icon-ready-status.png') no-repeat;
+}
+#ljs-left-menu-container .ljs-slide-element .ljs-icon-acquired-status {
+    display: inline-block;
+    padding-left: 20px;
+    padding-top: 2px;
+    background: transparent url('img/icon-acquired-status.png') no-repeat;
 }
 /**
  * Knob
