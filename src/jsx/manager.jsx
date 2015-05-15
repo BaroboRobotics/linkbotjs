@@ -24,11 +24,7 @@ function findRobot(id) {
     }
     return undefined;
 }
-function connectAll() {
-    for (var i = 0; i < robots.length; i++) {
-        robots[i].connect();
-    }
-}
+
 function disconnectAll() {
     for (var i = 0; i < robots.length; i++) {
         robots[i].disconnect();
@@ -55,6 +51,7 @@ module.exports.addRobot = function(id) {
         robots.push(new botlib.AsyncLinkbot(identifier));
         storageLib.add(identifier, 0);
         events.trigger('changed', 1);
+        asyncBaroboBridge.sendRobotPing([identifier], botlib.addGenericCallback());
     }
 };
 
@@ -66,20 +63,24 @@ module.exports.getRobots = function() {
     return robots;
 };
 
-module.exports.connectAll = connectAll;
-
 module.exports.disconnectAll = disconnectAll;
 
-function batchcallPings() {
+function batchcallPings(error) {
     var p, token;
-    if (pingRobots.length > 0) {
-        p = pingRobots.splice(0, 8);
-        token = botlib.addCallbacks(p, batchcallPings);
-        asyncBaroboBridge.sendRobotPing(p, token);
+    if (error.code == 0) {
+        if (pingRobots.length > 0) {
+            p = pingRobots.splice(0, 8);
+            if (p.length > 0) {
+                asyncBaroboBridge.sendRobotPing(p, botlib.addCallback(batchcallPings));
+            }
+        }
+    }
+    else {
+        window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
     }
 }
 
-module.exports.refresh = function() {
+function refresh () {
     // TODO: If any robot has an error while trying to connect, disconnect and
     // reconnect once. This should fix simple communications interruptions.
     var i = 0, token, pinged;
@@ -88,10 +89,12 @@ module.exports.refresh = function() {
         pingRobots.push(robots[i].id);
     }
     pinged = pingRobots.splice(0, 8);
-    token = botlib.addCallbacks(pinged, batchcallPings);
-    asyncBaroboBridge.sendRobotPing(pinged, token);
-    //connectAll();
-};
+    if (pinged.length > 0) { // if pinged.length == 0, every robot will reply
+        asyncBaroboBridge.sendRobotPing(pinged, botlib.addCallback(batchcallPings));
+    }
+}
+
+module.exports.refresh = refresh;
 
 module.exports.event = events;
 
@@ -212,7 +215,7 @@ var dongle = null;
 events.on('dongleUp', function() {
     if (!dongle || dongle === 'down') {
         dongle = 'up';
-        connectAll();
+        refresh();
     }
 });
 
@@ -224,11 +227,19 @@ events.on('dongleDown', function() {
 });
 
 
-asyncBaroboBridge.robotEvent.connect(function(ev) {
-    console.log('robot event triggered with ID: ' + ev.serialId + ' and version: ' + ev.firmwareVersion);
-    var robot = findRobot(ev.serialId);
+asyncBaroboBridge.robotEvent.connect(function(error, id, firmwareVersion) {
+    console.log('robot event triggered with ID: ' + id + ' and version: ', firmwareVersion);
+    var robot = findRobot(id);
     if (robot) {
-        robot.connect();
+        if (error.code == 0) {
+            // TODO: check firmwareVersion, call robot.connect() if it matches.
+            // If the firmware should be updated, prompt the user.
+            robot.connect();
+        }
+        else {
+            // TODO: prompt the user to update firmware, if error is RPC_VERSION_MISMATCH?
+            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+        }
     }
 });
 
