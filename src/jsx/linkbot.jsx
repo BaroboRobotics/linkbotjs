@@ -13,33 +13,43 @@ var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
 var jointEventCallbacks = {};
 
-function addCallback(id, func) {
+function addCallback (func) {
     var token = requestId++;
-    callbacks.hasOwnProperty(id) || (callbacks[id] = {});
-    callbacks[id][token] = func;
+    callbacks[token] = func;
     return token;
 }
 
-function genericCallback(error) {
-    if (error.code !== 0) {
-        // TODO add error handling code here.
-        window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
-    }
+function addGenericCallback () {
+    return addCallback(function (error) {
+        if (error.code !== 0) {
+            // TODO add error handling code here.
+            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+        }
+    });
 }
 
+module.exports.addCallback = addCallback;
+module.exports.addGenericCallback = addGenericCallback;
+
 asyncBaroboBridge.requestComplete.connect(
-    function (id, token, error, result) {
-        if (callbacks[id][token]) {
-            callbacks[id][token](error, result);
-            delete callbacks[id][token];
+    function (token, error, result) {
+        if (callbacks[token]) {
+            callbacks[token](error, result);
+            delete callbacks[token];
         }
     }
 );
 asyncBaroboBridge.dongleEvent.connect(
-    function (error) {
+    function (error, firmwareVersion) {
         if (error.code == 0) {
+            // TODO: Check firmwareVersion, trigger dongleUp if it matches. If
+            // the firmware should be updated, prompt the user.
+            window.console.log('Dongle firmware version ', firmwareVersion);
             manager.event.trigger('dongleUp');
         } else {
+            // TODO: Prompt user to update firmware on certain errors. Note that
+            // we'll need to move the only-fire-dongleDown-once logic from manager.jsx
+            // to here.
             manager.event.trigger('dongleDown');
             window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
         }
@@ -95,24 +105,19 @@ asyncBaroboBridge.accelerometerEvent.connect(
     }
 );
 
-try {
-    asyncBaroboBridge.acquire.connect(
-        function() {
-            var acquisition = manager.acquire(1);
-            var id = acquisition.robots.length > 0 ? acquisition.robots[0].id : "";
-            asyncBaroboBridge.fulfillAcquire(id);
-        }
-    );
+asyncBaroboBridge.acquire.connect(
+    function() {
+        var acquisition = manager.acquire(1);
+        var id = acquisition.robots.length > 0 ? acquisition.robots[0].id : "";
+        asyncBaroboBridge.fulfillAcquire(id);
+    }
+);
 
-    asyncBaroboBridge.relinquish.connect(
-        function(id) {
-            manager.relinquish(manager.getRobot(id));
-        }
-    );
-}
-catch (e) {
-    console.log("No support for C++ robot acquisition, feature disabled. Reason: " + e);
-}
+asyncBaroboBridge.relinquish.connect(
+    function(id) {
+        manager.relinquish(manager.getRobot(id));
+    }
+);
 
 function rgbToHex(value) {
     if (!value || value === null || value === "undefined") {
@@ -139,16 +144,6 @@ function colorToHex(color) {
 
 module.exports.startFirmwareUpdate = function() {
     asyncBaroboBridge.firmwareUpdate();
-};
-
-module.exports.addCallbacks = function(ids, func) {
-    var token = requestId++;
-    for (var i = 0; i < ids.length; i++) {
-        var id = ids[i];
-        callbacks.hasOwnProperty(id) || (callbacks[id] = {});
-        callbacks[id][token] = func;
-    }
-    return token;
 };
 
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
@@ -212,23 +207,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     }
     
-    asyncBaroboBridge.connectRobot(id, addCallback(id, function(error) {
-        if (0 == error.code) {
-            // If a TCP tunnel is currently active for this robot, it starts
-            // acquired.
-            try {
-                status = asyncBaroboBridge.isTunnelActive(id) ? 2 : 1;
-            }
-            catch (e) {
-                status = 1;
-            }
-            bot.event.trigger('changed');
-            asyncBaroboBridge.getVersions(id, addCallback(id, checkVersions));
-        } else {
-            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
-        }
-    }));
-    
     bot._wheelPositions = [0, 0, 0];
     // Public
     bot.__defineGetter__("_wheelRadius", function(){
@@ -260,7 +238,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     });
     
     bot.getColor = function(callback) {
-        asyncBaroboBridge.getLedColor(id, addCallback(id, function(error, data) {
+        asyncBaroboBridge.getLedColor(id, addCallback(function(error, data) {
             if (0 == error.code) {
                 callback(data);
             } else {
@@ -269,7 +247,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }));
     };
     bot.getHexColor = function(callback) {
-        asyncBaroboBridge.getLedColor(id, addCallback(id, function(error, data) {
+        asyncBaroboBridge.getLedColor(id, addCallback(function(error, data) {
             if (0 == error.code) {
                 callback(colorToHex(data));
             } else {
@@ -280,7 +258,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
     bot.color = function(r, g, b) {
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.setLedColor(id, token, r, g, b);
             bot.event.trigger('changed');
         }
@@ -293,28 +271,28 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             s3 = s1;
         }
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.setJointSpeeds(id, token, 7, s1, s2, s3);
         }
     };
 
     bot.move = function(r1, r2, r3) {
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.move(id, token, 7, r1, r2, r3);
         }
     };
 
     bot.moveTo = function(r1, r2, r3) {
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.moveTo(id, token, 7, r1, r2, r3);
         }
     };
 
     bot.drive = function(r1, r2, r3) {
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.drive(id, token, 7, r1, r2, r3);
         }
     };
@@ -325,7 +303,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 driveToValue = [r1, r2, r3];
             } else {
                 driveToCalled = true;
-                var token = addCallback(id, driveToCallback);
+                var token = addCallback(driveToCallback);
                 asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
             }
         }
@@ -366,7 +344,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                         location[2] = driveToPos[2] - limiter;
                     }
                 }
-                var token = addCallback(id, driveToLimitedCallback);
+                var token = addCallback(driveToLimitedCallback);
                 asyncBaroboBridge.driveTo(id, token, 7, location[0], location[1], location[2]);
                 if (setvalue) {
                     driveToValue = [r1, r2, r3];
@@ -382,7 +360,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         joinDirection[0] = 1;
         joinDirection[2] = -1;
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
@@ -390,7 +368,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         joinDirection[0] = -1;
         joinDirection[2] = 1;
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
@@ -398,7 +376,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         joinDirection[0] = -1;
         joinDirection[2] = -1;
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
@@ -406,7 +384,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         joinDirection[0] = 1;
         joinDirection[2] = 1;
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
@@ -420,12 +398,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             } else {
                 joinDirection[joint] = 0;
                 // Special call for stopping so it relaxes the motor.
-                token = addCallback(id, genericCallback);
+                token = addGenericCallback();
                 asyncBaroboBridge.stop(id, token, (1 << joint));
                 return true;
             }
             if (status != 0) {
-                token = addCallback(id, genericCallback);
+                token = addGenericCallback();
                 asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
             }
             return true;
@@ -434,7 +412,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
     bot.wheelPositions = function(callback) {
         if (status != 0) {
-            var token = addCallback(id, function(error, data) {
+            var token = addCallback(function(error, data) {
                 if (error.code == 0) {
                     callback(data);
                     
@@ -448,7 +426,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
 
     bot.getJointSpeeds = function(callback) {
         if (status != 0) {
-            var token = addCallback(id, function(error, data) {
+            var token = addCallback(function(error, data) {
                 if (error.code == 0) {
                     callback(data);
                 } else {
@@ -463,14 +441,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         joinDirection[0] = 0;
         joinDirection[2] = 0;
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.stop(id, token);
         }
     };
 
     bot.buzzerFrequency = function(freq) {
         if (status != 0) {
-            var token = addCallback(id, genericCallback);
+            var token = addGenericCallback();
             asyncBaroboBridge.setBuzzerFrequency(id, token, freq);
         }
     };
@@ -496,7 +474,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         bot.stop();
         bot.unregister();
 
-        var token = addCallback(id, genericCallback);
+        var token = addGenericCallback();
         asyncBaroboBridge.disconnectRobot(id, token);
 
         bot.status = "offline";
@@ -506,20 +484,23 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.connect = function(callback) {
         var token;
         if (status == 0) {
-            token = addCallback(id, function(error) {
+            asyncBaroboBridge.connectRobot(id, addCallback(function(error) {
                 if (0 == error.code) {
-                    status = 1;
+                    // If a TCP tunnel is currently active for this robot, it starts
+                    // acquired.
+                    bot.status = asyncBaroboBridge.isTunnelActive(id)
+                                 ? "acquired" : "ready";
                     bot.event.trigger('changed');
+                    asyncBaroboBridge.getVersions(id, addCallback(checkVersions));
                 } else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
                 }
                 if (callback) {
                     callback(error);
                 }
-            });
-            asyncBaroboBridge.connectRobot(id, token);
+            }));
         } else {
-            token = addCallback(id, function(error) {
+            token = addCallback(function(error) {
                 if (0 != error.code) {
                     status = 0;
                     bot.event.trigger('changed');
@@ -553,7 +534,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 }
             }
             if (buttonEventCallbacks[id].length > 0) {
-                token = addCallback(id, genericCallback);
+                token = addGenericCallback();
                 asyncBaroboBridge.enableButtonEvents (id, token, true);
             }
         }
@@ -575,7 +556,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 }
             }
             if (encoderEventCallbacks[id].length > 0) {
-                token = addCallback(id, genericCallback);
+                token = addGenericCallback();
                 asyncBaroboBridge.enableEncoderEvents(id, token, granularity, true);
             }
         }
@@ -583,14 +564,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             obj = connections.joint;
             jointEventCallbacks.hasOwnProperty(id) || (jointEventCallbacks[id] = []);
             jointEventCallbacks[id].push({robot:bot, callback:obj.callback, data:obj.data});
-            token = addCallback(id, genericCallback);
+            token = addGenericCallback();
             asyncBaroboBridge.enableJointEvents(id, token, true);
         }
         if (connections.hasOwnProperty('accel')) {
             obj = connections.accel;
             accelerometerEventCallbacks.hasOwnProperty(id) || (accelerometerEventCallbacks[id] = []);
             accelerometerEventCallbacks[id].push({robot:bot, callback:obj.callback, data:obj.data});
-            token = addCallback(id, genericCallback);
+            token = addGenericCallback();
             asyncBaroboBridge.enableAccelerometerEvents(id, token, true);
         }
     };
@@ -598,19 +579,19 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.unregister = function() {
         var token;
         if (buttonEventCallbacks.hasOwnProperty(id) && buttonEventCallbacks[id].length > 0) {
-            token = addCallback(id, genericCallback);
+            token = addGenericCallback();
             asyncBaroboBridge.enableButtonEvents (id, token, false);
         }
         if (encoderEventCallbacks.hasOwnProperty(id) && encoderEventCallbacks[id].length > 0) {
-            token = addCallback(id, genericCallback);
+            token = addGenericCallback();
             asyncBaroboBridge.enableEncoderEvents(id, token, 5.0, false);
         }
         if (accelerometerEventCallbacks.hasOwnProperty(id) && accelerometerEventCallbacks[id].length > 0) {
-            token = addCallback(id, genericCallback);
+            token = addGenericCallback();
             asyncBaroboBridge.enableAccelerometerEvents(id, token, false);
         }
         if (jointEventCallbacks.hasOwnProperty(id) && jointEventCallbacks[id].length > 0) {
-            token = addCallback(id, genericCallback);
+            token = addGenericCallback();
             asyncBaroboBridge.enableJointEvents(id, token, false);
         }
     };
