@@ -475,6 +475,23 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    bot.zero = function() {
+      if (asyncBaroboBridge.resetEncoderRevs) {
+          var token = addCallback(id, function(error) {
+              if (error.code !== 0) {
+                  // TODO add error handling code here.
+                  window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+              } else {
+                  bot.moveTo(0, 0, 0);
+              }
+
+          });
+          asyncBaroboBridge.resetEncoderRevs(id, token);
+      } else {
+          bot.moveTo(0, 0, 0);
+      }
+    };
+
     bot.disconnect = function() {
         bot.stop();
         bot.unregister();

@@ -44,7 +44,8 @@ var SliderControl = React.createClass({
         width: React.PropTypes.number,
         value: React.PropTypes.number,
         vertical: React.PropTypes.bool,
-        floatValue: React.PropTypes.bool
+        floatValue: React.PropTypes.bool,
+        enableMouse: React.PropTypes.bool
     },
     getDefaultProps: function() {
         return {
@@ -55,6 +56,7 @@ var SliderControl = React.createClass({
             value: 0,
             floatValue: false,
             vertical: false,
+            enableMouse: true,
             hasChanged: function() {}
         };
     },
@@ -74,7 +76,7 @@ var SliderControl = React.createClass({
         var percent = (this.state.value - this.props.min) / (this.props.max - this.props.min),
             handleElement = this.refs.handle.getDOMNode();
         if (this.props.vertical) {
-            handleElement.style.top = Math.round(percent * 100) + '%';
+            handleElement.style.top = (100 - Math.round(percent * 100)) + '%';
         } else {
             handleElement.style.left = Math.round(percent * 100) + '%';
         }
@@ -111,27 +113,36 @@ var SliderControl = React.createClass({
             var percent = (value - this.props.min) / (this.props.max - this.props.min),
                 handleElement = this.refs.handle.getDOMNode();
             if (this.props.vertical) {
-                handleElement.style.top = Math.round(percent * 100) + '%';
+                handleElement.style.top = (100 - Math.round(percent * 100)) + '%';
             } else {
                 handleElement.style.left = Math.round(percent * 100) + '%';
             }
         }
     },
     handleMouseDown: function(e) {
-        e.preventDefault();
-        this.setState({value:this.state.value, mouseDown:true});
+        if (this.props.enableMouse) {
+            e.preventDefault();
+            this.setState({value: this.state.value, mouseDown: true});
+        }
     },
     handleMouseUp: function(e) {
-        e.preventDefault();
-        this.setState({value:this.state.value, mouseDown:false});
+        if (this.props.enableMouse) {
+            e.preventDefault();
+            this.setState({value: this.state.value, mouseDown: false});
+        }
     },
     handleMouseMove: function(e) {
-        if (this.state.mouseDown) {
-            this.handleMouseEvent(e);
+        if (this.props.enableMouse) {
+            if (this.state.mouseDown) {
+                this.handleMouseEvent(e);
+            }
         }
     },
     handleMouseEvent: function(e) {
         var x, y, percent, tempValue, position, sliderElement, handleElement;
+        if (!this.props.enableMouse) {
+            return;
+        }
         e.preventDefault();
         x = e.clientX || e.pageX;
         y = e.clientY || e.pageY;
@@ -144,12 +155,12 @@ var SliderControl = React.createClass({
             if (tempValue > this.props.max) {
                 tempValue = this.props.max;
 
-                handleElement.style.top = '100%';
+                handleElement.style.top = '0%';
             } else if (tempValue < this.props.min) {
                 tempValue = this.props.min;
-                handleElement.style.top = '0%';
+                handleElement.style.top = '100%';
             } else {
-                handleElement.style.top = (percent * 100) + '%';
+                handleElement.style.top = (100 - (percent * 100)) + '%';
                 if (!this.props.floatValue) {
                     tempValue = Math.round(tempValue);
                 }
@@ -725,7 +736,11 @@ var RobotManagerSideMenu = React.createClass({
     },
     handleFirmwareUpdate: function(e) {
         e.preventDefault();
-        linkbotLib.startFirmwareUpdate();
+        uiEvents.trigger('show-full-spinner');
+        setTimeout(function() {
+            linkbotLib.startFirmwareUpdate();
+            uiEvents.trigger('hide-full-spinner');
+        }, 500);
     },
     render: function() {
         return (
@@ -908,22 +923,6 @@ var ControlPanel = React.createClass({
               callback: function(jointNumber, eventType, timestamp) {
                   // TODO implement this.
               }
-            },
-            button: { }
-        };
-        regObj.button[linkbot.BUTTON_POWER] = {
-            callback: function() {
-                window.console.log('Power button pressed');
-            }
-        };
-        regObj.button[linkbot.BUTTON_A] = {
-            callback: function() {
-                window.console.log('A button pressed');
-            }
-        };
-        regObj.button[linkbot.BUTTON_B] = {
-            callback: function() {
-                window.console.log('B button pressed');
             }
         };
 
@@ -1092,7 +1091,7 @@ var ControlPanel = React.createClass({
         this.state.linkbot.moveRight();
     },
     driveZero: function() {
-        this.state.linkbot.moveTo(0, 0, 0);
+        this.state.linkbot.zero();
     },
     driveStop: function() {
         this.state.linkbot.stop();
@@ -1209,19 +1208,19 @@ var ControlPanel = React.createClass({
                             </div>
                             <div className="ljs-control-poster ljs-vertical-group">
                                 <div>
-                                    <SliderControl  min={-5} max={5} height={350} ref="xAxis" floatValue={true} vertical={true} />
+                                    <SliderControl min={-5} max={5} height={350} ref="xAxis" floatValue={true} vertical={true} enableMouse={false} />
                                     <p>x:<br /><span id="accel-xaxis-value">{this.state.x}</span></p>
                                 </div>
                                 <div>
-                                    <SliderControl  min={-5} max={5} height={350} ref="yAxis" floatValue={true} vertical={true} />
+                                    <SliderControl  min={-5} max={5} height={350} ref="yAxis" floatValue={true} vertical={true} enableMouse={false} />
                                     <p>y:<br /><span id="accel-yaxis-value">{this.state.y}</span></p>
                                 </div>
                                 <div>
-                                    <SliderControl  min={-5} max={5} height={350} ref="zAxis" floatValue={true} vertical={true} />
+                                    <SliderControl  min={-5} max={5} height={350} ref="zAxis" floatValue={true} vertical={true} enableMouse={false} />
                                     <p>z:<br /><span id="accel-zaxis-value">{this.state.z}</span></p>
                                 </div>
                                 <div>
-                                    <SliderControl  min={-5} max={5} height={350} ref="mag" floatValue={true} vertical={true} />
+                                    <SliderControl  min={-5} max={5} height={350} ref="mag" floatValue={true} vertical={true} enableMouse={false} />
                                     <p>mag:<br /><span id="accel-mag-value">{this.state.mag}</span></p>
                                 </div>
                             </div>
