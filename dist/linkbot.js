@@ -18852,7 +18852,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
 
     bot.zero = function() {
       if (asyncBaroboBridge.resetEncoderRevs) {
-          var token = addCallback(id, function(error) {
+          var token = addCallback(function(error) {
               if (error.code !== 0) {
                   // TODO add error handling code here.
                   window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
