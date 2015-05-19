@@ -13,7 +13,7 @@ var asyncBaroboBridge = (function(main) {
             'setJointStates', 'setLedColor', 'move', 'moveContinuous', 'moveTo', 'drive', 'driveTo',
             'motorPower', 'stop', 'enableButtonEvents', 'enableEncoderEvents', 'enableJointEvents',
             'enableAccelerometerEvents', 'firmwareUpdate', 'sendRobotPing'];
-        signals = ['requestComplete', 'dongleEvent', 'buttonEvent', 'encoderEvent', 'jointEvent', 'accelerometerEvent',
+        signals = ['requestComplete', 'dongleEvent', 'acquire', 'relinquish', 'buttonEvent', 'encoderEvent', 'jointEvent', 'accelerometerEvent',
             'robotEvent', 'connectionTerminated'];
         obj = {
             mock: true
