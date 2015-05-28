@@ -261,6 +261,20 @@ var KnobControl = React.createClass({
             locked:false,
             changed:false});
     },
+    setGhostValue: function(value) {
+        var degValue = parseInt(value), dispDeg = 0, ghostElement = null;
+        if (isNaN(degValue)) {
+            return;
+        }
+        degValue = degValue % 360;
+        while (degValue < 0) {
+            degValue = 360 + degValue;
+        }
+        dispDeg = 360 - degValue;
+        ghostElement = this.refs.knobGhost.getDOMNode();
+        ghostElement.style.transform = "rotate(" + dispDeg + "deg)";
+        ghostElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
+    },
     setValue: function(value, callChanged) {
         var degValue, val, _callChanged, dispDeg;
         if (this.state.mouseDown) {
@@ -303,7 +317,7 @@ var KnobControl = React.createClass({
         }
     },
     getValue: function() {
-        return {value: this.state.value, degValue: this.state.degValue};
+        return {value: this.state.value, degValue: this.state.degValue, ghostValue: 0};
     },
     getInputValue: function() {
         return this.state.display;
@@ -465,6 +479,7 @@ var KnobControl = React.createClass({
                 onMouseDown={this.handleMouseDown}
                 onMouseUp={this.handleMouseUp}>
                 <img width="100%" src="" draggable="false" ref="knobImg" />
+                <div className="ljs-knob-ghost" ref="knobGhost"></div>
                 <input type="text" className={inputClass} value={this.state.display} ref="knobInput"
                     onClick={this.handleInputClick}
                     onChange={this.handleInputChange}
