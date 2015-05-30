@@ -19594,7 +19594,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
                 onMouseUp: this.handleMouseUp}), 
                 React.createElement("div", {className: "ljs-knob-ghost", ref: "knobGhost"}), 
                 React.createElement("img", {width: "100%", src: "", draggable: "false", ref: "knobImg"}), 
-                React.createElement("input", {type: "text", className: inputClass, value: this.state.display, ref: "knobInput", 
+                React.createElement("input", {className: inputClass, value: this.state.display, ref: "knobInput", 
                     onClick: this.handleInputClick, 
                     onChange: this.handleInputChange, 
                     onFocus: this.handleOnFocus, 
@@ -20197,6 +20197,16 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
         this.state.linkbot.moveJointContinuous(secondMotor, -1);
         direction[secondMotor] = -1;
     },
+    motor1SpeedInput: function (e) {
+        if (isNaN(parseInt(event.target.value))) {
+            return;
+        }
+        if (event.target.value > 200 || event.target.value < 1) {
+            return;
+        }
+        this.motor1Speed(event.target.value);
+        this.refs.speedJoint1.setValue(event.target.value);
+    },
     motor1Speed: function(value) {
         this.setState({
             linkbot:this.state.linkbot,
@@ -20212,6 +20222,16 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             mag: this.state.mag
         });
         this.state.linkbot.angularSpeed(value, this.state.m2Value, this.state.m2Value);
+    },
+    motor2SpeedInput: function (e) {
+        if (isNaN(parseInt(event.target.value))) {
+            return;
+        }
+        if (event.target.value > 200 || event.target.value < 1) {
+            return;
+        }
+        this.motor2Speed(event.target.value);
+        this.refs.speedJoint1.setValue(event.target.value);
     },
     motor2Speed: function(value) {
         this.setState({
@@ -20252,6 +20272,16 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
     driveStop: function() {
         this.state.linkbot.stop();
         direction = [0, 0, 0];
+    },
+    frequencyInput: function(e) {
+        if (isNaN(parseInt(event.target.value))) {
+            return;
+        }
+        if (event.target.value > 1000 || event.target.value < 130) {
+            return;
+        }
+        this.frequencyChanged(event.target.value);
+        this.refs.buzzerFrequency.setValue(event.target.value);
     },
     frequencyChanged: function(value) {
         this.setState({
@@ -20314,11 +20344,11 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                             React.createElement("div", {className: "ljs-control-poster"}, 
                                 React.createElement("div", {className: "ljs-btn-group"}, 
                                     React.createElement(SliderControl, {min: 1, max: 200, width: 100, value: 50, ref: "speedJoint1", hasChanged: this.motor1Speed}), 
-                                    React.createElement("p", null, React.createElement("span", null, this.state.m1Value), " deg/sec")
+                                    React.createElement("p", null, React.createElement("input", {onChange: this.motor1SpeedInput, className: "ljs-slider-input", type: "number", min: "1", max: "200", step: "1", value: this.state.m1Value}), " deg/sec")
                                 ), 
                                 React.createElement("div", {className: "ljs-btn-group ljs-second-slider"}, 
                                     React.createElement(SliderControl, {min: 1, max: 200, width: 100, value: 50, ref: "speedJoint2", hasChanged: this.motor2Speed}), 
-                                    React.createElement("p", null, React.createElement("span", null, this.state.m2Value), " deg/sec")
+                                    React.createElement("p", null, React.createElement("input", {onChange: this.motor2SpeedInput, className: "ljs-slider-input", type: "number", min: "1", max: "200", step: "1", value: this.state.m2Value}), " deg/sec")
                                 ), 
                                 React.createElement("div", null, 
                                     React.createElement("button", {className: "drive-control-btn-lg ljs-btn-zero", onClick: this.moveButtonPressed}, "move")
@@ -20356,7 +20386,8 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                         React.createElement("div", {className: "ljs-control-col"}, 
                             React.createElement("div", {className: "ljs-control-poster"}, 
                                 React.createElement("div", {className: "ljs-buzzer"}, 
-                                    React.createElement("span", null, "buzzer frequency (hz):"), " ", React.createElement("span", null, this.state.freq), 
+                                    React.createElement("input", {onChange: this.frequencyInput, className: "ljs-slider-input", type: "number", min: "130", max: "1000", step: "1", value: this.state.freq}), 
+                                    React.createElement("span", {className: "ljs-margin-left"}, "hz"), 
                                     React.createElement(SliderControl, {min: 130, max: 1000, value: 440, width: 165, ref: "buzzerFrequency", hasChanged: this.frequencyChanged})
                                 ), 
                                 React.createElement("div", {className: "ljs-btn-group", onClick: this.beepButton}, 

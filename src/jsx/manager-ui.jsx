@@ -511,7 +511,7 @@ var KnobControl = React.createClass({
                 onMouseUp={this.handleMouseUp}>
                 <div className="ljs-knob-ghost" ref="knobGhost"></div>
                 <img width="100%" src="" draggable="false" ref="knobImg" />
-                <input type="text" className={inputClass} value={this.state.display} ref="knobInput"
+                <input className={inputClass} value={this.state.display} ref="knobInput"
                     onClick={this.handleInputClick}
                     onChange={this.handleInputChange}
                     onFocus={this.handleOnFocus}
@@ -1114,6 +1114,16 @@ var ControlPanel = React.createClass({
         this.state.linkbot.moveJointContinuous(secondMotor, -1);
         direction[secondMotor] = -1;
     },
+    motor1SpeedInput: function (e) {
+        if (isNaN(parseInt(event.target.value))) {
+            return;
+        }
+        if (event.target.value > 200 || event.target.value < 1) {
+            return;
+        }
+        this.motor1Speed(event.target.value);
+        this.refs.speedJoint1.setValue(event.target.value);
+    },
     motor1Speed: function(value) {
         this.setState({
             linkbot:this.state.linkbot,
@@ -1129,6 +1139,16 @@ var ControlPanel = React.createClass({
             mag: this.state.mag
         });
         this.state.linkbot.angularSpeed(value, this.state.m2Value, this.state.m2Value);
+    },
+    motor2SpeedInput: function (e) {
+        if (isNaN(parseInt(event.target.value))) {
+            return;
+        }
+        if (event.target.value > 200 || event.target.value < 1) {
+            return;
+        }
+        this.motor2Speed(event.target.value);
+        this.refs.speedJoint1.setValue(event.target.value);
     },
     motor2Speed: function(value) {
         this.setState({
@@ -1169,6 +1189,16 @@ var ControlPanel = React.createClass({
     driveStop: function() {
         this.state.linkbot.stop();
         direction = [0, 0, 0];
+    },
+    frequencyInput: function(e) {
+        if (isNaN(parseInt(event.target.value))) {
+            return;
+        }
+        if (event.target.value > 1000 || event.target.value < 130) {
+            return;
+        }
+        this.frequencyChanged(event.target.value);
+        this.refs.buzzerFrequency.setValue(event.target.value);
     },
     frequencyChanged: function(value) {
         this.setState({
@@ -1231,11 +1261,11 @@ var ControlPanel = React.createClass({
                             <div className="ljs-control-poster">
                                 <div className="ljs-btn-group">
                                     <SliderControl min={1} max={200} width={100} value={50}  ref="speedJoint1" hasChanged={this.motor1Speed} />
-                                    <p><span>{this.state.m1Value}</span> deg/sec</p>
+                                    <p><input onChange={this.motor1SpeedInput} className="ljs-slider-input" type="number" min="1" max="200" step="1" value={this.state.m1Value} /> deg/sec</p>
                                 </div>
                                 <div className="ljs-btn-group ljs-second-slider">
                                     <SliderControl min={1} max={200} width={100} value={50}  ref="speedJoint2" hasChanged={this.motor2Speed} />
-                                    <p><span>{this.state.m2Value}</span> deg/sec</p>
+                                    <p><input onChange={this.motor2SpeedInput} className="ljs-slider-input" type="number" min="1" max="200" step="1" value={this.state.m2Value} /> deg/sec</p>
                                 </div>
                                 <div>
                                     <button className="drive-control-btn-lg ljs-btn-zero" onClick={this.moveButtonPressed}>move</button>
@@ -1273,7 +1303,8 @@ var ControlPanel = React.createClass({
                         <div className="ljs-control-col">
                             <div className="ljs-control-poster">
                                 <div className="ljs-buzzer">
-                                    <span>buzzer frequency (hz):</span> <span>{this.state.freq}</span>
+                                    <input onChange={this.frequencyInput} className="ljs-slider-input" type="number" min="130" max="1000" step="1" value={this.state.freq} />
+                                    <span className="ljs-margin-left">hz</span>
                                     <SliderControl min={130} max={1000} value={440} width={165} ref="buzzerFrequency" hasChanged={this.frequencyChanged} />
                                 </div>
                                 <div className="ljs-btn-group" onClick={this.beepButton}>

@@ -304,6 +304,25 @@ input[type=color] {
     cursor: default;
     background-color: #df4623;
 }
+.ljs-slider-input {
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: #abdadb;
+    background-color: transparent;
+    width: 40px;
+    text-align: right;
+}
+input.ljs-slider-input::-webkit-outer-spin-button,
+input.ljs-slider-input::-webkit-inner-spin-button,
+input.ljs-knob::-webkit-outer-spin-button,
+input.ljs-knob::-webkit-inner-spin-button{
+    -webkit-appearance: none;
+    margin: 0;
+}
+span.ljs-margin-left {
+   margin-left: 5px;
+}
 .ljs-vslider {
     width: 6px;
     height: 100px;
