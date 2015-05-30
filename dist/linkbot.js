@@ -18551,9 +18551,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
     var driveToValue = null;
-    var driveToPos = null;
     var driveToCalled = false;
-    var limiter = 50;
     
     bot.enums = enumConstants;
     bot.firmwareVerions = firmwareVersions;
@@ -18567,19 +18565,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             if (driveToValue !== null) {
                 bot.driveTo(driveToValue[0], driveToValue[1], driveToValue[2]);
                 driveToValue = null;
-            }
-        }
-    }
-    function driveToLimitedCallback(error) {
-        driveToCalled = false;
-        if (error.code !== 0) {
-            // TODO add error handling code here.
-            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
-        } else {
-            if (driveToValue !== null) {
-                var location = [driveToValue[0], driveToValue[1], driveToValue[2]];
-                driveToValue = null;
-                bot.driveToLimiter(location[0], location[1], location[2]);
             }
         }
     }
@@ -18687,6 +18672,21 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    bot.moveToOneMotor = function(joint, position) {
+        if (status != 0) {
+            var token = addGenericCallback();
+            var mask = 0;
+            if (joint === 0) {
+                mask = 1;
+            } else if (joint === 1) {
+                mask = 2;
+            } else if (joint === 2) {
+                mask = 4;
+            }
+            asyncBaroboBridge.moveTo(id, token, mask, position, position, position);
+        }
+    };
+
     bot.drive = function(r1, r2, r3) {
         if (status != 0) {
             var token = addGenericCallback();
@@ -18702,53 +18702,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 driveToCalled = true;
                 var token = addCallback(driveToCallback);
                 asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
-            }
-        }
-    };
-
-    bot.driveToLimiter = function(r1, r2, r3, p1, p2, p3) {
-        if (status != 0) {
-            if (typeof(p1) !== 'undefined' && typeof(p2) !== 'undefined' && typeof(p3) !== 'undefined') {
-                driveToPos = [p1, p2, p3];
-            }
-            if (driveToCalled) {
-                driveToValue = [r1, r2, r3];
-            } else {
-                driveToCalled = true;
-                var setvalue = false, location = [r1, r2, r3];
-
-                if (Math.abs(driveToPos[0] - r1) > limiter) {
-                    setvalue = true;
-                    if (driveToPos[0] < r1) {
-                        location[0] = driveToPos[0] + limiter;
-                    } else {
-                        location[0] = driveToPos[0] - limiter;
-                    }
-                }
-                if (Math.abs(driveToPos[1] - r2) > limiter) {
-                    setvalue = true;
-                    if (driveToPos[1] < r2) {
-                        location[1] = driveToPos[1] + limiter;
-                    } else {
-                        location[1] = driveToPos[1] - limiter;
-                    }
-                }
-                if (Math.abs(driveToPos[2] - r3) > limiter) {
-                    setvalue = true;
-                    if (driveToPos[2] < r3) {
-                        location[2] = driveToPos[2] + limiter;
-                    } else {
-                        location[2] = driveToPos[2] - limiter;
-                    }
-                }
-                var token = addCallback(driveToLimitedCallback);
-                asyncBaroboBridge.driveTo(id, token, 7, location[0], location[1], location[2]);
-                if (setvalue) {
-                    driveToValue = [r1, r2, r3];
-                    bot.wheelPositions(function(data) {
-                        driveToPos = data.values;
-                    });
-                }
             }
         }
     };
@@ -18786,7 +18739,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
     bot.moveJointContinuous = function(joint, direction) {
-        var token;
+        var token, mask = 0;
         if (joint >= 0 && joint <= 2) {
             if (direction > 0) {
                 joinDirection[joint] = 1;
@@ -18801,7 +18754,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             }
             if (status != 0) {
                 token = addGenericCallback();
-                asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
+                if (joint === 0) {
+                    mask = 1;
+                } else if (joint === 1) {
+                    mask = 2;
+                } else if (joint === 2) {
+                    mask = 4;
+                }
+                asyncBaroboBridge.moveContinuous(id, token, mask, joinDirection[0], joinDirection[1], joinDirection[2]);
             }
             return true;
         }
@@ -18865,6 +18825,19 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
       } else {
           bot.moveTo(0, 0, 0);
       }
+    };
+
+    bot.getFormFactor = function(callback) {
+        if (status != 0 && callback) {
+            var token = addCallback(function(error, data) {
+                if (error.code == 0) {
+                    callback(data);
+                } else {
+                    window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+                }
+            });
+            asyncBaroboBridge.getFormFactor(id, token);
+        }
     };
 
     bot.disconnect = function() {
@@ -19117,7 +19090,8 @@ var linkbotLib = require('./linkbot.jsx');
 
 var uiEvents = eventlib.Events.extend({});
 var rad2deg = 180/Math.PI;
-var positions = [0, 0, 0];
+var direction = [0, 0, 0];
+var secondMotor = 2;
 
 function getPosition(element) {
     var xPosition = 0;
@@ -19331,12 +19305,17 @@ var SliderControl = React.createClass({displayName: "SliderControl",
 var KnobControl = React.createClass({displayName: "KnobControl",
     propTypes: {
         hasChanged: React.PropTypes.func,
-        value: React.PropTypes.number
+        mouseClicked: React.PropTypes.func,
+        mouseUp: React.PropTypes.func,
+        value: React.PropTypes.number,
+        motorValue: React.PropTypes.number
     },
     getDefaultProps: function() {
         return {
             value: 0,
-            hasChanged: function() {}
+            hasChanged: function() {},
+            mouseUp: function() {},
+            mouseClicked: function() {}
         };
     },
     componentDidMount: function() {
@@ -19356,6 +19335,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
     getInitialState: function() {
         return {
             value: this.props.value,
+            motorValue: 0,
             display: this.props.value + '\xB0',
             degValue: (this.props.value % 360),
             mouseDown: false,
@@ -19366,6 +19346,28 @@ var KnobControl = React.createClass({displayName: "KnobControl",
     unlock: function() {
         this.setState({display:this.state.degValue + '\xB0',
             value:this.state.value,
+            motorValue: this.state.motorValue,
+            degValue:this.state.degValue,
+            mouseDown:this.state.mouseDown,
+            locked:false,
+            changed:false});
+    },
+    setMotorValue: function(value) {
+        var degValue = parseInt(value), dispDeg = 0, motorElement = null;
+        if (isNaN(degValue)) {
+            return;
+        }
+        degValue = degValue % 360;
+        while (degValue < 0) {
+            degValue = 360 + degValue;
+        }
+        dispDeg = 360 - degValue;
+        motorElement = this.refs.knobGhost.getDOMNode();
+        motorElement.style.transform = "rotate(" + dispDeg + "deg)";
+        motorElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
+        this.setState({display:this.state.degValue + '\xB0',
+            value:this.state.value,
+            motorValue: value,
             degValue:this.state.degValue,
             mouseDown:this.state.mouseDown,
             locked:false,
@@ -19394,6 +19396,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         if (this.state.locked || this.state.changed) {
             this.setState({display:this.state.display,
                 value:val, degValue:degValue,
+                motorValue: this.state.motorValue,
                 mouseDown:this.state.mouseDown,
                 locked:this.state.locked,
                 changed:this.state.changed});
@@ -19401,6 +19404,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         } else {
             this.setState({display:degValue + '\xB0',
                 value:val, degValue:degValue,
+                motorValue: this.state.motorValue,
                 mouseDown:this.state.mouseDown,
                 locked:this.state.locked,
                 changed:this.state.changed});
@@ -19409,11 +19413,11 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         imgElement.style.transform = "rotate(" + dispDeg + "deg)";
         imgElement.style.webkitTransform  = "rotate(" + dispDeg + "deg)";
         if (_callChanged) {
-            this.props.hasChanged({value: value, degValue: degValue});
+            this.props.hasChanged({value: value, degValue: degValue, motorValue: this.state.motorValue});
         }
     },
     getValue: function() {
-        return {value: this.state.value, degValue: this.state.degValue};
+        return {value: this.state.value, degValue: this.state.degValue, motorValue: this.state.motorValue};
     },
     getInputValue: function() {
         return this.state.display;
@@ -19426,6 +19430,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             this.setState({
                 display: event.target.value,
                 value: this.state.value,
+                motorValue: this.state.motorValue,
                 degValue: this.state.degValue,
                 mouseDown: this.state.mouseDown,
                 locked: true,
@@ -19434,6 +19439,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         } else {
             this.setState({display:event.target.value,
                 value:this.state.value,
+                motorValue: this.state.motorValue,
                 degValue:this.state.degValue,
                 mouseDown:this.state.mouseDown,
                 locked:this.state.locked,
@@ -19452,6 +19458,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             this.setState({
                 display: this.state.display,
                 value: this.state.value,
+                motorValue: this.state.motorValue,
                 degValue: this.state.degValue,
                 mouseDown: this.state.mouseDown,
                 locked: true,
@@ -19461,6 +19468,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
             this.setState({
                 display: this.state.value,
                 value: this.state.value,
+                motorValue: this.state.motorValue,
                 degValue: this.state.degValue,
                 mouseDown: this.state.mouseDown,
                 locked: true,
@@ -19472,6 +19480,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         if (!this.state.changed) {
             this.setState({display:this.state.degValue + '\xB0',
                 value:this.state.value,
+                motorValue: this.state.motorValue,
                 degValue:this.state.degValue,
                 mouseDown:this.state.mouseDown,
                 locked:false,
@@ -19479,6 +19488,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         } else {
             this.setState({display:this.state.display,
                 value:this.state.value,
+                motorValue: this.state.motorValue,
                 degValue:this.state.degValue,
                 mouseDown:this.state.mouseDown,
                 locked:this.state.locked,
@@ -19492,6 +19502,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         e.preventDefault();
         this.setState({display:this.state.degValue+ '\xB0',
             value:this.state.value,
+            motorValue: this.state.motorValue,
             degValue:this.state.degValue,
             mouseDown:true,
             locked:this.state.locked,
@@ -19504,10 +19515,12 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         e.preventDefault();
         this.setState({display:this.state.degValue + '\xB0',
             value:this.state.value,
+            motorValue: this.state.motorValue,
             degValue:this.state.degValue,
             mouseDown:false,
             locked:this.state.locked,
             changed:this.state.changed});
+        this.props.mouseUp({event: e, value: this.state.value, degValue: this.state.degValue, motorValue: this.state.motorValue});
     },
     handleMouseMove: function(e) {
         if (this.state.mouseDown) {
@@ -19556,11 +19569,16 @@ var KnobControl = React.createClass({displayName: "KnobControl",
         }
         this.setState({display:deg+ '\xB0',
             value:value,
+            motorValue: this.state.motorValue,
             degValue:deg,
             mouseDown:this.state.mouseDown,
             locked:false,
             changed:false});
-        this.props.hasChanged({value:value, degValue:deg});
+        if (this.state.mouseDown) {
+            this.props.hasChanged({value: value, degValue: deg, motorValue: this.state.motorValue});
+        } else {
+            this.props.mouseClicked({value: value, degValue: deg, motorValue: this.state.motorValue});
+        }
     },
     render: function() {
         var inputClass = "ljs-knob";
@@ -19574,8 +19592,8 @@ var KnobControl = React.createClass({displayName: "KnobControl",
                 onMouseMove: this.handleMouseMove, 
                 onMouseDown: this.handleMouseDown, 
                 onMouseUp: this.handleMouseUp}), 
+                React.createElement("div", {className: "ljs-knob-ghost", ref: "knobGhost"}), 
                 React.createElement("img", {width: "100%", src: "", draggable: "false", ref: "knobImg"}), 
-                React.createElement("div", {className: "ljs-knob-ghost"}), 
                 React.createElement("input", {type: "text", className: inputClass, value: this.state.display, ref: "knobInput", 
                     onClick: this.handleInputClick, 
                     onChange: this.handleInputChange, 
@@ -19991,6 +20009,14 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
 
         this.refs.overlay.getDOMNode().style.display = 'block';
         this.refs.controlPanel.getDOMNode().style.display = 'block';
+        direction = [0, 0, 0];
+        linkbot.getFormFactor(function(data) {
+            if (linkbot.enums.FormFactor.I == data) {
+                secondMotor = 2;
+            } else if (linkbot.enums.FormFactor.L == data) {
+                secondMotor = 1;
+            }
+        });
         var regObj = {
             accel: {
                 callback: function(robot, data, event) {
@@ -20018,14 +20044,21 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                 0: {
                     distance: 1,
                     callback: function(robot, data, event) {
-                        positions[0] = event.position;
+                        me.refs.knobJoint1.setMotorValue(event.position);
                         me.refs.knobJoint1.setValue(event.position, false);
+                    }
+                },
+                1: {
+                    distance: 1,
+                    callback: function(robot, data, event) {
+                        me.refs.knobJoint2.setMotorValue(event.position);
+                        me.refs.knobJoint2.setValue(event.position, false);
                     }
                 },
                 2: {
                     distance: 1,
                     callback: function(robot, data, event) {
-                        positions[2] = event.position;
+                        me.refs.knobJoint2.setMotorValue(event.position);
                         me.refs.knobJoint2.setValue(event.position, false);
                     }
                 }
@@ -20036,8 +20069,6 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
               }
             }
         };
-
-        //linkbot.angularSpeed(50, 0, 50);
 
         this.setState({
             linkbot:linkbot,
@@ -20058,28 +20089,29 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             me.refs.speedJoint2.setValue(50);
             linkbot.wheelPositions(function(data) {
                 var pos = data.values;
-                positions = pos;
                 me.setState({
                     linkbot:me.state.linkbot,
                     title:me.state.title,
                     m1Value: me.state.m1Value,
                     m2Value: me.state.m2Value,
                     wheel1: pos[0],
-                    wheel2: pos[2],
+                    wheel2: pos[secondMotor],
                     freq: me.state.freq,
                     x: me.state.x,
                     y: me.state.y,
                     z: me.state.z,
                     mag: me.state.mag
                 }, function() {
+                    me.refs.knobJoint1.setMotorValue(pos[0]);
+                    me.refs.knobJoint2.setMotorValue(pos[secondMotor]);
                     me.refs.knobJoint1.setValue(pos[0], false);
-                    me.refs.knobJoint2.setValue(pos[2], false);
+                    me.refs.knobJoint2.setValue(pos[secondMotor], false);
                 });
             });
         });
         linkbot.getJointSpeeds(function(data) {
             var d1 = Math.round(data[0]);
-            var d2 = Math.round(data[2]);
+            var d2 = Math.round(data[secondMotor]);
             me.setState({
                 linkbot:me.state.linkbot,
                 title:me.state.title,
@@ -20098,64 +20130,72 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
         });
     },
     knob1Changed: function(data) {
-        if (this.state.wheel1 === data.value) {
-            return;
+        if (data.value > data.motorValue) {
+            if (direction[0] !== 1) {
+                this.state.linkbot.moveJointContinuous(0, 1);
+                direction[0] = 1;
+            }
+        } else if (data.value < data.motorValue) {
+            if (direction[0] !== -1) {
+                this.state.linkbot.moveJointContinuous(0, -1);
+                direction[0] = -1;
+            }
+        } else {
+            if (direction[0] !== 0) {
+                this.state.linkbot.moveJointContinuous(0, 0);
+                direction[0] = 0;
+            }
         }
-        var me = this;
-        this.setState({
-            linkbot:this.state.linkbot,
-            title:this.state.title,
-            m1Value: this.state.m1Value,
-            m2Value: this.state.m2Value,
-            wheel1: data.value,
-            wheel2: this.state.wheel2,
-            freq: this.state.freq,
-            x: this.state.x,
-            y: this.state.y,
-            z: this.state.z,
-            mag: this.state.mag
-        }, function() {
-            me.state.linkbot.driveToLimiter(data.value, 0, positions[2], positions[0], 0, positions[2]);
-        });
+    },
+    knob1MouseUp: function(data) {
+        this.state.linkbot.moveToOneMotor(0, data.value);
+        direction[0] = 0;
     },
     knob2Changed: function(data) {
-        if (this.state.wheel2 === data.value) {
-            return;
+        if (data.value > data.motorValue) {
+            if (direction[secondMotor] !== 1) {
+                this.state.linkbot.moveJointContinuous(secondMotor, 1);
+                direction[secondMotor] = 1;
+            }
+        } else if (data.value < data.motorValue) {
+            if (direction[secondMotor] !== -1) {
+                this.state.linkbot.moveJointContinuous(secondMotor, -1);
+                direction[secondMotor] = -1;
+            }
+        } else {
+            if (direction[secondMotor] !== 0) {
+                this.state.linkbot.moveJointContinuous(secondMotor, 0);
+                direction[secondMotor] = 0;
+            }
         }
-        var me = this;
-        this.setState({
-            linkbot:this.state.linkbot,
-            title:this.state.title,
-            m1Value: this.state.m1Value,
-            m2Value: this.state.m2Value,
-            wheel1: this.state.wheel1,
-            wheel2: data.value,
-            freq: this.state.freq,
-            x: this.state.x,
-            y: this.state.y,
-            z: this.state.z,
-            mag: this.state.mag
-        }, function() {
-            me.state.linkbot.driveToLimiter(positions[0], 0, data.value, positions[0], 0, positions[2]);
-        });
+    },
+    knob2MouseUp: function(data) {
+        this.state.linkbot.moveToOneMotor(secondMotor, data.value);
+        direction[secondMotor] = 0;
     },
     motor1Up: function() {
         this.state.linkbot.moveJointContinuous(0, 1);
+        direction[0] = 1;
     },
     motor1Stop: function() {
         this.state.linkbot.moveJointContinuous(0, 0);
+        direction[0] = 0;
     },
     motor1Down: function() {
         this.state.linkbot.moveJointContinuous(0, -1);
+        direction[0] = -1;
     },
     motor2Up: function() {
-        this.state.linkbot.moveJointContinuous(2, 1);
+        this.state.linkbot.moveJointContinuous(secondMotor, 1);
+        direction[secondMotor] = 1;
     },
     motor2Stop: function() {
-        this.state.linkbot.moveJointContinuous(2, 0);
+        this.state.linkbot.moveJointContinuous(secondMotor, 0);
+        direction[secondMotor] = 0;
     },
     motor2Down: function() {
-        this.state.linkbot.moveJointContinuous(2, -1);
+        this.state.linkbot.moveJointContinuous(secondMotor, -1);
+        direction[secondMotor] = -1;
     },
     motor1Speed: function(value) {
         this.setState({
@@ -20171,7 +20211,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             z: this.state.z,
             mag: this.state.mag
         });
-        this.state.linkbot.angularSpeed(value, 0, this.state.m2Value);
+        this.state.linkbot.angularSpeed(value, this.state.m2Value, this.state.m2Value);
     },
     motor2Speed: function(value) {
         this.setState({
@@ -20187,25 +20227,31 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             z: this.state.z,
             mag: this.state.mag
         });
-        this.state.linkbot.angularSpeed(this.state.m1Value, 0, value);
+        this.state.linkbot.angularSpeed(this.state.m1Value, value, value);
     },
     driveForward: function() {
         this.state.linkbot.moveForward();
+        direction = [0, 0, 0];
     },
     driveDown: function() {
         this.state.linkbot.moveBackward();
+        direction = [0, 0, 0];
     },
     driveLeft: function() {
         this.state.linkbot.moveLeft();
+        direction = [0, 0, 0];
     },
     driveRight: function() {
         this.state.linkbot.moveRight();
+        direction = [0, 0, 0];
     },
     driveZero: function() {
         this.state.linkbot.zero();
+        direction = [0, 0, 0];
     },
     driveStop: function() {
         this.state.linkbot.stop();
+        direction = [0, 0, 0];
     },
     frequencyChanged: function(value) {
         this.setState({
@@ -20237,8 +20283,8 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
         if (isNaN(v2)) {
             v2 = this.state.wheel2;
         }
-        this.state.linkbot.angularSpeed(this.state.m1Value, 0, this.state.m2Value);
-        this.state.linkbot.moveTo(v1, 0, v2);
+        this.state.linkbot.angularSpeed(this.state.m1Value, this.state.m2Value, this.state.m2Value);
+        this.state.linkbot.moveTo(v1, v2, v2);
         this.refs.knobJoint1.unlock();
         this.refs.knobJoint2.unlock();
     },
@@ -20259,10 +20305,10 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                         React.createElement("div", {className: "ljs-control-col"}, 
                             React.createElement("div", {className: "ljs-control-poster"}, 
                                 React.createElement("div", {className: "ljs-btn-group"}, 
-                                    React.createElement(KnobControl, {value: 0, ref: "knobJoint1", hasChanged: this.knob1Changed})
+                                    React.createElement(KnobControl, {value: 0, ref: "knobJoint1", hasChanged: this.knob1Changed, mouseUp: this.knob1MouseUp, mouseClicked: this.knob1MouseUp})
                                 ), 
                                 React.createElement("div", {className: "ljs-btn-group"}, 
-                                    React.createElement(KnobControl, {value: 0, ref: "knobJoint2", hasChanged: this.knob2Changed})
+                                    React.createElement(KnobControl, {value: 0, ref: "knobJoint2", hasChanged: this.knob2Changed, mouseUp: this.knob2MouseUp, mouseClicked: this.knob2MouseUp})
                                 )
                             ), 
                             React.createElement("div", {className: "ljs-control-poster"}, 

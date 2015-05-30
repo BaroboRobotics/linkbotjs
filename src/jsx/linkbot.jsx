@@ -154,9 +154,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
     var driveToValue = null;
-    var driveToPos = null;
     var driveToCalled = false;
-    var limiter = 50;
     
     bot.enums = enumConstants;
     bot.firmwareVerions = firmwareVersions;
@@ -170,19 +168,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             if (driveToValue !== null) {
                 bot.driveTo(driveToValue[0], driveToValue[1], driveToValue[2]);
                 driveToValue = null;
-            }
-        }
-    }
-    function driveToLimitedCallback(error) {
-        driveToCalled = false;
-        if (error.code !== 0) {
-            // TODO add error handling code here.
-            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
-        } else {
-            if (driveToValue !== null) {
-                var location = [driveToValue[0], driveToValue[1], driveToValue[2]];
-                driveToValue = null;
-                bot.driveToLimiter(location[0], location[1], location[2]);
             }
         }
     }
@@ -290,6 +275,21 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    bot.moveToOneMotor = function(joint, position) {
+        if (status != 0) {
+            var token = addGenericCallback();
+            var mask = 0;
+            if (joint === 0) {
+                mask = 1;
+            } else if (joint === 1) {
+                mask = 2;
+            } else if (joint === 2) {
+                mask = 4;
+            }
+            asyncBaroboBridge.moveTo(id, token, mask, position, position, position);
+        }
+    };
+
     bot.drive = function(r1, r2, r3) {
         if (status != 0) {
             var token = addGenericCallback();
@@ -305,53 +305,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 driveToCalled = true;
                 var token = addCallback(driveToCallback);
                 asyncBaroboBridge.driveTo(id, token, 7, r1, r2, r3);
-            }
-        }
-    };
-
-    bot.driveToLimiter = function(r1, r2, r3, p1, p2, p3) {
-        if (status != 0) {
-            if (typeof(p1) !== 'undefined' && typeof(p2) !== 'undefined' && typeof(p3) !== 'undefined') {
-                driveToPos = [p1, p2, p3];
-            }
-            if (driveToCalled) {
-                driveToValue = [r1, r2, r3];
-            } else {
-                driveToCalled = true;
-                var setvalue = false, location = [r1, r2, r3];
-
-                if (Math.abs(driveToPos[0] - r1) > limiter) {
-                    setvalue = true;
-                    if (driveToPos[0] < r1) {
-                        location[0] = driveToPos[0] + limiter;
-                    } else {
-                        location[0] = driveToPos[0] - limiter;
-                    }
-                }
-                if (Math.abs(driveToPos[1] - r2) > limiter) {
-                    setvalue = true;
-                    if (driveToPos[1] < r2) {
-                        location[1] = driveToPos[1] + limiter;
-                    } else {
-                        location[1] = driveToPos[1] - limiter;
-                    }
-                }
-                if (Math.abs(driveToPos[2] - r3) > limiter) {
-                    setvalue = true;
-                    if (driveToPos[2] < r3) {
-                        location[2] = driveToPos[2] + limiter;
-                    } else {
-                        location[2] = driveToPos[2] - limiter;
-                    }
-                }
-                var token = addCallback(driveToLimitedCallback);
-                asyncBaroboBridge.driveTo(id, token, 7, location[0], location[1], location[2]);
-                if (setvalue) {
-                    driveToValue = [r1, r2, r3];
-                    bot.wheelPositions(function(data) {
-                        driveToPos = data.values;
-                    });
-                }
             }
         }
     };
@@ -389,7 +342,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
     bot.moveJointContinuous = function(joint, direction) {
-        var token;
+        var token, mask = 0;
         if (joint >= 0 && joint <= 2) {
             if (direction > 0) {
                 joinDirection[joint] = 1;
@@ -404,7 +357,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             }
             if (status != 0) {
                 token = addGenericCallback();
-                asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
+                if (joint === 0) {
+                    mask = 1;
+                } else if (joint === 1) {
+                    mask = 2;
+                } else if (joint === 2) {
+                    mask = 4;
+                }
+                asyncBaroboBridge.moveContinuous(id, token, mask, joinDirection[0], joinDirection[1], joinDirection[2]);
             }
             return true;
         }
@@ -468,6 +428,19 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
       } else {
           bot.moveTo(0, 0, 0);
       }
+    };
+
+    bot.getFormFactor = function(callback) {
+        if (status != 0 && callback) {
+            var token = addCallback(function(error, data) {
+                if (error.code == 0) {
+                    callback(data);
+                } else {
+                    window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+                }
+            });
+            asyncBaroboBridge.getFormFactor(id, token);
+        }
     };
 
     bot.disconnect = function() {

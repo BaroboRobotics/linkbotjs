@@ -254,7 +254,7 @@ input[type=color] {
     position: relative;
 }
 .ljs-knob-container img {
-    content: url('img/knob-control.png');
+    content: url('img/knob.png');
 }
 .ljs-knob-ghost {
     width: 100px;
@@ -263,7 +263,7 @@ input[type=color] {
     position: absolute;
     top: 0;
     left: 0;
-    background: transparent url('img/knob.png') 0 0 no-repeat;
+    background: transparent url('img/knob-control.png') 0 0 no-repeat;
     background-size: contain;
 }
 .ljs-knob {
