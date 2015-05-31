@@ -347,7 +347,7 @@ span.ljs-margin-left {
     right:0;
     bottom:0;
     z-index:1500;
-    background-color: rgba(0,0,0,0.6); /* dim the background */
+    background-color: rgba(0,0,0,0.4); /* dim the background */
 }
 #ljs-overlay-full {
     position:fixed;
@@ -356,19 +356,26 @@ span.ljs-margin-left {
     right:0;
     bottom:0;
     z-index:2000;
-    background-color: rgba(0,0,0,0.7); /* dim the background */
+    background-color: rgba(0,0,0,0.4); /* dim the background */
 }
 #ljs-overlay-spinner {
     z-index:2001;
-    width: 400px;
-    height: 400px;
-    margin-left: -200px;
-    margin-top: -200px;
+    width: 200px;
+    height: 200px;
+    margin: -100px 0 0 -100px;
     left: 50%;
     top: 50%;
     position: absolute;
-    background-image: url('img/large_spinner.gif');
+    background-image: url('img/large_spinner.png');
+    -webkit-animation:spin 1.5s linear infinite;
+    -moz-animation:spin 1.5s linear infinite;
+    animation:spin 1.5s linear infinite;
 }
+
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
 #ljs-control-panel {
     position: fixed;
     top: 75px;
