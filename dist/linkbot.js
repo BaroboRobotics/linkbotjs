@@ -19092,6 +19092,9 @@ var uiEvents = eventlib.Events.extend({});
 var rad2deg = 180/Math.PI;
 var direction = [0, 0, 0];
 var secondMotor = 2;
+var knob1Timer = null;
+var knob2Timer = null;
+var syncKnobsWithMotors = true;
 
 function getPosition(element) {
     var xPosition = 0;
@@ -19694,12 +19697,7 @@ var RobotItem = React.createClass({displayName: "RobotItem",
             buttonClass = "ljs-connect-btn";
             buttonName = "connect";
         }
-        var statusClass = 'ljs-robot-status';
-        if (this.props.linkbot.status === 'ready') {
-            statusClass += ' ljs-icon-ready-status';
-        } else if (this.props.linkbot.status === 'acquired') {
-            statusClass += ' ljs-icon-acquired-status';
-        }
+
         return (
             React.createElement("li", React.__spread({},  this.props, {style: style}), 
                 React.createElement("input", {type: "color", className: "ljs-color-btn", onInput: this.handleColorChange}), 
@@ -19709,7 +19707,7 @@ var RobotItem = React.createClass({displayName: "RobotItem",
                     React.createElement("span", {className: "ljs-robot-name"}, "Linkbot ", this.props.linkbot.id), 
                     React.createElement("span", {className: buttonClass, onClick: this.handleBeep}, buttonName), 
                     React.createElement("br", null), 
-                    React.createElement("span", {className: statusClass}, this.props.linkbot.status)
+                    React.createElement("span", null, this.props.linkbot.status)
                     
                 )
             )
@@ -19738,8 +19736,7 @@ var AddRobotForm = React.createClass({displayName: "AddRobotForm",
                 React.createElement("form", null, 
                     React.createElement("label", {htmlFor: "ljs-add-input", id: "ljs-add-input-label", className: "sr-only"}, "Linkbot ID"), 
                     React.createElement("input", {name: "robotId", id: "ljs-add-input", type: "text", placeholder: "Linkbot ID", ref: "robotInput"}), 
-                    React.createElement("button", {onClick: this.handleAddRobot, className: "ljs-btn"}, "Add"), 
-                    React.createElement("button", {onClick: this.handleRefresh, className: "ljs-refreshbtn"})
+                    React.createElement("button", {onClick: this.handleAddRobot, className: "ljs-btn"}, "Add")
                 )
             )
         );
@@ -20045,21 +20042,28 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                     distance: 1,
                     callback: function(robot, data, event) {
                         me.refs.knobJoint1.setMotorValue(event.position);
-                        me.refs.knobJoint1.setValue(event.position, false);
+                        if (syncKnobsWithMotors) {
+                            me.refs.knobJoint1.setValue(event.position, false);
+                        }
                     }
                 },
                 1: {
                     distance: 1,
                     callback: function(robot, data, event) {
                         me.refs.knobJoint2.setMotorValue(event.position);
-                        me.refs.knobJoint2.setValue(event.position, false);
+                        if (syncKnobsWithMotors) {
+                            me.refs.knobJoint2.setValue(event.position, false);
+                        }
+
                     }
                 },
                 2: {
                     distance: 1,
                     callback: function(robot, data, event) {
                         me.refs.knobJoint2.setMotorValue(event.position);
-                        me.refs.knobJoint2.setValue(event.position, false);
+                        if (syncKnobsWithMotors) {
+                            me.refs.knobJoint2.setValue(event.position, false);
+                        }
                     }
                 }
             },
@@ -20130,6 +20134,8 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
         });
     },
     knob1Changed: function(data) {
+        syncKnobsWithMotors = false;
+        var me = this;
         if (data.value > data.motorValue) {
             if (direction[0] !== 1) {
                 this.state.linkbot.moveJointContinuous(0, 1);
@@ -20146,12 +20152,20 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                 direction[0] = 0;
             }
         }
+        clearTimeout(knob1Timer);
+        knob1Timer = setInterval(function() {
+            me.state.linkbot.moveToOneMotor(0, me.refs.knobJoint1.getValue().value);
+            direction[0] = 0;
+        }, 100);
     },
     knob1MouseUp: function(data) {
+        clearTimeout(knob1Timer);
         this.state.linkbot.moveToOneMotor(0, data.value);
         direction[0] = 0;
     },
     knob2Changed: function(data) {
+        syncKnobsWithMotors = false;
+        var me = this;
         if (data.value > data.motorValue) {
             if (direction[secondMotor] !== 1) {
                 this.state.linkbot.moveJointContinuous(secondMotor, 1);
@@ -20168,36 +20182,61 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
                 direction[secondMotor] = 0;
             }
         }
+        clearTimeout(knob2Timer);
+        knob2Timer = setInterval(function() {
+            me.state.linkbot.moveToOneMotor(secondMotor, me.refs.knobJoint2.getValue().value);
+            direction[secondMotor] = 0;
+        }, 100);
     },
     knob2MouseUp: function(data) {
+        clearTimeout(knob2Timer);
         this.state.linkbot.moveToOneMotor(secondMotor, data.value);
         direction[secondMotor] = 0;
     },
     motor1Up: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveJointContinuous(0, 1);
         direction[0] = 1;
     },
     motor1Stop: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveJointContinuous(0, 0);
         direction[0] = 0;
     },
     motor1Down: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveJointContinuous(0, -1);
         direction[0] = -1;
     },
     motor2Up: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveJointContinuous(secondMotor, 1);
         direction[secondMotor] = 1;
     },
     motor2Stop: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveJointContinuous(secondMotor, 0);
         direction[secondMotor] = 0;
     },
     motor2Down: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveJointContinuous(secondMotor, -1);
         direction[secondMotor] = -1;
     },
     motor1SpeedInput: function (e) {
+        this.setState({
+            linkbot:this.state.linkbot,
+            title:this.state.title,
+            m1Value: event.target.value,
+            m2Value: this.state.m2Value,
+            wheel1: this.state.wheel1,
+            wheel2: this.state.wheel2,
+            freq: this.state.freq,
+            x: this.state.x,
+            y: this.state.y,
+            z: this.state.z,
+            mag: this.state.mag
+        });
         if (isNaN(parseInt(event.target.value))) {
             return;
         }
@@ -20205,7 +20244,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             return;
         }
         this.motor1Speed(event.target.value);
-        this.refs.speedJoint1.setValue(event.target.value);
+        this.refs.speedJoint1.setValue(event.target.value, false);
     },
     motor1Speed: function(value) {
         this.setState({
@@ -20224,6 +20263,19 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
         this.state.linkbot.angularSpeed(value, this.state.m2Value, this.state.m2Value);
     },
     motor2SpeedInput: function (e) {
+        this.setState({
+            linkbot:this.state.linkbot,
+            title:this.state.title,
+            m1Value: this.state.m2Value,
+            m2Value: event.target.value,
+            wheel1: this.state.wheel1,
+            wheel2: this.state.wheel2,
+            freq: this.state.freq,
+            x: this.state.x,
+            y: this.state.y,
+            z: this.state.z,
+            mag: this.state.mag
+        });
         if (isNaN(parseInt(event.target.value))) {
             return;
         }
@@ -20231,7 +20283,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             return;
         }
         this.motor2Speed(event.target.value);
-        this.refs.speedJoint1.setValue(event.target.value);
+        this.refs.speedJoint2.setValue(event.target.value, false);
     },
     motor2Speed: function(value) {
         this.setState({
@@ -20250,30 +20302,49 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
         this.state.linkbot.angularSpeed(this.state.m1Value, value, value);
     },
     driveForward: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveForward();
         direction = [0, 0, 0];
     },
     driveDown: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveBackward();
         direction = [0, 0, 0];
     },
     driveLeft: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveLeft();
         direction = [0, 0, 0];
     },
     driveRight: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.moveRight();
         direction = [0, 0, 0];
     },
     driveZero: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.zero();
         direction = [0, 0, 0];
     },
     driveStop: function() {
+        syncKnobsWithMotors = true;
         this.state.linkbot.stop();
         direction = [0, 0, 0];
     },
     frequencyInput: function(e) {
+        this.setState({
+            linkbot:this.state.linkbot,
+            title:this.state.title,
+            m1Value: this.state.m1Value,
+            m2Value: this.state.m2Value,
+            wheel1: this.state.wheel1,
+            wheel2: this.state.wheel2,
+            freq: event.target.value,
+            x: this.state.x,
+            y: this.state.y,
+            z: this.state.z,
+            mag: this.state.mag
+        });
         if (isNaN(parseInt(event.target.value))) {
             return;
         }
@@ -20281,7 +20352,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             return;
         }
         this.frequencyChanged(event.target.value);
-        this.refs.buzzerFrequency.setValue(event.target.value);
+        this.refs.buzzerFrequency.setValue(event.target.value, false);
     },
     frequencyChanged: function(value) {
         this.setState({
@@ -20304,6 +20375,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
         setTimeout(function() { me.state.linkbot.buzzerFrequency(0); }, 250);
     },
     moveButtonPressed: function() {
+        syncKnobsWithMotors = true;
         var v1, v2;
         v1 = parseInt(this.refs.knobJoint1.getInputValue());
         v2 = parseInt(this.refs.knobJoint2.getInputValue());
