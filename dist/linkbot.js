@@ -20823,6 +20823,7 @@ storageLib.getAll(function(bots) {
         robots.push(new botlib.AsyncLinkbot(bots[i].name));
     }
     if (bots.length > 0) {
+        refresh();
         events.trigger('changed', 1);
     }
 });
