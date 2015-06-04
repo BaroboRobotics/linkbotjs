@@ -19700,7 +19700,7 @@ var RobotItem = React.createClass({displayName: "RobotItem",
 
         return (
             React.createElement("li", React.__spread({},  this.props, {style: style}), 
-                React.createElement("input", {type: "color", className: "ljs-color-btn", onInput: this.handleColorChange}), 
+                React.createElement("input", {type: "color", className: "ljs-color-btn", onInput: this.handleColorChange, value: this.state.color}), 
                 React.createElement("span", {className: "ljs-color-btn-title"}, "color"), 
                 React.createElement("span", {className: "ljs-remove-btn", onClick: this.handleTrash}, "trash"), 
                 React.createElement("div", {className: "ljs-slide-element", ref: "slideElement", onClick: this.handleSlide}, 
