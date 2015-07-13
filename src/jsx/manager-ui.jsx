@@ -1567,7 +1567,7 @@ var HelpDialog = React.createClass({
                             </div>
                             <div className="ljs-modal-body">
                                 <ul>
-                                    <li><a href="http://wiki.linkbotlabs.com/wiki/Learning_Python_3_with_the_Linkbot/FAQ">FAQ / Wiki</a></li>
+                                    <li><a href="http://wiki.linkbotlabs.com/wiki/Troubleshooting">FAQ / Wiki</a></li>
                                     <li><a href="http://www.barobo.com/forums/forum/troubleshootinghelp/">Help / Forums</a></li>
                                     <li><a href="https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form">Bug Report</a></li>
                                 </ul>

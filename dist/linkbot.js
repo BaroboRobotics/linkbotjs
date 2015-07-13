@@ -65,37 +65,70 @@ var asyncBaroboBridge = (function(main) {
 var process = module.exports = {};
 var queue = [];
 var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
 
 function drainQueue() {
     if (draining) {
         return;
     }
+    var timeout = setTimeout(cleanUpNextTick);
     draining = true;
-    var currentQueue;
+
     var len = queue.length;
     while(len) {
         currentQueue = queue;
         queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
+        while (++queueIndex < len) {
+            currentQueue[queueIndex].run();
         }
+        queueIndex = -1;
         len = queue.length;
     }
+    currentQueue = null;
     draining = false;
+    clearTimeout(timeout);
 }
+
 process.nextTick = function (fun) {
-    queue.push(fun);
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
     if (!draining) {
         setTimeout(drainQueue, 0);
     }
 };
 
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -20650,7 +20683,7 @@ var HelpDialog = React.createClass({displayName: "HelpDialog",
                             ), 
                             React.createElement("div", {className: "ljs-modal-body"}, 
                                 React.createElement("ul", null, 
-                                    React.createElement("li", null, React.createElement("a", {href: "http://wiki.linkbotlabs.com/wiki/Learning_Python_3_with_the_Linkbot/FAQ"}, "FAQ / Wiki")), 
+                                    React.createElement("li", null, React.createElement("a", {href: "http://wiki.linkbotlabs.com/wiki/Troubleshooting"}, "FAQ / Wiki")), 
                                     React.createElement("li", null, React.createElement("a", {href: "http://www.barobo.com/forums/forum/troubleshootinghelp/"}, "Help / Forums")), 
                                     React.createElement("li", null, React.createElement("a", {href: "https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form"}, "Bug Report"))
                                 )
