@@ -18454,8 +18454,10 @@ function parseVersion (v) {
 function generateVersion (v) {
     // Force numbers to be integers with |0 so we don't end up with floating
     // points in the version string. Perhaps paranoid?
-    v.map(function(a) { return a | 0; });
-    return 'v' + v.reduce(function (p, v) {
+    function forceInt (a) { return a | 0; }
+
+    return 'v' + v.map(forceInt)
+                  .reduce(function (p, v) {
         return p.toString() + '.' + v;
     });
 }
