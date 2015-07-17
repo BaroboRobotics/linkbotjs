@@ -2,9 +2,10 @@
 
 var eventlib = require('./event.jsx');
 var manager = require('./manager.jsx');
+var firmware = require('./firmware.jsx');
 
-
-var firmwareVersions = asyncBaroboBridge.availableFirmwareVersions();
+var firmwareVersions = firmware.filesToVersions(asyncBaroboBridge.listFirmwareFiles());
+var latestSupportedFirmwareVersion = firmware.maxVersion(firmwareVersions);
 var enumConstants = asyncBaroboBridge.enumerationConstants();
 var requestId = 0;
 var callbacks = {};
@@ -157,7 +158,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var driveToCalled = false;
     
     bot.enums = enumConstants;
-    bot.firmwareVerions = firmwareVersions;
+    bot.latestSupportedFirmwareVersion = latestSupportedFirmwareVersion;
 
     function driveToCallback(error) {
         driveToCalled = false;
@@ -174,17 +175,13 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     
     function checkVersions(error, data) {
         if (0 === error.code) {
-            var valid = false, i = 0, version = "0.0.0";
+            var i = 0, version = "0.0.0";
             version = 'v' + data.major + '.' + data.minor + '.' + data.patch;
             window.console.log('checking version: ' + version);
-            for (i = 0; i < firmwareVersions.length; i++) {
-                if (version === firmwareVersions[i]) {
-                    window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
-                    valid = true;
-                    break;
-                }
+            if (version === latestSupportedFirmwareVersion) {
+                window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
-            if (!valid && window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
+            else if (window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
                 document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
             }
         } else {

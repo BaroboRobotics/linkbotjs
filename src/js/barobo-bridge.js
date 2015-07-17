@@ -7,7 +7,7 @@ var asyncBaroboBridge = (function(main) {
         return main.asyncBaroboBridge;
     } else {
         var _i, _j, _len, _len1, obj, signals, methods, k;
-        methods = ['availableFirmwareVersions', 'connectRobot', 'disconnectRobot',
+        methods = ['listFirmwareFiles', 'connectRobot', 'disconnectRobot',
             'getAccelerometer', 'getFormFactor', 'getJointAngles', 'getJointSpeeds', 'getJointStates',
             'getLedColor', 'getVersions', 'resetEncoderRevs', 'setBuzzerFrequency', 'setJointSpeeds',
             'setJointStates', 'setLedColor', 'move', 'moveContinuous', 'moveTo', 'drive', 'driveTo',
