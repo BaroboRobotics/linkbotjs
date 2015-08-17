@@ -3,9 +3,15 @@
 var eventlib = require('./event.jsx');
 var manager = require('./manager.jsx');
 var firmware = require('./firmware.jsx');
+var Version = require('./version.jsx');
 
-var firmwareVersions = firmware.filesToVersions(asyncBaroboBridge.listFirmwareFiles());
-var latestSupportedFirmwareVersion = firmware.maxVersion(firmwareVersions);
+// Find the latest version of the firmware among all the firmware files.
+var fwFileList = asyncBaroboBridge.listFirmwareFiles();
+var fwVersionList = firmware.fileListToVersionList(fwFileList);
+var latestSupportedFirmwareVersion = fwVersionList.reduce(function (p, v) {
+    return Version.cmp(p, v) > 0 ? p : v;
+});
+
 var enumConstants = asyncBaroboBridge.enumerationConstants();
 var requestId = 0;
 var callbacks = {};

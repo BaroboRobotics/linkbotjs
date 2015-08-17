@@ -1,66 +1,6 @@
 "use strict";
 
-// If a string begins with 'v' and ends with a dotted sequence of numbers,
-// return an array of those numbers. Otherwise, return null.
-// Examples:
-// 'v1'     -> [ 1 ]
-// 'v1.2'   -> [ 1, 2 ]
-// 'v1.2.3' -> [ 1, 2, 3 ]
-// '1.2.3'  -> null
-function parseVersion (v) {
-    function parseDecInt (a) {
-        return parseInt(a, 10);
-    }
-
-    var result = /^v(\d+(?:\.\d+)*)$/.exec(v);
-    return result
-           ? result[1].split('.').map(parseDecInt)
-           : null;
-}
-
-// The inverse operation of parseVersion: given an array of numbers, return a
-// string beginning with 'v' and ending with the sequence of numbers in dotted
-// format.
-function generateVersion (v) {
-    // Force numbers to be integers with |0 so we don't end up with floating
-    // points in the version string. Perhaps paranoid?
-    function forceInt (a) { return a | 0; }
-
-    return 'v' + v.map(forceInt)
-                  .reduce(function (p, v) {
-        return p.toString() + '.' + v;
-    });
-}
-
-// Compare two arrays of numbers lexicographically. Return less than zero if a
-// is ordered before b, greater than zero if b is ordered before a, and zero if
-// the two arguments compare equal. If one array is a prefix of the other, the
-// shorter of the two arrays is ordered before the longer. Suitable for use
-// with Array.sort().
-function lexicographicCompare (a, b) {
-    for (var i = 0; i < Math.max(a.length, b.length); ++i) {
-        if (a[i] != b[i]) {
-            return undefined === a[i] || a[i] < b[i]
-                   ? -1 : 1;
-        }
-    }
-    return 0;
-}
-
-// Given an array of strings representing versions, choose the maximum version.
-// Ignore any strings which cannot be parsed as a version.
-function maxVersion (versionList) {
-    function chooseGreaterVersion (p, v) {
-        return lexicographicCompare(p, v) > 0 ? p : v;
-    }
-
-    var versionArrays = versionList.map(parseVersion).filter(Boolean);
-    return versionArrays.length
-           ? generateVersion(versionArrays.reduce(chooseGreaterVersion))
-           : null;
-}
-
-
+var Version = require('./version.jsx');
 
 // Split a filename into its stem and extension, if present. The extension's
 // dot is retained to distinguish no extension from an empty extension.
@@ -78,7 +18,7 @@ function splitFilename (a) {
 // Generate a list of valid firmware versions available for installation on the
 // user's Linkbots, given a list of firmware files. A list like [ 'v4.4.6.hex',
 // 'v4.4.5.hex' 'v4.4.5.eeprom'] would result in [ 'v4.4.5' ].
-function filesToVersions (firmwareFiles) {
+function fileListToVersionList (firmwareFiles) {
     // First, take a roll call of all .eeprom and .hex files.
     var fws = {};
     firmwareFiles.map(splitFilename)
@@ -91,12 +31,13 @@ function filesToVersions (firmwareFiles) {
     });
 
     // Firmware which are valid are those which have both a .hex file and a
-    // .eeprom file.
+    // .eeprom file, and their version string is representable by Version.
     var validFws = [];
     for (var fwVersion in fws) {
         if (fws.hasOwnProperty(fwVersion)) {
-            if (fws[fwVersion] == 3) {
-                validFws.push(fwVersion);
+            var v = Version.fromString(fwVersion);
+            if (v && fws[fwVersion] == 3) {
+                validFws.push(v);
             }
         }
     }
@@ -105,6 +46,4 @@ function filesToVersions (firmwareFiles) {
 }
 
 
-
-module.exports.maxVersion = maxVersion;
-module.exports.filesToVersions = filesToVersions;
+module.exports.fileListToVersionList = fileListToVersionList;
