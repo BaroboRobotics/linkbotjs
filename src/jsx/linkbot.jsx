@@ -5,13 +5,6 @@ var manager = require('./manager.jsx');
 var firmware = require('./firmware.jsx');
 var Version = require('./version.jsx');
 
-// Find the latest version of the firmware among all the firmware files.
-var fwFileList = asyncBaroboBridge.listFirmwareFiles();
-var fwVersionList = firmware.fileListToVersionList(fwFileList);
-var latestSupportedFirmwareVersion = fwVersionList.reduce(function (p, v) {
-    return Version.cmp(p, v) > 0 ? p : v;
-});
-
 var enumConstants = asyncBaroboBridge.enumerationConstants();
 var requestId = 0;
 var callbacks = {};
@@ -19,6 +12,12 @@ var buttonEventCallbacks = {};
 var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
 var jointEventCallbacks = {};
+
+// Find the latest version of the firmware among all the firmware files.
+var latestSupportedFirmwareVersion =
+    firmware.availableVersions().reduce(function (p, v) {
+        return Version.cmp(p, v) > 0 ? p : v;
+    });
 
 function addCallback (func) {
     var token = requestId++;

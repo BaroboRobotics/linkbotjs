@@ -45,5 +45,8 @@ function fileListToVersionList (firmwareFiles) {
     return validFws;
 }
 
+function availableVersions () {
+    return fileListToVersionList(asyncBaroboBridge.listFirmwareFiles());
+}
 
-module.exports.fileListToVersionList = fileListToVersionList;
+module.exports.availableVersions = availableVersions;
