@@ -18430,67 +18430,7 @@ module.exports.Events = events;
 },{}],149:[function(require,module,exports){
 "use strict";
 
-// If a string begins with 'v' and ends with a dotted sequence of numbers,
-// return an array of those numbers. Otherwise, return null.
-// Examples:
-// 'v1'     -> [ 1 ]
-// 'v1.2'   -> [ 1, 2 ]
-// 'v1.2.3' -> [ 1, 2, 3 ]
-// '1.2.3'  -> null
-function parseVersion (v) {
-    function parseDecInt (a) {
-        return parseInt(a, 10);
-    }
-
-    var result = /^v(\d+(?:\.\d+)*)$/.exec(v);
-    return result
-           ? result[1].split('.').map(parseDecInt)
-           : null;
-}
-
-// The inverse operation of parseVersion: given an array of numbers, return a
-// string beginning with 'v' and ending with the sequence of numbers in dotted
-// format.
-function generateVersion (v) {
-    // Force numbers to be integers with |0 so we don't end up with floating
-    // points in the version string. Perhaps paranoid?
-    function forceInt (a) { return a | 0; }
-
-    return 'v' + v.map(forceInt)
-                  .reduce(function (p, v) {
-        return p.toString() + '.' + v;
-    });
-}
-
-// Compare two arrays of numbers lexicographically. Return less than zero if a
-// is ordered before b, greater than zero if b is ordered before a, and zero if
-// the two arguments compare equal. If one array is a prefix of the other, the
-// shorter of the two arrays is ordered before the longer. Suitable for use
-// with Array.sort().
-function lexicographicCompare (a, b) {
-    for (var i = 0; i < Math.max(a.length, b.length); ++i) {
-        if (a[i] != b[i]) {
-            return undefined === a[i] || a[i] < b[i]
-                   ? -1 : 1;
-        }
-    }
-    return 0;
-}
-
-// Given an array of strings representing versions, choose the maximum version.
-// Ignore any strings which cannot be parsed as a version.
-function maxVersion (versionList) {
-    function chooseGreaterVersion (p, v) {
-        return lexicographicCompare(p, v) > 0 ? p : v;
-    }
-
-    var versionArrays = versionList.map(parseVersion).filter(Boolean);
-    return versionArrays.length
-           ? generateVersion(versionArrays.reduce(chooseGreaterVersion))
-           : null;
-}
-
-
+var Version = require('./version.jsx');
 
 // Split a filename into its stem and extension, if present. The extension's
 // dot is retained to distinguish no extension from an empty extension.
@@ -18505,11 +18445,14 @@ function splitFilename (a) {
            : { stem: a.slice(0),    extension: null };
 }
 
-// Generate a list of valid firmware versions available for installation on the
-// user's Linkbots, given a list of firmware files. A list like [ 'v4.4.6.hex',
-// 'v4.4.5.hex' 'v4.4.5.eeprom'] would result in [ 'v4.4.5' ].
-function filesToVersions (firmwareFiles) {
-    // First, take a roll call of all .eeprom and .hex files.
+// Generate a list of file stems which prefix both .hex and .eeprom files. For
+// example, ['a', 'b.hex', 'c.eeprom', 'd.hex', 'd.eeprom'] would yield ['d'],
+// because it is the only file stem which begins both the name of a .hex and a
+// .eeprom file.
+function firmwareFileStems (firmwareFiles) {
+    // First, take a roll call of all .eeprom and .hex files. Do so with a map
+    // of file stems to bitsets, where bit zero records the presence of a
+    // stem.hex file and bit one records the presence of a stem.eeprom file.
     var fws = {};
     firmwareFiles.map(splitFilename)
                  .forEach(function (file) {
@@ -18522,32 +18465,41 @@ function filesToVersions (firmwareFiles) {
 
     // Firmware which are valid are those which have both a .hex file and a
     // .eeprom file.
-    var validFws = [];
-    for (var fwVersion in fws) {
-        if (fws.hasOwnProperty(fwVersion)) {
-            if (fws[fwVersion] == 3) {
-                validFws.push(fwVersion);
+    var stems = [];
+    for (var stem in fws) {
+        if (fws.hasOwnProperty(stem)) {
+            // fws[stem] will be 1<<0 | 1<<1 == 3 if both a .hex and .eeprom
+            // were found.
+            if (fws[stem] == 3) {
+                stems.push(stem);
             }
         }
     }
 
-    return validFws;
+    return stems;
 }
 
+// Array of Versions, each representing a complete pair of firmware files.
+function localVersionList () {
+    // Strings with a 'v' prefix lose their prefix. Strings without a 'v'
+    // prefix become null.
+    var dropV = function (s) { return /^v/.test(s) ? s.slice(1) : null; };
+    return firmwareFileStems(asyncBaroboBridge.listFirmwareFiles())
+        .map(dropV)
+        .map(Version.fromString)
+        .filter(Boolean);
+}
 
+module.exports.localVersionList = localVersionList;
 
-module.exports.maxVersion = maxVersion;
-module.exports.filesToVersions = filesToVersions;
-
-},{}],150:[function(require,module,exports){
+},{"./version.jsx":155}],150:[function(require,module,exports){
 "use strict";
 
 var eventlib = require('./event.jsx');
 var manager = require('./manager.jsx');
 var firmware = require('./firmware.jsx');
+var Version = require('./version.jsx');
 
-var firmwareVersions = firmware.filesToVersions(asyncBaroboBridge.listFirmwareFiles());
-var latestSupportedFirmwareVersion = firmware.maxVersion(firmwareVersions);
 var enumConstants = asyncBaroboBridge.enumerationConstants();
 var requestId = 0;
 var callbacks = {};
@@ -18555,6 +18507,11 @@ var buttonEventCallbacks = {};
 var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
 var jointEventCallbacks = {};
+
+
+// Find the latest version of the firmware among all the firmware files.
+var latestLocalFirmwareVersion = firmware.localVersionList()
+                                         .reduce(Version.max);
 
 function addCallback (func) {
     var token = requestId++;
@@ -18700,7 +18657,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var driveToCalled = false;
     
     bot.enums = enumConstants;
-    bot.latestSupportedFirmwareVersion = latestSupportedFirmwareVersion;
+    bot.latestLocalFirmwareVersion = latestLocalFirmwareVersion;
 
     function driveToCallback(error) {
         driveToCalled = false;
@@ -18717,10 +18674,9 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     
     function checkVersions(error, data) {
         if (0 === error.code) {
-            var i = 0, version = "0.0.0";
-            version = 'v' + data.major + '.' + data.minor + '.' + data.patch;
+            var version = Version.fromTriplet(data);
             window.console.log('checking version: ' + version);
-            if (version === latestSupportedFirmwareVersion) {
+            if (version.eq(latestLocalFirmwareVersion)) {
                 window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
             else if (window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
@@ -19117,11 +19073,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.BUTTON_B = bot.enums.Button.B;
 };
 
-},{"./event.jsx":148,"./firmware.jsx":149,"./manager.jsx":153}],151:[function(require,module,exports){
+},{"./event.jsx":148,"./firmware.jsx":149,"./manager.jsx":153,"./version.jsx":155}],151:[function(require,module,exports){
 "use strict";
     
 var manager = require('./manager.jsx');
 var uimanager = require('./manager-ui.jsx');
+
+window.firmware = require('./firmware.jsx');
+window.Version = require('./version.jsx');
 
 window.Linkbots = (function(){
     var mod = {};
@@ -19222,7 +19181,7 @@ window.Linkbots = (function(){
     return mod;
 
 })();
-},{"./manager-ui.jsx":152,"./manager.jsx":153}],152:[function(require,module,exports){
+},{"./firmware.jsx":149,"./manager-ui.jsx":152,"./manager.jsx":153,"./version.jsx":155}],152:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -21262,4 +21221,76 @@ if (db !== null) {
         });
     };
 }
-},{}]},{},[148,149,150,151,152,153,154]);
+},{}],155:[function(require,module,exports){
+"use strict";
+
+var Version = function (va) {
+    this.versionArray = va;
+};
+
+// Construct a Version object from an object of the form:
+// {major: 1, minor: 2, patch: 3}. This function can be used with versions
+// returned from asyncBaroboBridge.
+Version.fromTriplet = function (t) {
+    var va = [t.major, t.minor, t.patch];
+    return va.every(function (a) { return typeof a !== 'undefined'; })
+           ? new Version(va)
+           : null;
+}
+
+// Construct a Version object from a number or dotted sequence of numbers,
+// optionally prepended with a 'v' character.
+// Example valid input: '1', '1.2', '1.2.3', 'v1.2.3', etc.
+Version.fromString = function (s) {
+    function parseDecInt (a) {
+        return parseInt(a, 10);
+    }
+    var result = /^(\d+(?:\.\d+)*)$/.exec(s);
+    return result
+           ? new Version(result[1].split('.').map(parseDecInt))
+           : null;
+};
+
+// Return the represented version in dotted-number-string format.
+// new Version([1, 2, 3]).toString() == '1.2.3'
+Version.prototype.toString = function () {
+    return this.versionArray.map(function (a) {
+        // Force numbers to be integers with |0 so we don't end up with
+        // floating points in the version string. Perhaps paranoid?
+        return (a|0).toString();
+    }).reduce(function (p, v) {
+        return p + '.' + v;
+    });
+};
+
+// Compare two arrays of numbers lexicographically.
+function lexicographicCompare (a, b) {
+    for (var i = 0; i < Math.max(a.length, b.length); ++i) {
+        if (a[i] != b[i]) {
+            return typeof a[i] === 'undefined' || a[i] < b[i]
+                   ? -1 : 1;
+        }
+    }
+    return 0;
+}
+
+// Compare two version objects. Return less than zero if a is ordered before b,
+// greater than zero if b is ordered before a, and zero if the two versions
+// compare equal. If one version is a prefix of the other, the shorter of the
+// two versions is ordered before the longer. Suitable for use with
+// Array.sort().
+Version.cmp = function (a, b) {
+    return lexicographicCompare(a.versionArray, b.versionArray);
+};
+
+Version.max = function (a, b) {
+    return Version.cmp(a, b) > 0 ? a : b;
+};
+
+Version.prototype.eq = function (a) {
+    return Version.cmp(this, a) === 0;
+}
+
+module.exports = Version;
+
+},{}]},{},[148,149,150,151,152,153,154,155]);

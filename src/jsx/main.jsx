@@ -3,6 +3,9 @@
 var manager = require('./manager.jsx');
 var uimanager = require('./manager-ui.jsx');
 
+window.firmware = require('./firmware.jsx');
+window.Version = require('./version.jsx');
+
 window.Linkbots = (function(){
     var mod = {};
     var startOpen = false;

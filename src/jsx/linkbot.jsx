@@ -13,11 +13,10 @@ var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
 var jointEventCallbacks = {};
 
+
 // Find the latest version of the firmware among all the firmware files.
-var latestSupportedFirmwareVersion =
-    firmware.availableVersions().reduce(function (p, v) {
-        return Version.cmp(p, v) > 0 ? p : v;
-    });
+var latestLocalFirmwareVersion = firmware.localVersionList()
+                                         .reduce(Version.max);
 
 function addCallback (func) {
     var token = requestId++;
@@ -163,7 +162,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var driveToCalled = false;
     
     bot.enums = enumConstants;
-    bot.latestSupportedFirmwareVersion = latestSupportedFirmwareVersion;
+    bot.latestLocalFirmwareVersion = latestLocalFirmwareVersion;
 
     function driveToCallback(error) {
         driveToCalled = false;
@@ -180,10 +179,9 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     
     function checkVersions(error, data) {
         if (0 === error.code) {
-            var i = 0, version = "0.0.0";
-            version = 'v' + data.major + '.' + data.minor + '.' + data.patch;
+            var version = Version.fromTriplet(data);
             window.console.log('checking version: ' + version);
-            if (version === latestSupportedFirmwareVersion) {
+            if (version.eq(latestLocalFirmwareVersion)) {
                 window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
             else if (window.location.pathname != '/LinkbotUpdateApp/html/index.html') {

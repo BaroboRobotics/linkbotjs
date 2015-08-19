@@ -15,11 +15,14 @@ function splitFilename (a) {
            : { stem: a.slice(0),    extension: null };
 }
 
-// Generate a list of valid firmware versions available for installation on the
-// user's Linkbots, given a list of firmware files. A list like [ 'v4.4.6.hex',
-// 'v4.4.5.hex' 'v4.4.5.eeprom'] would result in [ 'v4.4.5' ].
-function fileListToVersionList (firmwareFiles) {
-    // First, take a roll call of all .eeprom and .hex files.
+// Generate a list of file stems which prefix both .hex and .eeprom files. For
+// example, ['a', 'b.hex', 'c.eeprom', 'd.hex', 'd.eeprom'] would yield ['d'],
+// because it is the only file stem which begins both the name of a .hex and a
+// .eeprom file.
+function firmwareFileStems (firmwareFiles) {
+    // First, take a roll call of all .eeprom and .hex files. Do so with a map
+    // of file stems to bitsets, where bit zero records the presence of a
+    // stem.hex file and bit one records the presence of a stem.eeprom file.
     var fws = {};
     firmwareFiles.map(splitFilename)
                  .forEach(function (file) {
@@ -31,22 +34,30 @@ function fileListToVersionList (firmwareFiles) {
     });
 
     // Firmware which are valid are those which have both a .hex file and a
-    // .eeprom file, and their version string is representable by Version.
-    var validFws = [];
-    for (var fwVersion in fws) {
-        if (fws.hasOwnProperty(fwVersion)) {
-            var v = Version.fromString(fwVersion);
-            if (v && fws[fwVersion] == 3) {
-                validFws.push(v);
+    // .eeprom file.
+    var stems = [];
+    for (var stem in fws) {
+        if (fws.hasOwnProperty(stem)) {
+            // fws[stem] will be 1<<0 | 1<<1 == 3 if both a .hex and .eeprom
+            // were found.
+            if (fws[stem] == 3) {
+                stems.push(stem);
             }
         }
     }
 
-    return validFws;
+    return stems;
 }
 
-function availableVersions () {
-    return fileListToVersionList(asyncBaroboBridge.listFirmwareFiles());
+// Array of Versions, each representing a complete pair of firmware files.
+function localVersionList () {
+    // Strings with a 'v' prefix lose their prefix. Strings without a 'v'
+    // prefix become null.
+    var dropV = function (s) { return /^v/.test(s) ? s.slice(1) : null; };
+    return firmwareFileStems(asyncBaroboBridge.listFirmwareFiles())
+        .map(dropV)
+        .map(Version.fromString)
+        .filter(Boolean);
 }
 
-module.exports.availableVersions = availableVersions;
+module.exports.localVersionList = localVersionList;

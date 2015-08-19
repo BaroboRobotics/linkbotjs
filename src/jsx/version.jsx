@@ -1,24 +1,39 @@
 "use strict";
 
+// A Version object represents a version as an arbitrarily long sequence of
+// numbers. Versions can be constructed from strings, from the version objects
+// returned by asyncBaroboBridge, or directly from an array of numbers. Some
+// comparison functions are also provided.
 var Version = function (va) {
     this.versionArray = va;
 };
 
-// Construct a Version object from a number or dotted sequence of numbers,
-// optionally prepended with a 'v' character.
-// Example valid input: '1', '1.2', '1.2.3', 'v1.2.3', etc.
+// Construct a Version object from an object returned by asyncBaroboBridge.
+// Return null if the argument does not conform to the major, minor, patch
+// form.
+//   Version.fromTriplet({major: 1, minor: 2, patch: 3})
+Version.fromTriplet = function (t) {
+    var va = [t.major, t.minor, t.patch];
+    return va.every(function (a) { return typeof a !== 'undefined'; })
+           ? new Version(va)
+           : null;
+}
+
+// Construct a Version object from a string containing a number or dotted
+// sequence of numbers. Return null if the string does not conform.
+//   Version.fromString('1.2.3')
 Version.fromString = function (s) {
     function parseDecInt (a) {
         return parseInt(a, 10);
     }
-    var result = /^v?(\d+(?:\.\d+)*)$/.exec(s);
+    var result = /^(\d+(?:\.\d+)*)$/.exec(s);
     return result
            ? new Version(result[1].split('.').map(parseDecInt))
            : null;
 };
 
-// Return the represented version in dotted-number-string format.
-// new Version('1.2.3').toString() == '1.2.3'
+// Return the represented version in dotted number string format.
+// new Version([1, 2, 3]).toString() == '1.2.3'
 Version.prototype.toString = function () {
     return this.versionArray.map(function (a) {
         // Force numbers to be integers with |0 so we don't end up with
@@ -33,7 +48,7 @@ Version.prototype.toString = function () {
 function lexicographicCompare (a, b) {
     for (var i = 0; i < Math.max(a.length, b.length); ++i) {
         if (a[i] != b[i]) {
-            return undefined === a[i] || a[i] < b[i]
+            return typeof a[i] === 'undefined' || a[i] < b[i]
                    ? -1 : 1;
         }
     }
@@ -48,5 +63,13 @@ function lexicographicCompare (a, b) {
 Version.cmp = function (a, b) {
     return lexicographicCompare(a.versionArray, b.versionArray);
 };
+
+Version.max = function (a, b) {
+    return Version.cmp(a, b) > 0 ? a : b;
+};
+
+Version.prototype.eq = function (a) {
+    return Version.cmp(this, a) === 0;
+}
 
 module.exports = Version;
