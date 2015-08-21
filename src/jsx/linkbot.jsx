@@ -44,22 +44,89 @@ asyncBaroboBridge.requestComplete.connect(
         }
     }
 );
+
+// Dongle events of the same value may occur consecutively (i.e., two
+// dongleDowns in a row), so track the state and only perform actions on state
+// changes.
+var dongleEventFilter = (function () {
+    var lastStatus = null;
+    return function (status) {
+        if (!lastStatus || lastStatus !== status) {
+            lastStatus = status;
+            manager.event.trigger(status);
+        }
+    };
+})();
+
+function firmwareUpdateDialog (explanation) {
+    // TODO: display a dialog to the user
+    window.console.log(explanation);
+    /*
+    else if (window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
+        document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
+    }*/
+}
+
+// True if the error object e represents a particular error, given the error's
+// category and code in string form.
+function errorEq(e, category, code) {
+    return e.category === category
+        && e.code === enums.ErrorCategories[category][code];
+}
+
 asyncBaroboBridge.dongleEvent.connect(
     function (error, firmwareVersion) {
         if (error.code == 0) {
-            // TODO: Check firmwareVersion, trigger dongleUp if it matches. If
-            // the firmware should be updated, prompt the user.
-            window.console.log('Dongle firmware version ', firmwareVersion);
-            manager.event.trigger('dongleUp');
+            var version = Version.fromTriplet(firmwareVersion);
+            if (version.eq(latestLocalFirmwareVersion)) {
+                window.console.log('Dongle firmware version ', firmwareVersion);
+                dongleEventFilter('dongleUp');
+            }
+            else {
+                dongleEventFilter('dongleDown');
+                firmwareUpdateDialog("The dongle's firmware must be updated.");
+            }
         } else {
-            // TODO: Prompt user to update firmware on certain errors. Note that
-            // we'll need to move the only-fire-dongleDown-once logic from manager.jsx
-            // to here.
-            manager.event.trigger('dongleDown');
-            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            dongleEventFilter('dongleDown');
+            if (errorEq(error, 'baromesh', 'STRANGE_DONGLE')) {
+                firmwareUpdateDialog("A dongle is plugged in, but we are unable "
+                    + "to communicate with it. "
+                    + "You may need to update its firmware.");
+            }
+            else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
+                firmwareUpdateDialog("The dongle's firmware must be updated.");
+            }
+            else {
+                window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            }
         }
     }
 );
+
+asyncBaroboBridge.robotEvent.connect(
+    function(error, id, firmwareVersion) {
+        console.log('robot event triggered with ID: ' + id + ' and version: ', firmwareVersion);
+        var robot = manager.getRobot(id);
+        if (robot) {
+            if (error.code == 0) {
+                var version = Version.fromTriplet(firmwareVersion);
+                if (version.eq(latestLocalFirmwareVersion)) {
+                    robot.connect();
+                }
+                else {
+                    firmwareUpdateDialog(id + "'s firmware must be updated.");
+                }
+            }
+            else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
+                firmwareUpdateDialog(id + "'s firmware must be updated.");
+            }
+            else {
+                window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            }
+        }
+    }
+);
+
 asyncBaroboBridge.buttonEvent.connect(
     function(id, buttonNumber, eventType, timestamp) {
         // TODO implement this.
@@ -184,8 +251,8 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             if (version.eq(latestLocalFirmwareVersion)) {
                 window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
-            else if (window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
-                document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
+            else {
+                firmwareUpdateDialog(id + "'s firmware must be updated.");
             }
         } else {
             window.console.warn('error occurred checking firmware version [' + error.category + '] :: ' + error.message);
@@ -465,7 +532,17 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                                  ? "acquired" : "ready";
                     bot.event.trigger('changed');
                     asyncBaroboBridge.getVersions(id, addCallback(checkVersions));
-                } else {
+                }
+                else if (errorEq(error, 'rpc', 'DECODING_FAILURE')
+                         || errorEq(error, 'rpc', 'PROTOCOL_ERROR')
+                         || errorEq(error, 'rpc', 'INTERFACE_ERROR')) {
+                    firmwareUpdateDialog("We are unable to communicate with " + id
+                        + ". It may need a firmware update.");
+                }
+                else if (errorEq(error, 'rpc', 'VERSION_MISMATCH')) {
+                    firmwareUpdateDialog(id + "'s firmware must be updated.");
+                }
+                else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
                 }
                 if (callback) {

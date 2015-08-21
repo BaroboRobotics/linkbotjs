@@ -207,41 +207,12 @@ storageLib.getAll(function(bots) {
     }
 });
 
-// Dongle events of the same value may occur consecutively (i.e., two
-// dongleDowns in a row), so track the state and only perform actions on state
-// changes.
-
-var dongle = null;
-
 events.on('dongleUp', function() {
-    if (!dongle || dongle === 'down') {
-        dongle = 'up';
-        refresh();
-    }
+    refresh();
 });
 
 events.on('dongleDown', function() {
-    if (!dongle || dongle === 'up') {
-        dongle = 'down';
-        disconnectAll();
-    }
-});
-
-
-asyncBaroboBridge.robotEvent.connect(function(error, id, firmwareVersion) {
-    console.log('robot event triggered with ID: ' + id + ' and version: ', firmwareVersion);
-    var robot = findRobot(id);
-    if (robot) {
-        if (error.code == 0) {
-            // TODO: check firmwareVersion, call robot.connect() if it matches.
-            // If the firmware should be updated, prompt the user.
-            robot.connect();
-        }
-        else {
-            // TODO: prompt the user to update firmware, if error is RPC_VERSION_MISMATCH?
-            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
-        }
-    }
+    disconnectAll();
 });
 
 asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
