@@ -18553,13 +18553,15 @@ var dongleEventFilter = (function () {
     };
 })();
 
-function firmwareUpdateDialog (explanation) {
-    // TODO: display a dialog to the user
+function showDongleUpdateButton (explanation) {
+    // TODO: display button to the user
     window.console.log(explanation);
-    /*
-    else if (window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
-        document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
-    }*/
+}
+
+// This function might be better inside the AsyncLinkbot object? Unsure.
+function showRobotUpdateButton (explanation, id) {
+    // TODO: display button to the user
+    window.console.log(explanation);
 }
 
 // True if the error object e represents a particular error, given the error's
@@ -18579,17 +18581,17 @@ asyncBaroboBridge.dongleEvent.connect(
             }
             else {
                 dongleEventFilter('dongleDown');
-                firmwareUpdateDialog("The dongle's firmware must be updated.");
+                showDongleUpdateButton("The dongle's firmware must be updated.");
             }
         } else {
             dongleEventFilter('dongleDown');
             if (errorEq(error, 'baromesh', 'STRANGE_DONGLE')) {
-                firmwareUpdateDialog("A dongle is plugged in, but we are unable "
+                showDongleUpdateButton("A dongle is plugged in, but we are unable "
                     + "to communicate with it. "
                     + "You may need to update its firmware.");
             }
             else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
-                firmwareUpdateDialog("The dongle's firmware must be updated.");
+                showDongleUpdateButton("The dongle's firmware must be updated.");
             }
             else {
                 window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
@@ -18609,11 +18611,11 @@ asyncBaroboBridge.robotEvent.connect(
                     robot.connect();
                 }
                 else {
-                    firmwareUpdateDialog(id + "'s firmware must be updated.");
+                    showRobotUpdateButton(id + "'s firmware must be updated.", id);
                 }
             }
             else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
-                firmwareUpdateDialog(id + "'s firmware must be updated.");
+                showRobotUpdateButton(id + "'s firmware must be updated.", id);
             }
             else {
                 window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
@@ -18747,7 +18749,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
             else {
-                firmwareUpdateDialog(id + "'s firmware must be updated.");
+                showRobotUpdateButton(id + "'s firmware must be updated.", id);
             }
         } else {
             window.console.warn('error occurred checking firmware version [' + error.category + '] :: ' + error.message);
@@ -19031,11 +19033,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 else if (errorEq(error, 'rpc', 'DECODING_FAILURE')
                          || errorEq(error, 'rpc', 'PROTOCOL_ERROR')
                          || errorEq(error, 'rpc', 'INTERFACE_ERROR')) {
-                    firmwareUpdateDialog("We are unable to communicate with " + id
-                        + ". It may need a firmware update.");
+                    showRobotUpdateButton("We are unable to communicate with " + id
+                        + ". It may need a firmware update.", id);
                 }
                 else if (errorEq(error, 'rpc', 'VERSION_MISMATCH')) {
-                    firmwareUpdateDialog(id + "'s firmware must be updated.");
+                    showRobotUpdateButton(id + "'s firmware must be updated.", id);
                 }
                 else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
