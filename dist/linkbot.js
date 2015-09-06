@@ -44,6 +44,9 @@ var asyncBaroboBridge = (function(main) {
                 JointState: {FAIL: 3, HOLD: 1, MOVING: 2, STOP: 0}
             };
         };
+        obj.listFirmwareFiles = function() {
+            return ["v4.4.6.eeprom", "v4.4.6.hex"];
+        };
         /*
         obj.getLEDColor = function(id) {
             if (!colorMap[id]) {
@@ -65,70 +68,37 @@ var asyncBaroboBridge = (function(main) {
 var process = module.exports = {};
 var queue = [];
 var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
 
 function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = setTimeout(cleanUpNextTick);
     draining = true;
-
+    var currentQueue;
     var len = queue.length;
     while(len) {
         currentQueue = queue;
         queue = [];
-        while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+        var i = -1;
+        while (++i < len) {
+            currentQueue[i]();
         }
-        queueIndex = -1;
         len = queue.length;
     }
-    currentQueue = null;
     draining = false;
-    clearTimeout(timeout);
 }
-
 process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
+    queue.push(fun);
+    if (!draining) {
         setTimeout(drainQueue, 0);
     }
 };
 
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
 
 function noop() {}
 
@@ -20872,6 +20842,7 @@ module.exports.addUI = function() {
 
 var botlib = require('./linkbot.jsx');
 var eventlib = require('./event.jsx');
+var managerUi = require('./manager-ui.jsx');
 var storageLib = require('./storage.jsx');
 
 var robots = [];
@@ -21093,7 +21064,7 @@ asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
     }
 });
 
-},{"./event.jsx":148,"./linkbot.jsx":150,"./storage.jsx":154}],154:[function(require,module,exports){
+},{"./event.jsx":148,"./linkbot.jsx":150,"./manager-ui.jsx":152,"./storage.jsx":154}],154:[function(require,module,exports){
 var settings = {
     DBNAME: "robotsdb",
     DBVER: 1.0,
@@ -21288,7 +21259,7 @@ Version.fromTriplet = function (t) {
     return va.every(function (a) { return typeof a !== 'undefined'; })
            ? new Version(va)
            : null;
-}
+};
 
 // Construct a Version object from a string containing a number or dotted
 // sequence of numbers. Return null if the string does not conform.
@@ -21341,7 +21312,7 @@ Version.max = function (a, b) {
 
 Version.prototype.eq = function (a) {
     return Version.cmp(this, a) === 0;
-}
+};
 
 module.exports = Version;
 

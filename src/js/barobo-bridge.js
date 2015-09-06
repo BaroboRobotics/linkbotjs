@@ -44,6 +44,9 @@ var asyncBaroboBridge = (function(main) {
                 JointState: {FAIL: 3, HOLD: 1, MOVING: 2, STOP: 0}
             };
         };
+        obj.listFirmwareFiles = function() {
+            return ["v4.4.6.eeprom", "v4.4.6.hex"];
+        };
         /*
         obj.getLEDColor = function(id) {
             if (!colorMap[id]) {

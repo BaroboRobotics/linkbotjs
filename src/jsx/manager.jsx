@@ -2,6 +2,7 @@
 
 var botlib = require('./linkbot.jsx');
 var eventlib = require('./event.jsx');
+var managerUi = require('./manager-ui.jsx');
 var storageLib = require('./storage.jsx');
 
 var robots = [];

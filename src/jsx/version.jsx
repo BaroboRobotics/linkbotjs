@@ -17,7 +17,7 @@ Version.fromTriplet = function (t) {
     return va.every(function (a) { return typeof a !== 'undefined'; })
            ? new Version(va)
            : null;
-}
+};
 
 // Construct a Version object from a string containing a number or dotted
 // sequence of numbers. Return null if the string does not conform.
@@ -70,6 +70,6 @@ Version.max = function (a, b) {
 
 Version.prototype.eq = function (a) {
     return Version.cmp(this, a) === 0;
-}
+};
 
 module.exports = Version;
