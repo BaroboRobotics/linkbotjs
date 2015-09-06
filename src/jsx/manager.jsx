@@ -42,7 +42,7 @@ module.exports.moveRobot = function(from, to) {
 };
 
 module.exports.addRobot = function(id) {
-    if (typeof id == 'undefined' || id == null || id.length < 3) {
+    if (typeof id == 'undefined' || id == null || id.length < 3 || /[a|e|i|o|u|0]/gi.test(id)) {
         return;
     }
     var identifier = id.toUpperCase();
