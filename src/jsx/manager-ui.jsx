@@ -617,7 +617,7 @@ var RobotItem = React.createClass({
 
         return (
             <li {...this.props} style={style}>
-                <input type="color" className="ljs-color-btn" onInput={this.handleColorChange} value={this.state.color} />
+                <input type="color" className="ljs-color-btn" onInput={this.handleColorChange} onChange={this.handleColorChange} value={this.state.color} />
                 <span className="ljs-color-btn-title">color</span>
                 <span className="ljs-remove-btn" onClick={this.handleTrash}>trash</span>
                 <div className="ljs-slide-element" ref="slideElement" onClick={this.handleSlide}>

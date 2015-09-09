@@ -65,37 +65,70 @@ var asyncBaroboBridge = (function(main) {
 var process = module.exports = {};
 var queue = [];
 var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
 
 function drainQueue() {
     if (draining) {
         return;
     }
+    var timeout = setTimeout(cleanUpNextTick);
     draining = true;
-    var currentQueue;
+
     var len = queue.length;
     while(len) {
         currentQueue = queue;
         queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
+        while (++queueIndex < len) {
+            currentQueue[queueIndex].run();
         }
+        queueIndex = -1;
         len = queue.length;
     }
+    currentQueue = null;
     draining = false;
+    clearTimeout(timeout);
 }
+
 process.nextTick = function (fun) {
-    queue.push(fun);
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
     if (!draining) {
         setTimeout(drainQueue, 0);
     }
 };
 
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -19700,7 +19733,7 @@ var RobotItem = React.createClass({displayName: "RobotItem",
 
         return (
             React.createElement("li", React.__spread({},  this.props, {style: style}), 
-                React.createElement("input", {type: "color", className: "ljs-color-btn", onInput: this.handleColorChange, value: this.state.color}), 
+                React.createElement("input", {type: "color", className: "ljs-color-btn", onInput: this.handleColorChange, onChange: this.handleColorChange, value: this.state.color}), 
                 React.createElement("span", {className: "ljs-color-btn-title"}, "color"), 
                 React.createElement("span", {className: "ljs-remove-btn", onClick: this.handleTrash}, "trash"), 
                 React.createElement("div", {className: "ljs-slide-element", ref: "slideElement", onClick: this.handleSlide}, 
@@ -20718,6 +20751,36 @@ function findRobot(id) {
     return undefined;
 }
 
+function readRobotsFromConfig() {
+    var config = asyncBaroboBridge.configuration;
+    var bots = [];
+    if (!config) {
+        config = {robots:[]};
+    } else if (!config.hasOwnProperty('robots')) {
+        config.robots = [];
+    }
+    for (var i = 0; i < config.robots.length; i++) {
+        bots.push(new botlib.AsyncLinkbot(config.robots[i]));
+    }
+    return bots;
+}
+
+function writeRobotsToConfig(bots) {
+    var config = asyncBaroboBridge.configuration;
+    if (!config) {
+        config = {};
+    }
+    if (Array.isArray(bots)) {
+        config.robots = [];
+        for (var i = 0; i < bots.length; i++) {
+            config.robots.push(bots[i].id);
+        }
+        asyncBaroboBridge.configuration = config;
+    } else {
+        console.warn("Invalid robots array not writing to configuration");
+    }
+}
+
 function disconnectAll() {
     for (var i = 0; i < robots.length; i++) {
         robots[i].disconnect();
@@ -20725,10 +20788,12 @@ function disconnectAll() {
 }
 
 module.exports.moveRobot = function(from, to) {
+    robots.splice(to, 0, robots.splice(from, 1)[0]);
+    writeRobotsToConfig(robots);
+    events.trigger('changed', 3);
     storageLib.changePosition(from, to, function(success){
-        if (success) {
-            robots.splice(to, 0, robots.splice(from, 1)[0]);
-            events.trigger('changed', 3);
+        if (!success) {
+            console.warn("Unable to write to HTML5 storage");
         }
     });
     
@@ -20742,6 +20807,7 @@ module.exports.addRobot = function(id) {
     var robot = findRobot(identifier);
     if (!robot) {
         robots.push(new botlib.AsyncLinkbot(identifier));
+        writeRobotsToConfig(robots);
         storageLib.add(identifier, 0);
         events.trigger('changed', 1);
         asyncBaroboBridge.sendRobotPing([identifier], botlib.addGenericCallback());
@@ -20798,6 +20864,7 @@ module.exports.removeRobot = function(id) {
         robot.disconnect();
         index = robots.indexOf(robot);
         robots.splice(index, 1);
+        writeRobotsToConfig(robots);
         storageLib.remove(id, function(success) {
            if (success) {
                storageLib.updateOrder();
@@ -20890,15 +20957,30 @@ module.exports.setNavigationItems = function(items) {
     }
     events.trigger('navigation-changed', 1);
 };
-storageLib.getAll(function(bots) {
-    for (var i = 0; i < bots.length; i++) {
-        robots.push(new botlib.AsyncLinkbot(bots[i].name));
-    }
-    if (bots.length > 0) {
+/**
+ * Load Robots from Configuration or HTML5 Storage.
+ * setTimeout is used to execute the code after all the modules have loaded.
+ */
+setTimeout(function() {
+    robots = readRobotsFromConfig();
+    if (!robots || robots.length == 0) {
+        robots = [];
+        storageLib.getAll(function (bots) {
+            for (var i = 0; i < bots.length; i++) {
+                robots.push(new botlib.AsyncLinkbot(bots[i].name));
+            }
+            if (bots.length > 0) {
+                writeRobotsToConfig(robots);
+                refresh();
+                events.trigger('changed', 1);
+            }
+        });
+    } else {
         refresh();
         events.trigger('changed', 1);
     }
-});
+}, 1);
+
 
 // Dongle events of the same value may occur consecutively (i.e., two
 // dongleDowns in a row), so track the state and only perform actions on state
