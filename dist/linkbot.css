@@ -192,7 +192,7 @@ input[type=color] {
 }
 #ljs-left-menu-container .ljs-remove-btn, #ljs-left-menu-container .ljs-beep-btn, #ljs-left-menu-container .ljs-connect-btn,
     #ljs-left-menu-container .ljs-color-btn, #ljs-control-panel .ljs-remove-btn,
-    #ljs-control-panel .ljs-beep-btn, #ljs-control-panel .ljs-color-btn {
+    #ljs-control-panel .ljs-beep-btn, #ljs-control-panel .ljs-color-btn, #ljs-left-menu-container .ljs-update-btn {
     display: inline-block;
     padding-top: 40px;
     width: 30px;
@@ -204,6 +204,9 @@ input[type=color] {
 }
 #ljs-left-menu-container .ljs-connect-btn {
     background: transparent url('img/connect.png') no-repeat 6px 10px;
+}
+#ljs-left-menu-container .ljs-update-btn {
+    background: transparent url('img/update.png') no-repeat 6px 10px;
 }
 #ljs-left-menu-container .ljs-beep-btn, #ljs-control-panel .ljs-beep-btn {
     background: transparent url('img/beep.png') no-repeat 6px 10px;
@@ -218,7 +221,8 @@ input[type=color] {
     margin: -7px 30px 0 0;
     float: right;
 }
-#ljs-left-menu-container .ljs-slide-element .ljs-connect-btn {
+#ljs-left-menu-container .ljs-slide-element .ljs-connect-btn,
+#ljs-left-menu-container .ljs-slide-element .ljs-update-btn {
     margin: -7px 33px 0 0;
     float: right;
 }

@@ -18529,8 +18529,9 @@ function showDongleUpdateButton (explanation) {
 }
 
 // This function might be better inside the AsyncLinkbot object? Unsure.
-function showRobotUpdateButton (explanation, id) {
-    // TODO: display button to the user
+function showRobotUpdateButton (explanation, bot) {
+    bot.status = "update";
+    bot.event.trigger('changed');
     window.console.log(explanation);
 }
 
@@ -18577,15 +18578,16 @@ asyncBaroboBridge.robotEvent.connect(
         if (robot) {
             if (error.code == 0) {
                 var version = Version.fromTriplet(firmwareVersion);
+                robot.version = version;
                 if (version.eq(latestLocalFirmwareVersion)) {
                     robot.connect();
                 }
                 else {
-                    showRobotUpdateButton(id + "'s firmware must be updated.", id);
+                    showRobotUpdateButton(id + "'s firmware must be updated.", robot);
                 }
             }
             else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
-                showRobotUpdateButton(id + "'s firmware must be updated.", id);
+                showRobotUpdateButton(id + "'s firmware must be updated.", robot);
             }
             else {
                 window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
@@ -18687,13 +18689,14 @@ module.exports.startFirmwareUpdate = function() {
 
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var bot = this;
-    var statuses = {0:"offline", 1:"ready", 2:"acquired"};
+    var statuses = {0:"offline", 1:"ready", 2:"acquired", 3:"update"};
     var status = 0;
     var id = _id;
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
     var driveToValue = null;
     var driveToCalled = false;
+    var version = null;
     
     bot.enums = enumConstants;
     bot.latestLocalFirmwareVersion = latestLocalFirmwareVersion;
@@ -18714,12 +18717,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     function checkVersions(error, data) {
         if (0 === error.code) {
             var version = Version.fromTriplet(data);
+            var robot = manager.getRobot(id);
+            robot.version = version;
             window.console.log('checking version: ' + version);
             if (version.eq(latestLocalFirmwareVersion)) {
                 window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
             else {
-                showRobotUpdateButton(id + "'s firmware must be updated.", id);
+                showRobotUpdateButton(id + "'s firmware must be updated.", robot);
             }
         } else {
             window.console.warn('error occurred checking firmware version [' + error.category + '] :: ' + error.message);
@@ -18738,6 +18743,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.__defineGetter__("status", function(){
         return statuses[status];
     });
+    bot.__defineSetter__("version", function(value) {
+        version = value;
+    });
+    bot.__defineGetter__("version", function() {
+        return version;
+    });
     bot.__defineSetter__("status", function(val) {
         if (val === "ready") {
             status = 1;
@@ -18745,6 +18756,8 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             status = 0;
         } else if (val === "acquired") {
             status = 2;
+        } else if (val === "update") {
+            status = 3;
         }
         bot.event.trigger('changed');
     });
@@ -18776,7 +18789,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         
     };
     bot.color = function(r, g, b) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.setLedColor(id, token, r, g, b);
             bot.event.trigger('changed');
@@ -18789,28 +18802,28 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         if (s3 === null) {
             s3 = s1;
         }
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.setJointSpeeds(id, token, 7, s1, s2, s3);
         }
     };
 
     bot.move = function(r1, r2, r3) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.move(id, token, 7, r1, r2, r3);
         }
     };
 
     bot.moveTo = function(r1, r2, r3) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveTo(id, token, 7, r1, r2, r3);
         }
     };
 
     bot.moveToOneMotor = function(joint, position) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             var mask = 0;
             if (joint === 0) {
@@ -18825,14 +18838,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.drive = function(r1, r2, r3) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.drive(id, token, 7, r1, r2, r3);
         }
     };
 
     bot.driveTo = function(r1, r2, r3) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             if (driveToCalled) {
                 driveToValue = [r1, r2, r3];
             } else {
@@ -18846,7 +18859,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.moveForward = function() {
         joinDirection[0] = 1;
         joinDirection[2] = -1;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
@@ -18854,7 +18867,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.moveBackward = function() {
         joinDirection[0] = -1;
         joinDirection[2] = 1;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
@@ -18862,7 +18875,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.moveLeft = function() {
         joinDirection[0] = -1;
         joinDirection[2] = -1;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
@@ -18870,7 +18883,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.moveRight = function() {
         joinDirection[0] = 1;
         joinDirection[2] = 1;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
@@ -18889,7 +18902,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 asyncBaroboBridge.stop(id, token, (1 << joint));
                 return true;
             }
-            if (status != 0) {
+            if (status != 0 && status != 3) {
                 token = addGenericCallback();
                 if (joint === 0) {
                     mask = 1;
@@ -18905,7 +18918,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         return false;
     };
     bot.wheelPositions = function(callback) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addCallback(function(error, data) {
                 if (error.code == 0) {
                     callback(data);
@@ -18919,7 +18932,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.getJointSpeeds = function(callback) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addCallback(function(error, data) {
                 if (error.code == 0) {
                     callback(data);
@@ -18934,14 +18947,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.stop = function() {
         joinDirection[0] = 0;
         joinDirection[2] = 0;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.stop(id, token);
         }
     };
 
     bot.buzzerFrequency = function(freq) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.setBuzzerFrequency(id, token, freq);
         }
@@ -18965,7 +18978,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.getFormFactor = function(callback) {
-        if (status != 0 && callback) {
+        if (status != 0 && status != 3  && callback) {
             var token = addCallback(function(error, data) {
                 if (error.code == 0) {
                     callback(data);
@@ -19004,10 +19017,10 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                          || errorEq(error, 'rpc', 'PROTOCOL_ERROR')
                          || errorEq(error, 'rpc', 'INTERFACE_ERROR')) {
                     showRobotUpdateButton("We are unable to communicate with " + id
-                        + ". It may need a firmware update.", id);
+                        + ". It may need a firmware update.", bot);
                 }
                 else if (errorEq(error, 'rpc', 'VERSION_MISMATCH')) {
-                    showRobotUpdateButton(id + "'s firmware must be updated.", id);
+                    showRobotUpdateButton(id + "'s firmware must be updated.", bot);
                 }
                 else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
@@ -19034,7 +19047,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     // This is a deprecated method.
     bot.register = function(connections) {
         var obj, token;
-        if (status == 0 || typeof(connections) == 'undefined') {
+        if (status == 0 || status == 3 || typeof(connections) == 'undefined') {
             return;
         }
         if (connections.hasOwnProperty('button')) {
@@ -19819,9 +19832,15 @@ var RobotItem = React.createClass({displayName: "RobotItem",
         e.stopPropagation();
         if (me.props.linkbot.status == "offline") {
             uiEvents.trigger('show-full-spinner');
-            me.props.linkbot.connect(function(error) {
-               uiEvents.trigger('hide-full-spinner');
+            me.props.linkbot.connect(function (error) {
+                uiEvents.trigger('hide-full-spinner');
             });
+        } else if (me.props.linkbot.status == "update") {
+            uiEvents.trigger('show-full-spinner');
+            setTimeout(function() {
+                linkbotLib.startFirmwareUpdate();
+                uiEvents.trigger('hide-full-spinner');
+            }, 500);
         } else {
             me.props.linkbot.buzzerFrequency(500);
             setTimeout(function () {
@@ -19840,10 +19859,20 @@ var RobotItem = React.createClass({displayName: "RobotItem",
         };
         var buttonClass = "ljs-beep-btn";
         var buttonName = "beep";
+        var statusLbl = this.props.linkbot.status;
         if (this.props.linkbot.status === 'offline') {
             buttonClass = "ljs-connect-btn";
             buttonName = "connect";
+        } else if (this.props.linkbot.status === 'update') {
+            buttonClass = "ljs-update-btn";
+            buttonName = "update";
+            if (this.props.linkbot.version && this.props.linkbot.version != null) {
+                statusLbl = "offline [" + this.props.linkbot.version.toString() + "]";
+            } else {
+                statusLbl = "offline";
+            }
         }
+
 
         return (
             React.createElement("li", React.__spread({},  this.props, {style: style}), 
@@ -19854,7 +19883,7 @@ var RobotItem = React.createClass({displayName: "RobotItem",
                     React.createElement("span", {className: "ljs-robot-name"}, "Linkbot ", this.props.linkbot.id), 
                     React.createElement("span", {className: buttonClass, onClick: this.handleBeep}, buttonName), 
                     React.createElement("br", null), 
-                    React.createElement("span", null, this.props.linkbot.status)
+                    React.createElement("span", null, statusLbl)
                     
                 )
             )
@@ -20146,7 +20175,7 @@ var ControlPanel = React.createClass({displayName: "ControlPanel",
             this.state.linkbot.unregister(false);
         }
 
-        if (linkbot.status == "offline") {
+        if (linkbot.status == "offline" || linkbot.status == "update") {
             uiEvents.trigger('hide-control-panel');
             return;
         }

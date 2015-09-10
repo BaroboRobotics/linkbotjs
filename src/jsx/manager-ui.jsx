@@ -589,9 +589,15 @@ var RobotItem = React.createClass({
         e.stopPropagation();
         if (me.props.linkbot.status == "offline") {
             uiEvents.trigger('show-full-spinner');
-            me.props.linkbot.connect(function(error) {
-               uiEvents.trigger('hide-full-spinner');
+            me.props.linkbot.connect(function (error) {
+                uiEvents.trigger('hide-full-spinner');
             });
+        } else if (me.props.linkbot.status == "update") {
+            uiEvents.trigger('show-full-spinner');
+            setTimeout(function() {
+                linkbotLib.startFirmwareUpdate();
+                uiEvents.trigger('hide-full-spinner');
+            }, 500);
         } else {
             me.props.linkbot.buzzerFrequency(500);
             setTimeout(function () {
@@ -610,10 +616,20 @@ var RobotItem = React.createClass({
         };
         var buttonClass = "ljs-beep-btn";
         var buttonName = "beep";
+        var statusLbl = this.props.linkbot.status;
         if (this.props.linkbot.status === 'offline') {
             buttonClass = "ljs-connect-btn";
             buttonName = "connect";
+        } else if (this.props.linkbot.status === 'update') {
+            buttonClass = "ljs-update-btn";
+            buttonName = "update";
+            if (this.props.linkbot.version && this.props.linkbot.version != null) {
+                statusLbl = "offline [" + this.props.linkbot.version.toString() + "]";
+            } else {
+                statusLbl = "offline";
+            }
         }
+
 
         return (
             <li {...this.props} style={style}>
@@ -624,7 +640,7 @@ var RobotItem = React.createClass({
                     <span className="ljs-robot-name">Linkbot {this.props.linkbot.id}</span>
                     <span className={buttonClass} onClick={this.handleBeep}>{buttonName}</span>
                     <br />
-                    <span>{this.props.linkbot.status}</span>
+                    <span>{statusLbl}</span>
                     
                 </div>
             </li>
@@ -916,7 +932,7 @@ var ControlPanel = React.createClass({
             this.state.linkbot.unregister(false);
         }
 
-        if (linkbot.status == "offline") {
+        if (linkbot.status == "offline" || linkbot.status == "update") {
             uiEvents.trigger('hide-control-panel');
             return;
         }
