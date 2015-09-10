@@ -2,9 +2,9 @@
 
 var eventlib = require('./event.jsx');
 var manager = require('./manager.jsx');
+var firmware = require('./firmware.jsx');
+var Version = require('./version.jsx');
 
-
-var firmwareVersions = asyncBaroboBridge.availableFirmwareVersions();
 var enumConstants = asyncBaroboBridge.enumerationConstants();
 var requestId = 0;
 var callbacks = {};
@@ -12,6 +12,11 @@ var buttonEventCallbacks = {};
 var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
 var jointEventCallbacks = {};
+
+
+// Find the latest version of the firmware among all the firmware files.
+var latestLocalFirmwareVersion = firmware.localVersionList()
+                                         .reduce(Version.max);
 
 function addCallback (func) {
     var token = requestId++;
@@ -39,22 +44,91 @@ asyncBaroboBridge.requestComplete.connect(
         }
     }
 );
+
+// Dongle events of the same value may occur consecutively (i.e., two
+// dongleDowns in a row), so track the state and only perform actions on state
+// changes.
+var dongleEventFilter = (function () {
+    var lastStatus = null;
+    return function (status) {
+        if (!lastStatus || lastStatus !== status) {
+            lastStatus = status;
+            manager.event.trigger(status);
+        }
+    };
+})();
+
+function showDongleUpdateButton (explanation) {
+    // TODO: display button to the user
+    window.console.log(explanation);
+}
+
+// This function might be better inside the AsyncLinkbot object? Unsure.
+function showRobotUpdateButton (explanation, id) {
+    // TODO: display button to the user
+    window.console.log(explanation);
+}
+
+// True if the error object e represents a particular error, given the error's
+// category and code in string form.
+function errorEq(e, category, code) {
+    return e.category === category
+        && e.code === enums.ErrorCategories[category][code];
+}
+
 asyncBaroboBridge.dongleEvent.connect(
     function (error, firmwareVersion) {
         if (error.code == 0) {
-            // TODO: Check firmwareVersion, trigger dongleUp if it matches. If
-            // the firmware should be updated, prompt the user.
-            window.console.log('Dongle firmware version ', firmwareVersion);
-            manager.event.trigger('dongleUp');
+            var version = Version.fromTriplet(firmwareVersion);
+            if (version.eq(latestLocalFirmwareVersion)) {
+                window.console.log('Dongle firmware version ', firmwareVersion);
+                dongleEventFilter('dongleUp');
+            }
+            else {
+                dongleEventFilter('dongleDown');
+                showDongleUpdateButton("The dongle's firmware must be updated.");
+            }
         } else {
-            // TODO: Prompt user to update firmware on certain errors. Note that
-            // we'll need to move the only-fire-dongleDown-once logic from manager.jsx
-            // to here.
-            manager.event.trigger('dongleDown');
-            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            dongleEventFilter('dongleDown');
+            if (errorEq(error, 'baromesh', 'STRANGE_DONGLE')) {
+                showDongleUpdateButton("A dongle is plugged in, but we are unable "
+                    + "to communicate with it. "
+                    + "You may need to update its firmware.");
+            }
+            else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
+                showDongleUpdateButton("The dongle's firmware must be updated.");
+            }
+            else {
+                window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            }
         }
     }
 );
+
+asyncBaroboBridge.robotEvent.connect(
+    function(error, id, firmwareVersion) {
+        console.log('robot event triggered with ID: ' + id + ' and version: ', firmwareVersion);
+        var robot = manager.getRobot(id);
+        if (robot) {
+            if (error.code == 0) {
+                var version = Version.fromTriplet(firmwareVersion);
+                if (version.eq(latestLocalFirmwareVersion)) {
+                    robot.connect();
+                }
+                else {
+                    showRobotUpdateButton(id + "'s firmware must be updated.", id);
+                }
+            }
+            else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
+                showRobotUpdateButton(id + "'s firmware must be updated.", id);
+            }
+            else {
+                window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            }
+        }
+    }
+);
+
 asyncBaroboBridge.buttonEvent.connect(
     function(id, buttonNumber, eventType, timestamp) {
         // TODO implement this.
@@ -157,7 +231,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var driveToCalled = false;
     
     bot.enums = enumConstants;
-    bot.firmwareVerions = firmwareVersions;
+    bot.latestLocalFirmwareVersion = latestLocalFirmwareVersion;
 
     function driveToCallback(error) {
         driveToCalled = false;
@@ -174,18 +248,13 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     
     function checkVersions(error, data) {
         if (0 === error.code) {
-            var valid = false, i = 0, version = "0.0.0";
-            version = 'v' + data.major + '.' + data.minor + '.' + data.patch;
+            var version = Version.fromTriplet(data);
             window.console.log('checking version: ' + version);
-            for (i = 0; i < firmwareVersions.length; i++) {
-                if (version === firmwareVersions[i]) {
-                    window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
-                    valid = true;
-                    break;
-                }
+            if (version.eq(latestLocalFirmwareVersion)) {
+                window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
-            if (!valid && window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
-                document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
+            else {
+                showRobotUpdateButton(id + "'s firmware must be updated.", id);
             }
         } else {
             window.console.warn('error occurred checking firmware version [' + error.category + '] :: ' + error.message);
@@ -465,7 +534,17 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                                  ? "acquired" : "ready";
                     bot.event.trigger('changed');
                     asyncBaroboBridge.getVersions(id, addCallback(checkVersions));
-                } else {
+                }
+                else if (errorEq(error, 'rpc', 'DECODING_FAILURE')
+                         || errorEq(error, 'rpc', 'PROTOCOL_ERROR')
+                         || errorEq(error, 'rpc', 'INTERFACE_ERROR')) {
+                    showRobotUpdateButton("We are unable to communicate with " + id
+                        + ". It may need a firmware update.", id);
+                }
+                else if (errorEq(error, 'rpc', 'VERSION_MISMATCH')) {
+                    showRobotUpdateButton(id + "'s firmware must be updated.", id);
+                }
+                else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
                 }
                 if (callback) {

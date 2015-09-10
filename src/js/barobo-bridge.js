@@ -7,7 +7,7 @@ var asyncBaroboBridge = (function(main) {
         return main.asyncBaroboBridge;
     } else {
         var _i, _j, _len, _len1, obj, signals, methods, k;
-        methods = ['availableFirmwareVersions', 'connectRobot', 'disconnectRobot',
+        methods = ['listFirmwareFiles', 'connectRobot', 'disconnectRobot',
             'getAccelerometer', 'getFormFactor', 'getJointAngles', 'getJointSpeeds', 'getJointStates',
             'getLedColor', 'getVersions', 'resetEncoderRevs', 'setBuzzerFrequency', 'setJointSpeeds',
             'setJointStates', 'setLedColor', 'move', 'moveContinuous', 'moveTo', 'drive', 'driveTo',
@@ -43,6 +43,9 @@ var asyncBaroboBridge = (function(main) {
                 FormFactor: {I:0, L: 1, T: 2},
                 JointState: {FAIL: 3, HOLD: 1, MOVING: 2, STOP: 0}
             };
+        };
+        obj.listFirmwareFiles = function() {
+            return ["v4.4.6.eeprom", "v4.4.6.hex"];
         };
         /*
         obj.getLEDColor = function(id) {
