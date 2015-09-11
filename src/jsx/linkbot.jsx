@@ -75,7 +75,7 @@ function showRobotUpdateButton (explanation, bot) {
 // category and code in string form.
 function errorEq(e, category, code) {
     return e.category === category
-        && e.code === enums.ErrorCategories[category][code];
+        && e.code === enumConstants.ErrorCategories[category][code];
 }
 
 asyncBaroboBridge.dongleEvent.connect(
