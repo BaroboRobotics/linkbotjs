@@ -26,11 +26,11 @@ input[type=color] {
     z-index: 1000;
     background-color: transparent;
     width: 296px;
-    height: 100%;
     font-size: 14px;
     float: left;
-    position: fixed;
+    position: absolute;
     top: 75px;
+    bottom: 0;
     line-height: 1.42857143;
     left: -265px;
     -webkit-transition: left .5s ease;
@@ -49,22 +49,19 @@ input[type=color] {
 }
 #ljs-left-menu-container .ljs-content {
     background: #393939 url('img/robomgr-background.png') repeat-y right top;
-    height: 100%;
     width: 270px;
+    min-height: 100%;
 }
 /**
  * Left Menu Handle.
  */
 #ljs-left-menu-container .ljs-handle {
     float: right;
-    position: relative;
-    top: 30%;
-    right: 0;
     height: 161px;
     width: 31px;
     background-color: transparent;
     padding: 0;
-    margin: 0;
+    margin: 60% 0 0;
 }
 
 #ljs-left-menu-container .ljs-handlebtn {
@@ -136,11 +133,9 @@ input[type=color] {
  */
 #ljs-left-menu-container ol {
     padding-left: 0;
-    margin-bottom: 20px;
+    margin-bottom: 55px;
     margin-top: 0;
     width: 265px;
-    min-height: 230px;
-    height: 75%;
 }
 #ljs-left-menu-container ol li {
     position: relative;
@@ -507,7 +502,7 @@ span.ljs-margin-left {
     background-color: #2d2c2c;
     color: #2da7ca;
     height: 75px;
-    z-index: 100;
+    z-index: 1001;
 }
 
 #ljs-top-navigation .ljs-top-nav-info {
@@ -569,9 +564,10 @@ span.ljs-margin-left {
 }
 
 .ljs-firmware-update {
-    bottom: 100px;
-    position: absolute;
-    left: 45px;
+    bottom: 10px;
+    position: relative;
+    text-align: center;
+    width: 265px;
 }
 ul.ljs-top-nav-breadcrumbs {
     list-style: none;
