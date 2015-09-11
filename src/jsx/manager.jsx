@@ -259,13 +259,15 @@ setTimeout(function() {
 
 events.on('dongleUp', function() {
     refresh();
+    managerUi.uiEvents.trigger('hide-dongle-update');
 });
 
 events.on('dongleDown', function() {
     disconnectAll();
+    managerUi.uiEvents.trigger('hide-dongle-update');
 });
 events.on('dongleUpdate', function(data) {
-   managerUi.uiEvents.trigger('show-dongle-update', data);
+    managerUi.uiEvents.trigger('show-dongle-update', data);
 });
 
 asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {

@@ -775,6 +775,9 @@ var RobotManagerSideMenu = React.createClass({
             // Eventually we can use the data passed in to set the message.
             me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware';
         });
+        uiEvents.on('hide-dongle-update', function() {
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware ljs-hidden';
+        });
     },
     hideMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-right';
