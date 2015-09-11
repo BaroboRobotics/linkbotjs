@@ -264,6 +264,9 @@ events.on('dongleUp', function() {
 events.on('dongleDown', function() {
     disconnectAll();
 });
+events.on('dongleUpdate', function(data) {
+   managerUi.uiEvents.trigger('show-dongle-update', data);
+});
 
 asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
     console.log('disconnect robot triggered with ID: ' + id + ' and timestamp: ' + timestamp);

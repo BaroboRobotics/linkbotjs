@@ -68,70 +68,37 @@ var asyncBaroboBridge = (function(main) {
 var process = module.exports = {};
 var queue = [];
 var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
 
 function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = setTimeout(cleanUpNextTick);
     draining = true;
-
+    var currentQueue;
     var len = queue.length;
     while(len) {
         currentQueue = queue;
         queue = [];
-        while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+        var i = -1;
+        while (++i < len) {
+            currentQueue[i]();
         }
-        queueIndex = -1;
         len = queue.length;
     }
-    currentQueue = null;
     draining = false;
-    clearTimeout(timeout);
 }
-
 process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
+    queue.push(fun);
     if (!draining) {
         setTimeout(drainQueue, 0);
     }
 };
 
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
 
 function noop() {}
 
@@ -18558,6 +18525,7 @@ var dongleEventFilter = (function () {
 
 function showDongleUpdateButton (explanation) {
     // TODO: display button to the user
+    manager.event.trigger("dongleUpdate", explanation);
     window.console.log(explanation);
 }
 
@@ -20047,6 +20015,10 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
             me.showMenu();
             manager.refresh();
         });
+        uiEvents.on('show-dongle-update', function(data) {
+            // Eventually we can use the data passed in to set the message.
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware';
+        });
     },
     hideMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-right';
@@ -20070,11 +20042,13 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
         }
     },
     handleFirmwareUpdate: function(e) {
+        var me = this;
         e.preventDefault();
         uiEvents.trigger('show-full-spinner');
         setTimeout(function() {
             linkbotLib.startFirmwareUpdate();
             uiEvents.trigger('hide-full-spinner');
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware ljs-hidden';
         }, 500);
     },
     render: function() {
@@ -20086,8 +20060,9 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
                 React.createElement("div", {className: "ljs-content"}, 
                     React.createElement(AddRobotForm, null), 
                     this.props.children, 
-                    React.createElement("div", {className: "ljs-firmware-update"}, 
-                        React.createElement("button", {onClick: this.handleFirmwareUpdate, className: "ljs-btn"}, "Start Firmware Updater")
+                    React.createElement("div", {className: "ljs-dongle-firmware ljs-hidden", ref: "dongleUpdate"}, 
+                        React.createElement("span", {className: "button", onClick: this.handleFirmwareUpdate}), 
+                        React.createElement("p", null, "The dongle's firmware must be updated.")
                     )
                 )
             )
@@ -20828,6 +20803,17 @@ var HelpDialog = React.createClass({displayName: "HelpDialog",
             });
         });
     },
+    handleFirmware: function(e) {
+        e.stopPropagation();
+        this.setState({
+            show: false
+        });
+        uiEvents.trigger('show-full-spinner');
+        setTimeout(function() {
+            linkbotLib.startFirmwareUpdate();
+            uiEvents.trigger('hide-full-spinner');
+        }, 500);
+    },
     handleClick: function(e) {
         e.stopPropagation();
     },
@@ -20861,7 +20847,8 @@ var HelpDialog = React.createClass({displayName: "HelpDialog",
                                 React.createElement("ul", null, 
                                     React.createElement("li", null, React.createElement("a", {href: "http://wiki.linkbotlabs.com/wiki/Troubleshooting"}, "FAQ / Wiki")), 
                                     React.createElement("li", null, React.createElement("a", {href: "http://www.barobo.com/forums/forum/troubleshootinghelp/"}, "Help / Forums")), 
-                                    React.createElement("li", null, React.createElement("a", {href: "https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form"}, "Bug Report"))
+                                    React.createElement("li", null, React.createElement("a", {href: "https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form"}, "Bug Report")), 
+                                    React.createElement("li", null, React.createElement("a", {href: "javascript:;", onClick: this.handleFirmware}, "Start Firmware Updater"))
                                 )
                             ), 
                             React.createElement("div", {className: "ljs-modal-footer"}, 
@@ -21165,6 +21152,9 @@ events.on('dongleUp', function() {
 
 events.on('dongleDown', function() {
     disconnectAll();
+});
+events.on('dongleUpdate', function(data) {
+   managerUi.uiEvents.trigger('show-dongle-update', data);
 });
 
 asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {

@@ -60,6 +60,7 @@ var dongleEventFilter = (function () {
 
 function showDongleUpdateButton (explanation) {
     // TODO: display button to the user
+    manager.event.trigger("dongleUpdate", explanation);
     window.console.log(explanation);
 }
 

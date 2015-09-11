@@ -771,6 +771,10 @@ var RobotManagerSideMenu = React.createClass({
             me.showMenu();
             manager.refresh();
         });
+        uiEvents.on('show-dongle-update', function(data) {
+            // Eventually we can use the data passed in to set the message.
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware';
+        });
     },
     hideMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-right';
@@ -794,11 +798,13 @@ var RobotManagerSideMenu = React.createClass({
         }
     },
     handleFirmwareUpdate: function(e) {
+        var me = this;
         e.preventDefault();
         uiEvents.trigger('show-full-spinner');
         setTimeout(function() {
             linkbotLib.startFirmwareUpdate();
             uiEvents.trigger('hide-full-spinner');
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware ljs-hidden';
         }, 500);
     },
     render: function() {
@@ -810,8 +816,9 @@ var RobotManagerSideMenu = React.createClass({
                 <div className="ljs-content">
                     <AddRobotForm />
                     {this.props.children}
-                    <div className="ljs-firmware-update">
-                        <button onClick={this.handleFirmwareUpdate} className="ljs-btn">Start Firmware Updater</button>
+                    <div className="ljs-dongle-firmware ljs-hidden" ref="dongleUpdate">
+                        <span className="button" onClick={this.handleFirmwareUpdate}></span>
+                        <p>The dongle's firmware must be updated.</p>
                     </div>
                 </div>
             </div>
@@ -1552,6 +1559,17 @@ var HelpDialog = React.createClass({
             });
         });
     },
+    handleFirmware: function(e) {
+        e.stopPropagation();
+        this.setState({
+            show: false
+        });
+        uiEvents.trigger('show-full-spinner');
+        setTimeout(function() {
+            linkbotLib.startFirmwareUpdate();
+            uiEvents.trigger('hide-full-spinner');
+        }, 500);
+    },
     handleClick: function(e) {
         e.stopPropagation();
     },
@@ -1586,6 +1604,7 @@ var HelpDialog = React.createClass({
                                     <li><a href="http://wiki.linkbotlabs.com/wiki/Troubleshooting">FAQ / Wiki</a></li>
                                     <li><a href="http://www.barobo.com/forums/forum/troubleshootinghelp/">Help / Forums</a></li>
                                     <li><a href="https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form">Bug Report</a></li>
+                                    <li><a href="javascript:;" onClick={this.handleFirmware}>Start Firmware Updater</a></li>
                                 </ul>
                             </div>
                             <div className="ljs-modal-footer">
