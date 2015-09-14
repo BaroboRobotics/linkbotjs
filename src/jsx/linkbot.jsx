@@ -50,19 +50,13 @@ asyncBaroboBridge.requestComplete.connect(
 // changes.
 var dongleEventFilter = (function () {
     var lastStatus = null;
-    return function (status) {
+    return function (status, data) {
         if (!lastStatus || lastStatus !== status) {
             lastStatus = status;
-            manager.event.trigger(status);
+            manager.event.trigger(status, data);
         }
     };
 })();
-
-function showDongleUpdateButton (explanation) {
-    // TODO: display button to the user
-    manager.event.trigger("dongleUpdate", explanation);
-    window.console.log(explanation);
-}
 
 // This function might be better inside the AsyncLinkbot object? Unsure.
 function showRobotUpdateButton (explanation, bot) {
@@ -87,20 +81,19 @@ asyncBaroboBridge.dongleEvent.connect(
                 dongleEventFilter('dongleUp');
             }
             else {
-                dongleEventFilter('dongleDown');
-                showDongleUpdateButton("The dongle's firmware must be updated.");
+                dongleEventFilter('dongleUpdate', "The dongle's firmware must be updated.");
             }
         } else {
-            dongleEventFilter('dongleDown');
             if (errorEq(error, 'baromesh', 'STRANGE_DONGLE')) {
-                showDongleUpdateButton("A dongle is plugged in, but we are unable "
+                dongleEventFilter('dongleUpdate', "A dongle is plugged in, but we are unable "
                     + "to communicate with it. "
                     + "You may need to update its firmware.");
             }
             else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
-                showDongleUpdateButton("The dongle's firmware must be updated.");
+                dongleEventFilter('dongleUpdate', "The dongle's firmware must be updated.");
             }
             else {
+                dongleEventFilter('dongleDown');
                 window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
             }
         }
