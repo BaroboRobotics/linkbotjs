@@ -759,6 +759,10 @@ var Robots = React.createClass({
 });
 
 var RobotManagerSideMenu = React.createClass({
+    handleResize: function() {
+        this.refs.container.getDOMNode().style.height = '';
+        this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
+    },
     componentWillMount: function() {
         var me = this;
         uiEvents.on('hide', function() {
@@ -775,16 +779,24 @@ var RobotManagerSideMenu = React.createClass({
             // Eventually we can use the data passed in to set the message.
             me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware';
         });
+        window.addEventListener('resize', this.handleResize);
+    },
+    componentWillUnmount: function() {
+        window.removeEventListener('resize', this.handleResize);
     },
     hideMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-right';
         this.refs.container.getDOMNode().className = '';
         document.body.style.marginLeft = '';
+        this.refs.container.getDOMNode().style.height = '';
+        this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
     },
     showMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-left';
         this.refs.container.getDOMNode().className = 'ljs-open';
         document.body.style.marginLeft = '300px';
+        this.refs.container.getDOMNode().style.height = '';
+        this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
     },
     handleSlide: function(e) {
         e.preventDefault();
@@ -808,18 +820,19 @@ var RobotManagerSideMenu = React.createClass({
         }, 500);
     },
     render: function() {
+        var style = { height: (document.body.scrollHeight - 75) + "px"};
         return (
-            <div id="ljs-left-menu-container" ref="container">
+            <div id="ljs-left-menu-container" style={style} ref="container">
                 <div className="ljs-handle">
                     <span onClick={this.handleSlide} className="ljs-handlebtn ljs-handlebtn-right" ref="slideBtn"></span>
                 </div>
                 <div className="ljs-content">
                     <AddRobotForm />
-                    {this.props.children}
                     <div className="ljs-dongle-firmware ljs-hidden" ref="dongleUpdate">
                         <span className="button" onClick={this.handleFirmwareUpdate}></span>
                         <p>The dongle's firmware must be updated.</p>
                     </div>
+                    {this.props.children}
                 </div>
             </div>
         );
@@ -946,6 +959,13 @@ var ControlPanel = React.createClass({
 
         this.refs.overlay.getDOMNode().style.display = 'block';
         this.refs.controlPanel.getDOMNode().style.display = 'block';
+        if (window.innerHeight <= 675) {
+            this.refs.controlPanel.getDOMNode().style.top = document.body.scrollTop + "px";
+        } else if (document.body.scrollTop > 75) {
+            this.refs.controlPanel.getDOMNode().style.top = document.body.scrollTop + "px";
+        } else {
+            this.refs.controlPanel.getDOMNode().style.top = 75 + "px";
+        }
         direction = [0, 0, 0];
         linkbot.getFormFactor(function(data) {
             if (linkbot.enums.FormFactor.I == data) {
