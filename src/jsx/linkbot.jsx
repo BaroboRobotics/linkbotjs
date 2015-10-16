@@ -13,11 +13,6 @@ var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
 var jointEventCallbacks = {};
 
-
-// Find the latest version of the firmware among all the firmware files.
-var latestLocalFirmwareVersion = firmware.localVersionList()
-                                         .reduce(Version.max);
-
 function addCallback (func) {
     var token = requestId++;
     callbacks[token] = func;
@@ -76,7 +71,7 @@ asyncBaroboBridge.dongleEvent.connect(
     function (error, firmwareVersion) {
         if (error.code == 0) {
             var version = Version.fromTriplet(firmwareVersion);
-            if (version.eq(latestLocalFirmwareVersion)) {
+            if (version.eq(firmware.latestVersion())) {
                 window.console.log('Dongle firmware version ', firmwareVersion);
                 dongleEventFilter('dongleUp');
             }
@@ -108,7 +103,7 @@ asyncBaroboBridge.robotEvent.connect(
             if (error.code == 0) {
                 var version = Version.fromTriplet(firmwareVersion);
                 robot.version = version;
-                if (version.eq(latestLocalFirmwareVersion)) {
+                if (version.eq(firmware.latestVersion())) {
                     robot.connect();
                 }
                 else {
@@ -228,7 +223,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var version = null;
     
     bot.enums = enumConstants;
-    bot.latestLocalFirmwareVersion = latestLocalFirmwareVersion;
 
     function driveToCallback(error) {
         driveToCalled = false;
@@ -249,7 +243,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             var robot = manager.getRobot(id);
             robot.version = version;
             window.console.log('checking version: ' + version);
-            if (version.eq(latestLocalFirmwareVersion)) {
+            if (version.eq(firmware.latestVersion())) {
                 window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
             else {

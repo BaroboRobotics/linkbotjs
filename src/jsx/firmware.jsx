@@ -60,4 +60,16 @@ function localVersionList () {
         .filter(Boolean);
 }
 
-module.exports.localVersionList = localVersionList;
+function latestVersion () {
+    return localVersionList().reduce(Version.max);
+}
+
+function startUpdater () {
+    var version = latestVersion();
+    var hexFile = 'v' + version + '.hex';
+    var eepromFile = 'v' + version + '.eeprom';
+    asyncBaroboBridge.firmwareUpdate(version, hexFile, eepromFile);
+}
+
+module.exports.latestVersion = latestVersion;
+module.exports.startUpdater = startUpdater;
