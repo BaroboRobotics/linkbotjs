@@ -68,37 +68,70 @@ var asyncBaroboBridge = (function(main) {
 var process = module.exports = {};
 var queue = [];
 var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
 
 function drainQueue() {
     if (draining) {
         return;
     }
+    var timeout = setTimeout(cleanUpNextTick);
     draining = true;
-    var currentQueue;
+
     var len = queue.length;
     while(len) {
         currentQueue = queue;
         queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
+        while (++queueIndex < len) {
+            currentQueue[queueIndex].run();
         }
+        queueIndex = -1;
         len = queue.length;
     }
+    currentQueue = null;
     draining = false;
+    clearTimeout(timeout);
 }
+
 process.nextTick = function (fun) {
-    queue.push(fun);
-    if (!draining) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
         setTimeout(drainQueue, 0);
     }
 };
 
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -18460,8 +18493,19 @@ function localVersionList () {
         .filter(Boolean);
 }
 
-module.exports.localVersionList = localVersionList;
+function latestVersion () {
+    return localVersionList().reduce(Version.max);
+}
 
+function startUpdater () {
+    var version = latestVersion();
+    var hexFile = 'v' + version + '.hex';
+    var eepromFile = 'v' + version + '.eeprom';
+    asyncBaroboBridge.firmwareUpdate(version, hexFile, eepromFile);
+}
+
+module.exports.latestVersion = latestVersion;
+module.exports.startUpdater = startUpdater;
 },{"./version.jsx":155}],150:[function(require,module,exports){
 "use strict";
 
@@ -18477,11 +18521,6 @@ var buttonEventCallbacks = {};
 var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
 var jointEventCallbacks = {};
-
-
-// Find the latest version of the firmware among all the firmware files.
-var latestLocalFirmwareVersion = firmware.localVersionList()
-                                         .reduce(Version.max);
 
 function addCallback (func) {
     var token = requestId++;
@@ -18515,19 +18554,13 @@ asyncBaroboBridge.requestComplete.connect(
 // changes.
 var dongleEventFilter = (function () {
     var lastStatus = null;
-    return function (status) {
+    return function (status, data) {
         if (!lastStatus || lastStatus !== status) {
             lastStatus = status;
-            manager.event.trigger(status);
+            manager.event.trigger(status, data);
         }
     };
 })();
-
-function showDongleUpdateButton (explanation) {
-    // TODO: display button to the user
-    manager.event.trigger("dongleUpdate", explanation);
-    window.console.log(explanation);
-}
 
 // This function might be better inside the AsyncLinkbot object? Unsure.
 function showRobotUpdateButton (explanation, bot) {
@@ -18547,25 +18580,24 @@ asyncBaroboBridge.dongleEvent.connect(
     function (error, firmwareVersion) {
         if (error.code == 0) {
             var version = Version.fromTriplet(firmwareVersion);
-            if (version.eq(latestLocalFirmwareVersion)) {
+            if (version.eq(firmware.latestVersion())) {
                 window.console.log('Dongle firmware version ', firmwareVersion);
                 dongleEventFilter('dongleUp');
             }
             else {
-                dongleEventFilter('dongleDown');
-                showDongleUpdateButton("The dongle's firmware must be updated.");
+                dongleEventFilter('dongleUpdate', "The dongle's firmware must be updated.");
             }
         } else {
-            dongleEventFilter('dongleDown');
             if (errorEq(error, 'baromesh', 'STRANGE_DONGLE')) {
-                showDongleUpdateButton("A dongle is plugged in, but we are unable "
+                dongleEventFilter('dongleUpdate', "A dongle is plugged in, but we are unable "
                     + "to communicate with it. "
                     + "You may need to update its firmware.");
             }
             else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
-                showDongleUpdateButton("The dongle's firmware must be updated.");
+                dongleEventFilter('dongleUpdate', "The dongle's firmware must be updated.");
             }
             else {
+                dongleEventFilter('dongleDown');
                 window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
             }
         }
@@ -18580,7 +18612,7 @@ asyncBaroboBridge.robotEvent.connect(
             if (error.code == 0) {
                 var version = Version.fromTriplet(firmwareVersion);
                 robot.version = version;
-                if (version.eq(latestLocalFirmwareVersion)) {
+                if (version.eq(firmware.latestVersion())) {
                     robot.connect();
                 }
                 else {
@@ -18685,7 +18717,7 @@ function colorToHex(color) {
 }
 
 module.exports.startFirmwareUpdate = function() {
-    asyncBaroboBridge.firmwareUpdate();
+    firmware.startUpdater();
 };
 
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
@@ -18700,7 +18732,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var version = null;
     
     bot.enums = enumConstants;
-    bot.latestLocalFirmwareVersion = latestLocalFirmwareVersion;
 
     function driveToCallback(error) {
         driveToCalled = false;
@@ -18721,7 +18752,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             var robot = manager.getRobot(id);
             robot.version = version;
             window.console.log('checking version: ' + version);
-            if (version.eq(latestLocalFirmwareVersion)) {
+            if (version.eq(firmware.latestVersion())) {
                 window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
             else {
@@ -20023,6 +20054,9 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
             // Eventually we can use the data passed in to set the message.
             me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware';
         });
+        uiEvents.on('hide-dongle-update', function() {
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware ljs-hidden';
+        });
         window.addEventListener('resize', this.handleResize);
     },
     componentWillUnmount: function() {
@@ -21168,13 +21202,15 @@ setTimeout(function() {
 
 events.on('dongleUp', function() {
     refresh();
+    managerUi.uiEvents.trigger('hide-dongle-update');
 });
 
 events.on('dongleDown', function() {
     disconnectAll();
+    managerUi.uiEvents.trigger('hide-dongle-update');
 });
 events.on('dongleUpdate', function(data) {
-   managerUi.uiEvents.trigger('show-dongle-update', data);
+    managerUi.uiEvents.trigger('show-dongle-update', data);
 });
 
 asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {

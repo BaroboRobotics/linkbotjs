@@ -208,7 +208,7 @@ function colorToHex(color) {
 }
 
 module.exports.startFirmwareUpdate = function() {
-    asyncBaroboBridge.firmwareUpdate();
+    firmware.startUpdater();
 };
 
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
