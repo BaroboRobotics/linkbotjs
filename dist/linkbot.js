@@ -18515,19 +18515,13 @@ asyncBaroboBridge.requestComplete.connect(
 // changes.
 var dongleEventFilter = (function () {
     var lastStatus = null;
-    return function (status) {
+    return function (status, data) {
         if (!lastStatus || lastStatus !== status) {
             lastStatus = status;
-            manager.event.trigger(status);
+            manager.event.trigger(status, data);
         }
     };
 })();
-
-function showDongleUpdateButton (explanation) {
-    // TODO: display button to the user
-    manager.event.trigger("dongleUpdate", explanation);
-    window.console.log(explanation);
-}
 
 // This function might be better inside the AsyncLinkbot object? Unsure.
 function showRobotUpdateButton (explanation, bot) {
@@ -18552,20 +18546,19 @@ asyncBaroboBridge.dongleEvent.connect(
                 dongleEventFilter('dongleUp');
             }
             else {
-                dongleEventFilter('dongleDown');
-                showDongleUpdateButton("The dongle's firmware must be updated.");
+                dongleEventFilter('dongleUpdate', "The dongle's firmware must be updated.");
             }
         } else {
-            dongleEventFilter('dongleDown');
             if (errorEq(error, 'baromesh', 'STRANGE_DONGLE')) {
-                showDongleUpdateButton("A dongle is plugged in, but we are unable "
+                dongleEventFilter('dongleUpdate', "A dongle is plugged in, but we are unable "
                     + "to communicate with it. "
                     + "You may need to update its firmware.");
             }
             else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
-                showDongleUpdateButton("The dongle's firmware must be updated.");
+                dongleEventFilter('dongleUpdate', "The dongle's firmware must be updated.");
             }
             else {
+                dongleEventFilter('dongleDown');
                 window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
             }
         }
@@ -20023,6 +20016,9 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
             // Eventually we can use the data passed in to set the message.
             me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware';
         });
+        uiEvents.on('hide-dongle-update', function() {
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware ljs-hidden';
+        });
         window.addEventListener('resize', this.handleResize);
     },
     componentWillUnmount: function() {
@@ -21168,13 +21164,15 @@ setTimeout(function() {
 
 events.on('dongleUp', function() {
     refresh();
+    managerUi.uiEvents.trigger('hide-dongle-update');
 });
 
 events.on('dongleDown', function() {
     disconnectAll();
+    managerUi.uiEvents.trigger('hide-dongle-update');
 });
 events.on('dongleUpdate', function(data) {
-   managerUi.uiEvents.trigger('show-dongle-update', data);
+    managerUi.uiEvents.trigger('show-dongle-update', data);
 });
 
 asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
