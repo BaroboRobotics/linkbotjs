@@ -20909,11 +20909,16 @@ var botlib = require('./linkbot.jsx');
 var eventlib = require('./event.jsx');
 var managerUi = require('./manager-ui.jsx');
 var storageLib = require('./storage.jsx');
+var Version = require('./version.jsx');
+var firmware = require('./firmware.jsx');
 
 var robots = [];
 var pingRobots = [];
 var navigationItems =  [];
 var title = document.title;
+var CHECK_INTERVAL = 60000; // Every minute.
+
+var latestLocalFirmwareVersion = firmware.localVersionList().reduce(Version.max);
 
 if (title.length === 0) {
     title = "Linkbot Labs";
@@ -20965,6 +20970,43 @@ function disconnectAll() {
     for (var i = 0; i < robots.length; i++) {
         robots[i].disconnect();
     }
+}
+
+function responseHandler(e) {
+    var json = this.responseText;
+    var version = asyncBaroboBridge.linkbotLabsVersion();
+    if (version) {
+        var firmwareArray = json['linkbotlabs-firmware'][version.major + '.' + version.minor + '.'  +version.patch];
+        console.log('Firmware: ' + firmware[0]);
+        console.log('Hex MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['hex']);
+        console.log('Eeprom MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['eeprom']);
+        var v = new Version(firmware[0].split('.'));
+        if (v.eq(latestLocalFirmwareVersion)) {
+            asyncBaroboBridge.saveFirmwareFile({
+                url: 'http://' + location.host + '/firmware/v' + firmwareArray[0] + '.hex',
+                md5sum: json['firmware-md5sums'][firmwareArray[0]]['hex']
+            });
+            asyncBaroboBridge.saveFirmwareFile({
+                url: 'http://' + location.host + '/firmware/v' + firmwareArray[0] + '.eeprom',
+                md5sum: json['firmware-md5sums'][firmwareArray[0]]['eeprom']
+            });
+        }
+        asyncBaroboBridge.configuration().nextCheck = CHECK_INTERVAL;
+    }
+}
+
+function errorResponseHandler(e) {
+    // re-try request after 10 seconds.
+    console.warn('Error occurred attempting to download the firmware.');
+    setTimeout(checkForFirmwareUpdate, 10000);
+}
+
+function checkForFirmwareUpdate() {
+    var request = new XMLHttpRequest();
+    request.addEventListener("load", responseHandler);
+    request.addEventListener("error", errorResponseHandler);
+    request.open('GET', '/firmware/linkbotlabs-firmware.json');
+    request.send();
 }
 
 module.exports.moveRobot = function(from, to) {
@@ -21183,7 +21225,13 @@ asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
     }
 });
 
-},{"./event.jsx":148,"./linkbot.jsx":150,"./manager-ui.jsx":152,"./storage.jsx":154}],154:[function(require,module,exports){
+var nextCheck = asyncBaroboBridge.configuration().nextCheck;
+if (typeof nextCheck === 'undefined') {
+    setTimeout(checkForFirmwareUpdate, 0);
+} else {
+    setTimeout(checkForFirmwareUpdate, nextCheck);
+}
+},{"./event.jsx":148,"./firmware.jsx":149,"./linkbot.jsx":150,"./manager-ui.jsx":152,"./storage.jsx":154,"./version.jsx":155}],154:[function(require,module,exports){
 var settings = {
     DBNAME: "robotsdb",
     DBVER: 1.0,
