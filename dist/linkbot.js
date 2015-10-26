@@ -20070,7 +20070,7 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
                     React.createElement(AddRobotForm, null), 
                     React.createElement("div", {className: "ljs-dongle-firmware ljs-hidden", ref: "dongleUpdate"}, 
                         React.createElement("span", {className: "button", onClick: this.handleFirmwareUpdate}), 
-                        React.createElement("p", null, "The dongle's firmware must be updated.")
+                        React.createElement("p", null, "Z-Link Dongle")
                     ), 
                     this.props.children
                 )
