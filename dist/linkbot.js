@@ -20973,15 +20973,15 @@ function disconnectAll() {
 }
 
 function responseHandler(e) {
-    var json = this.responseText;
+    var json = JSON.parse(this.responseText);
     var version = asyncBaroboBridge.linkbotLabsVersion();
     if (version) {
         var firmwareArray = json['linkbotlabs-firmware'][version.major + '.' + version.minor + '.'  +version.patch];
-        console.log('Firmware: ' + firmware[0]);
+        console.log('Firmware: ' + firmwareArray[0]);
         console.log('Hex MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['hex']);
         console.log('Eeprom MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['eeprom']);
-        var v = new Version(firmware[0].split('.'));
-        if (v.eq(latestLocalFirmwareVersion)) {
+        var v = new Version(firmwareArray[0].split('.'));
+        if (!v.eq(latestLocalFirmwareVersion)) {
             asyncBaroboBridge.saveFirmwareFile({
                 url: 'http://' + location.host + '/firmware/v' + firmwareArray[0] + '.hex',
                 md5sum: json['firmware-md5sums'][firmwareArray[0]]['hex']
@@ -20991,7 +20991,7 @@ function responseHandler(e) {
                 md5sum: json['firmware-md5sums'][firmwareArray[0]]['eeprom']
             });
         }
-        asyncBaroboBridge.configuration().nextCheck = CHECK_INTERVAL;
+        asyncBaroboBridge.configuration.nextCheck = CHECK_INTERVAL;
     }
 }
 
@@ -21005,7 +21005,7 @@ function checkForFirmwareUpdate() {
     var request = new XMLHttpRequest();
     request.addEventListener("load", responseHandler);
     request.addEventListener("error", errorResponseHandler);
-    request.open('GET', '/firmware/linkbotlabs-firmware.json');
+    request.open('GET', '/firmware/metadata.json');
     request.send();
 }
 
@@ -21225,7 +21225,7 @@ asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
     }
 });
 
-var nextCheck = asyncBaroboBridge.configuration().nextCheck;
+var nextCheck = asyncBaroboBridge.configuration.nextCheck;
 if (typeof nextCheck === 'undefined') {
     setTimeout(checkForFirmwareUpdate, 0);
 } else {
