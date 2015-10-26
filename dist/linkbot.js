@@ -68,37 +68,70 @@ var asyncBaroboBridge = (function(main) {
 var process = module.exports = {};
 var queue = [];
 var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
 
 function drainQueue() {
     if (draining) {
         return;
     }
+    var timeout = setTimeout(cleanUpNextTick);
     draining = true;
-    var currentQueue;
+
     var len = queue.length;
     while(len) {
         currentQueue = queue;
         queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
+        while (++queueIndex < len) {
+            currentQueue[queueIndex].run();
         }
+        queueIndex = -1;
         len = queue.length;
     }
+    currentQueue = null;
     draining = false;
+    clearTimeout(timeout);
 }
+
 process.nextTick = function (fun) {
-    queue.push(fun);
-    if (!draining) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
         setTimeout(drainQueue, 0);
     }
 };
 
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -20991,14 +21024,20 @@ function responseHandler(e) {
                 md5sum: json['firmware-md5sums'][firmwareArray[0]]['eeprom']
             });
         }
-        asyncBaroboBridge.configuration.nextCheck = CHECK_INTERVAL;
+        scheduleFirmwareUpdateCheck(CHECK_INTERVAL);
     }
 }
 
 function errorResponseHandler(e) {
     // re-try request after 10 seconds.
     console.warn('Error occurred attempting to download the firmware.');
-    setTimeout(checkForFirmwareUpdate, 10000);
+    scheduleFirmwareUpdateCheck(10000);
+}
+
+function scheduleFirmwareUpdateCheck(delay) {
+    console.log('Scheduling firmware check in ' + delay + 'ms');
+    asyncBaroboBridge.configuration.nextCheck = Date.now() + delay;
+    setTimeout(checkForFirmwareUpdate, delay);
 }
 
 function checkForFirmwareUpdate() {
@@ -21225,12 +21264,21 @@ asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
     }
 });
 
+// Clamp x to the range a <= x <= b
+function clamp (x, a, b) {
+    return Math.min(Math.max(x, a), b);
+}
+
 var nextCheck = asyncBaroboBridge.configuration.nextCheck;
 if (typeof nextCheck === 'undefined') {
-    setTimeout(checkForFirmwareUpdate, 0);
-} else {
-    setTimeout(checkForFirmwareUpdate, nextCheck);
+    nextCheck = Date.now();
 }
+
+// Clamp the delay so drastic changes in the user's system clock
+// don't screw things up
+var delay = clamp(nextCheck - Date.now(), 0, CHECK_INTERVAL);
+scheduleFirmwareUpdateCheck(delay);
+
 },{"./event.jsx":148,"./firmware.jsx":149,"./linkbot.jsx":150,"./manager-ui.jsx":152,"./storage.jsx":154,"./version.jsx":155}],154:[function(require,module,exports){
 var settings = {
     DBNAME: "robotsdb",
