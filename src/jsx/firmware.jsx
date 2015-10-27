@@ -2,6 +2,8 @@
 
 var Version = require('./version.jsx');
 
+var CHECK_INTERVAL = 60000; // Every minute.
+
 // Split a filename into its stem and extension, if present. The extension's
 // dot is retained to distinguish no extension from an empty extension.
 // Examples:
@@ -60,4 +62,85 @@ function localVersionList () {
         .filter(Boolean);
 }
 
-module.exports.localVersionList = localVersionList;
+function latestVersion () {
+    var lv = localVersionList().reduce(Version.max);
+    var lrfv = asyncBaroboBridge.configuration.latestRemoteFirmwareVersion;
+    // If the remote firmware repository considers lrfv the latest version, and
+    // we have it in stock, it overrides any other version we have in stock.
+    if (typeof lrfv !== 'undefined' && localVersionList().indexOf(lrfv) != -1) {
+        lv = lrfv;
+    }
+    return lv;
+}
+
+function startUpdater () {
+    var version = latestVersion();
+    var hexFile = 'v' + version + '.hex';
+    var eepromFile = 'v' + version + '.eeprom';
+    asyncBaroboBridge.firmwareUpdate(version, hexFile, eepromFile);
+}
+
+function responseHandler(e) {
+    var json = JSON.parse(this.responseText);
+    var version = asyncBaroboBridge.linkbotLabsVersion();
+    if (version) {
+        var firmwareArray = json['linkbotlabs-firmware'][version.major + '.' + version.minor + '.'  +version.patch];
+        asyncBaroboBridge.configuration.latestRemoteFirmwareVersion = firmwareArray[0];
+        console.log('Firmware: ' + firmwareArray[0]);
+        console.log('Hex MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['hex']);
+        console.log('Eeprom MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['eeprom']);
+        var v = new Version(firmwareArray[0].split('.'));
+        // Only download if we don't already have this version.
+        if (localVersionList().indexOf(v) == -1) {
+            asyncBaroboBridge.saveFirmwareFile({
+                url: 'http://' + location.host + '/firmware/v' + firmwareArray[0] + '.hex',
+                md5sum: json['firmware-md5sums'][firmwareArray[0]]['hex']
+            });
+            asyncBaroboBridge.saveFirmwareFile({
+                url: 'http://' + location.host + '/firmware/v' + firmwareArray[0] + '.eeprom',
+                md5sum: json['firmware-md5sums'][firmwareArray[0]]['eeprom']
+            });
+        }
+        scheduleFirmwareUpdateCheck(CHECK_INTERVAL);
+    }
+}
+
+function errorResponseHandler(e) {
+    // re-try request after 10 seconds.
+    console.warn('Error occurred attempting to download the firmware.');
+    scheduleFirmwareUpdateCheck(10000);
+}
+
+function scheduleFirmwareUpdateCheck(delay) {
+    console.log('Scheduling firmware check in ' + delay + 'ms');
+    asyncBaroboBridge.configuration.nextCheck = Date.now() + delay;
+    setTimeout(checkForFirmwareUpdate, delay);
+}
+
+function checkForFirmwareUpdate() {
+    var request = new XMLHttpRequest();
+    request.addEventListener("load", responseHandler);
+    request.addEventListener("error", errorResponseHandler);
+    request.open('GET', '/firmware/metadata.json');
+    request.send();
+}
+
+// Clamp x to the range a <= x <= b
+function clamp (x, a, b) {
+    return Math.min(Math.max(x, a), b);
+}
+
+// Schedule a firmware update check immediately on page load
+var nextCheck = asyncBaroboBridge.configuration.nextCheck;
+if (typeof nextCheck === 'undefined') {
+    nextCheck = Date.now();
+}
+
+// Clamp the delay so drastic changes in the user's system clock
+// don't screw things up
+var delay = clamp(nextCheck - Date.now(), 0, CHECK_INTERVAL);
+scheduleFirmwareUpdateCheck(delay);
+
+
+module.exports.latestVersion = latestVersion;
+module.exports.startUpdater = startUpdater;
