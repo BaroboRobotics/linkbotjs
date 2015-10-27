@@ -4,16 +4,11 @@ var botlib = require('./linkbot.jsx');
 var eventlib = require('./event.jsx');
 var managerUi = require('./manager-ui.jsx');
 var storageLib = require('./storage.jsx');
-var Version = require('./version.jsx');
-var firmware = require('./firmware.jsx');
 
 var robots = [];
 var pingRobots = [];
 var navigationItems =  [];
 var title = document.title;
-var CHECK_INTERVAL = 60000; // Every minute.
-
-var latestLocalFirmwareVersion = firmware.localVersionList().reduce(Version.max);
 
 if (title.length === 0) {
     title = "Linkbot Labs";
@@ -65,49 +60,6 @@ function disconnectAll() {
     for (var i = 0; i < robots.length; i++) {
         robots[i].disconnect();
     }
-}
-
-function responseHandler(e) {
-    var json = JSON.parse(this.responseText);
-    var version = asyncBaroboBridge.linkbotLabsVersion();
-    if (version) {
-        var firmwareArray = json['linkbotlabs-firmware'][version.major + '.' + version.minor + '.'  +version.patch];
-        console.log('Firmware: ' + firmwareArray[0]);
-        console.log('Hex MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['hex']);
-        console.log('Eeprom MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['eeprom']);
-        var v = new Version(firmwareArray[0].split('.'));
-        if (!v.eq(latestLocalFirmwareVersion)) {
-            asyncBaroboBridge.saveFirmwareFile({
-                url: 'http://' + location.host + '/firmware/v' + firmwareArray[0] + '.hex',
-                md5sum: json['firmware-md5sums'][firmwareArray[0]]['hex']
-            });
-            asyncBaroboBridge.saveFirmwareFile({
-                url: 'http://' + location.host + '/firmware/v' + firmwareArray[0] + '.eeprom',
-                md5sum: json['firmware-md5sums'][firmwareArray[0]]['eeprom']
-            });
-        }
-        scheduleFirmwareUpdateCheck(CHECK_INTERVAL);
-    }
-}
-
-function errorResponseHandler(e) {
-    // re-try request after 10 seconds.
-    console.warn('Error occurred attempting to download the firmware.');
-    scheduleFirmwareUpdateCheck(10000);
-}
-
-function scheduleFirmwareUpdateCheck(delay) {
-    console.log('Scheduling firmware check in ' + delay + 'ms');
-    asyncBaroboBridge.configuration.nextCheck = Date.now() + delay;
-    setTimeout(checkForFirmwareUpdate, delay);
-}
-
-function checkForFirmwareUpdate() {
-    var request = new XMLHttpRequest();
-    request.addEventListener("load", responseHandler);
-    request.addEventListener("error", errorResponseHandler);
-    request.open('GET', '/firmware/metadata.json');
-    request.send();
 }
 
 module.exports.moveRobot = function(from, to) {
@@ -325,18 +277,3 @@ asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {
         robot.disconnect();
     }
 });
-
-// Clamp x to the range a <= x <= b
-function clamp (x, a, b) {
-    return Math.min(Math.max(x, a), b);
-}
-
-var nextCheck = asyncBaroboBridge.configuration.nextCheck;
-if (typeof nextCheck === 'undefined') {
-    nextCheck = Date.now();
-}
-
-// Clamp the delay so drastic changes in the user's system clock
-// don't screw things up
-var delay = clamp(nextCheck - Date.now(), 0, CHECK_INTERVAL);
-scheduleFirmwareUpdateCheck(delay);
