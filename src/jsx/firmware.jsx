@@ -63,7 +63,14 @@ function localVersionList () {
 }
 
 function latestVersion () {
-    return localVersionList().reduce(Version.max);
+    var lv = localVersionList().reduce(Version.max);
+    var lrfv = asyncBaroboBridge.configuration.latestRemoteFirmwareVersion;
+    // If the remote firmware repository considers lrfv the latest version, and
+    // we have it in stock, it overrides any other version we have in stock.
+    if (typeof lrfv !== 'undefined' && localVersionList().indexOf(lrfv) != -1) {
+        lv = lrfv;
+    }
+    return lv;
 }
 
 function startUpdater () {
