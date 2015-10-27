@@ -2,6 +2,7 @@
     
 var manager = require('./manager.jsx');
 var uimanager = require('./manager-ui.jsx');
+var config = require('./config.jsx');
 
 window.Linkbots = (function(){
     var mod = {};
@@ -44,30 +45,19 @@ window.Linkbots = (function(){
         manager.addNavigationItems(navItemArray);
     };
     mod.setPathways = function(pathways) {
-        var config = asyncBaroboBridge.configuration;
-        if (!config) {
-            config = {pathways:[]};
-        } else if (!config.hasOwnProperty('pathways')) {
-            config.pathways = [];
+        if (!Array.isArray(pathways)) {
+            pathways = [pathways];
         }
-        if (Array.isArray(pathways)) {
-            config.pathways = pathways;
-        } else {
-            config.pathways = [pathways];
-        }
-        asyncBaroboBridge.configuration = config;
-        if (JSON.stringify(asyncBaroboBridge.configuration) !== JSON.stringify(config)) {
+        if (!config.set('pathways', pathways)) {
             uimanager.uiEvents.trigger('add-error', 'Unable to write pathways to the configuration file');
         }
     };
     mod.getPathways = function() {
-        var config = asyncBaroboBridge.configuration;
-        if (!config) {
-            return [];
-        } else if (!config.hasOwnProperty('pathways')) {
+        var pathways = config.get('pathways');
+        if (typeof pathways === 'undefined') {
             return [];
         }
-        return config.pathways;
+        return pathways;
     };
     mod.managerEvents = manager.event;
     mod.uiEvents = uimanager.uiEvents;

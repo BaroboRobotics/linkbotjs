@@ -1,5 +1,6 @@
 "use strict";
 
+var config = require('./config.jsx');
 var Version = require('./version.jsx');
 
 var CHECK_INTERVAL = 60000; // Every minute.
@@ -64,7 +65,7 @@ function localVersionList () {
 
 function latestVersion () {
     var lv = localVersionList().reduce(Version.max);
-    var lrfv = asyncBaroboBridge.configuration.latestRemoteFirmwareVersion;
+    var lrfv = Version.fromString(config.get('latestRemoteFirmwareVersion'));
     // If the remote firmware repository considers lrfv the latest version, and
     // we have it in stock, it overrides any other version we have in stock.
     if (typeof lrfv !== 'undefined' && localVersionList().indexOf(lrfv) != -1) {
@@ -85,7 +86,9 @@ function responseHandler(e) {
     var version = asyncBaroboBridge.linkbotLabsVersion();
     if (version) {
         var firmwareArray = json['linkbotlabs-firmware'][version.major + '.' + version.minor + '.'  +version.patch];
-        asyncBaroboBridge.configuration.latestRemoteFirmwareVersion = firmwareArray[0];
+        if (!config.set('latestRemoteFirmwareVersion', firmwareArray[0])) {
+            console.warn('Unable to set latestRemoteFirmwareVersion in config');
+        }
         console.log('Firmware: ' + firmwareArray[0]);
         console.log('Hex MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['hex']);
         console.log('Eeprom MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['eeprom']);
@@ -113,7 +116,9 @@ function errorResponseHandler(e) {
 
 function scheduleFirmwareUpdateCheck(delay) {
     console.log('Scheduling firmware check in ' + delay + 'ms');
-    asyncBaroboBridge.configuration.nextCheck = Date.now() + delay;
+    if (!config.set('nextCheck', Date.now() + delay)) {
+        console.warn('Unable to set nextCheck in configuration');
+    }
     setTimeout(checkForFirmwareUpdate, delay);
 }
 
@@ -131,7 +136,7 @@ function clamp (x, a, b) {
 }
 
 // Schedule a firmware update check immediately on page load
-var nextCheck = asyncBaroboBridge.configuration.nextCheck;
+var nextCheck = config.get('nextCheck');
 if (typeof nextCheck === 'undefined') {
     nextCheck = Date.now();
 }

@@ -4,6 +4,7 @@ var botlib = require('./linkbot.jsx');
 var eventlib = require('./event.jsx');
 var managerUi = require('./manager-ui.jsx');
 var storageLib = require('./storage.jsx');
+var config = require('./config.jsx');
 
 var robots = [];
 var pingRobots = [];
@@ -27,30 +28,20 @@ function findRobot(id) {
 }
 
 function readRobotsFromConfig() {
-    var config = asyncBaroboBridge.configuration;
-    var bots = [];
-    if (!config) {
-        config = {robots:[]};
-    } else if (!config.hasOwnProperty('robots')) {
-        config.robots = [];
+    var robots = config.get('robots');
+    if (typeof robots !== 'undefined') {
+        return robots.map(function (id) { return new botlib.AsyncLinkbot(id); });
     }
-    for (var i = 0; i < config.robots.length; i++) {
-        bots.push(new botlib.AsyncLinkbot(config.robots[i]));
+    else {
+        return [];
     }
-    return bots;
 }
 
 function writeRobotsToConfig(bots) {
-    var config = asyncBaroboBridge.configuration;
-    if (!config) {
-        config = {};
-    }
     if (Array.isArray(bots)) {
-        config.robots = [];
-        for (var i = 0; i < bots.length; i++) {
-            config.robots.push(bots[i].id);
+        if (!config.set('robots', bots.map(function (b) { return b.id; }))) {
+            console.warn("Unable to write robots array to configuration");
         }
-        asyncBaroboBridge.configuration = config;
     } else {
         console.warn("Invalid robots array not writing to configuration");
     }
