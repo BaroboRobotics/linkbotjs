@@ -92,7 +92,9 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
         }
         queueIndex = -1;
         len = queue.length;
@@ -110,7 +112,7 @@ process.nextTick = function (fun) {
         }
     }
     queue.push(new Item(fun, args));
-    if (!draining) {
+    if (queue.length === 1 && !draining) {
         setTimeout(drainQueue, 0);
     }
 };
@@ -144,7 +146,6 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
@@ -20685,7 +20686,8 @@ var HelpDialog = React.createClass({displayName: "HelpDialog",
                                 React.createElement("ul", null, 
                                     React.createElement("li", null, React.createElement("a", {href: "http://wiki.linkbotlabs.com/wiki/Troubleshooting"}, "FAQ / Wiki")), 
                                     React.createElement("li", null, React.createElement("a", {href: "http://www.barobo.com/forums/forum/troubleshootinghelp/"}, "Help / Forums")), 
-                                    React.createElement("li", null, React.createElement("a", {href: "https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form"}, "Bug Report"))
+                                    React.createElement("li", null, React.createElement("a", {href: "https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form"}, "Bug Report")), 
+                                    React.createElement("li", null, React.createElement("a", {href: "http://dev.linkbotlabs.com"}, "Linkbot Labs Development Site"))
                                 )
                             ), 
                             React.createElement("div", {className: "ljs-modal-footer"}, 
