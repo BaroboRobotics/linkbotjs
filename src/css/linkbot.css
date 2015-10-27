@@ -568,16 +568,16 @@ span.ljs-margin-left {
     background-color: #f0ad4e;
     border-radius: 15px;
     border: 1px solid #eea236;
-    padding: 5px 10px;
-    margin: 0 5px 0 0;
+    padding: 5px 5px 6px 10px;
+    margin: 0 5px 10px 0;
 }
 .ljs-hidden {
     display: none;
 }
 .ljs-dongle-firmware p {
-    margin: 0;
+    margin: 0 0 0 18px;
     color: white;
-    line-height: 1.2em;
+    font-size: 20px;
 }
 .ljs-dongle-firmware span.button {
     float: right;
@@ -586,6 +586,7 @@ span.ljs-margin-left {
     width: 24px;
     height: 24px;
     background: transparent url('img/update.png') no-repeat 0 0;
+    margin-top: 2px;
 }
 ul.ljs-top-nav-breadcrumbs {
     list-style: none;

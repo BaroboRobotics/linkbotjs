@@ -47,6 +47,7 @@ var asyncBaroboBridge = (function(main) {
         obj.listFirmwareFiles = function() {
             return ["v4.4.6.eeprom", "v4.4.6.hex"];
         };
+        obj.configuration = {};
         /*
         obj.getLEDColor = function(id) {
             if (!colorMap[id]) {
