@@ -63,12 +63,17 @@ function localVersionList () {
         .filter(Boolean);
 }
 
+// True if we have a given version in stock on the hard drive.
+function localVersionExists (v) {
+    return localVersionList().some(function (x) { return x.eq(v); });
+}
+
 function latestVersion () {
     var lv = localVersionList().reduce(Version.max);
     var lrfv = Version.fromString(config.get('latestRemoteFirmwareVersion'));
     // If the remote firmware repository considers lrfv the latest version, and
     // we have it in stock, it overrides any other version we have in stock.
-    if (typeof lrfv !== 'undefined' && localVersionList().indexOf(lrfv) != -1) {
+    if (localVersionExists(lrfv)) {
         lv = lrfv;
     }
     return lv;
@@ -94,7 +99,7 @@ function responseHandler(e) {
         console.log('Eeprom MD5: ' + json['firmware-md5sums'][firmwareArray[0]]['eeprom']);
         var v = new Version(firmwareArray[0].split('.'));
         // Only download if we don't already have this version.
-        if (localVersionList().indexOf(v) == -1) {
+        if (!localVersionExists(v)) {
             asyncBaroboBridge.saveFirmwareFile({
                 url: 'http://' + location.host + '/firmware/v' + firmwareArray[0] + '.hex',
                 md5sum: json['firmware-md5sums'][firmwareArray[0]]['hex']
