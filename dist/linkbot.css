@@ -19,6 +19,9 @@ input[type=color] {
     clip: rect(0 0 0 0);
     border: 0;
 }
+.ljs-body-open {
+    margin-left: 300px;
+}
 /**
  * Left Menu Container.
  */

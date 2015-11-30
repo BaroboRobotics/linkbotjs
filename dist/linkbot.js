@@ -19481,6 +19481,20 @@ var knob1Timer = null;
 var knob2Timer = null;
 var syncKnobsWithMotors = true;
 
+/* hasClass, addClass and removeClass from http://www.openjs.com/scripts/dom/class_manipulation.php */
+function hasClass(ele,cls) {
+    return ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
+}
+function addClass(ele,cls) {
+    if (!hasClass(ele,cls)) ele.className += " "+cls;
+}
+function removeClass(ele,cls) {
+    if (hasClass(ele,cls)) {
+        var reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
+        ele.className=ele.className.replace(reg,' ');
+    }
+}
+
 function getPosition(element) {
     var xPosition = 0;
     var yPosition = 0;
@@ -20258,14 +20272,16 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
     hideMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-right';
         this.refs.container.getDOMNode().className = '';
-        document.body.style.marginLeft = '';
+        removeClass(document.body, 'ljs-body-open');
+        //document.body.style.marginLeft = '';
         this.refs.container.getDOMNode().style.height = '';
         this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
     },
     showMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-left';
         this.refs.container.getDOMNode().className = 'ljs-open';
-        document.body.style.marginLeft = '300px';
+        addClass(document.body, 'ljs-body-open');
+        //document.body.style.marginLeft = '300px';
         this.refs.container.getDOMNode().style.height = '';
         this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
     },
