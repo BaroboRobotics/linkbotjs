@@ -20317,7 +20317,7 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
                     React.createElement(AddRobotForm, null), 
                     React.createElement("div", {className: "ljs-dongle-firmware ljs-hidden", ref: "dongleUpdate"}, 
                         React.createElement("span", {className: "button", onClick: this.handleFirmwareUpdate}), 
-                        React.createElement("p", null, "Z-Link Dongle")
+                        React.createElement("p", null, "Update Needed")
                     ), 
                     this.props.children
                 )
@@ -21111,7 +21111,8 @@ var HelpDialog = React.createClass({displayName: "HelpDialog",
                                     React.createElement("li", null, React.createElement("a", {href: "http://wiki.linkbotlabs.com/wiki/Troubleshooting"}, "FAQ / Wiki")), 
                                     React.createElement("li", null, React.createElement("a", {href: "http://www.barobo.com/forums/forum/troubleshootinghelp/"}, "Help / Forums")), 
                                     React.createElement("li", null, React.createElement("a", {href: "https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form"}, "Bug Report")), 
-                                    React.createElement("li", null, React.createElement("a", {href: "javascript:;", onClick: this.handleFirmware}, "Start Firmware Updater"))
+                                    React.createElement("li", null, React.createElement("a", {href: "javascript:;", onClick: this.handleFirmware}, "Start Firmware Updater")), 
+                                    React.createElement("li", null, React.createElement("a", {href: "http://dev.linkbotlabs.com"}, "Linkbot Labs Development Site"))
                                 )
                             ), 
                             React.createElement("div", {className: "ljs-modal-footer"}, 
