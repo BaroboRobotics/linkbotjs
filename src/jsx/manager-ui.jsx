@@ -13,6 +13,20 @@ var knob1Timer = null;
 var knob2Timer = null;
 var syncKnobsWithMotors = true;
 
+/* hasClass, addClass and removeClass from http://www.openjs.com/scripts/dom/class_manipulation.php */
+function hasClass(ele,cls) {
+    return ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
+}
+function addClass(ele,cls) {
+    if (!hasClass(ele,cls)) ele.className += " "+cls;
+}
+function removeClass(ele,cls) {
+    if (hasClass(ele,cls)) {
+        var reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
+        ele.className=ele.className.replace(reg,' ');
+    }
+}
+
 function getPosition(element) {
     var xPosition = 0;
     var yPosition = 0;
@@ -589,9 +603,15 @@ var RobotItem = React.createClass({
         e.stopPropagation();
         if (me.props.linkbot.status == "offline") {
             uiEvents.trigger('show-full-spinner');
-            me.props.linkbot.connect(function(error) {
-               uiEvents.trigger('hide-full-spinner');
+            me.props.linkbot.connect(function (error) {
+                uiEvents.trigger('hide-full-spinner');
             });
+        } else if (me.props.linkbot.status == "update") {
+            uiEvents.trigger('show-full-spinner');
+            setTimeout(function() {
+                linkbotLib.startFirmwareUpdate();
+                uiEvents.trigger('hide-full-spinner');
+            }, 500);
         } else {
             me.props.linkbot.buzzerFrequency(500);
             setTimeout(function () {
@@ -610,21 +630,31 @@ var RobotItem = React.createClass({
         };
         var buttonClass = "ljs-beep-btn";
         var buttonName = "beep";
+        var statusLbl = this.props.linkbot.status;
         if (this.props.linkbot.status === 'offline') {
             buttonClass = "ljs-connect-btn";
             buttonName = "connect";
+        } else if (this.props.linkbot.status === 'update') {
+            buttonClass = "ljs-update-btn";
+            buttonName = "update";
+            if (this.props.linkbot.version && this.props.linkbot.version != null) {
+                statusLbl = "offline [" + this.props.linkbot.version.toString() + "]";
+            } else {
+                statusLbl = "offline";
+            }
         }
+
 
         return (
             <li {...this.props} style={style}>
-                <input type="color" className="ljs-color-btn" onInput={this.handleColorChange} value={this.state.color} />
+                <input type="color" className="ljs-color-btn" onInput={this.handleColorChange} onChange={this.handleColorChange} value={this.state.color} />
                 <span className="ljs-color-btn-title">color</span>
                 <span className="ljs-remove-btn" onClick={this.handleTrash}>trash</span>
                 <div className="ljs-slide-element" ref="slideElement" onClick={this.handleSlide}>
                     <span className="ljs-robot-name">Linkbot {this.props.linkbot.id}</span>
                     <span className={buttonClass} onClick={this.handleBeep}>{buttonName}</span>
                     <br />
-                    <span>{this.props.linkbot.status}</span>
+                    <span>{statusLbl}</span>
                     
                 </div>
             </li>
@@ -743,6 +773,10 @@ var Robots = React.createClass({
 });
 
 var RobotManagerSideMenu = React.createClass({
+    handleResize: function() {
+        this.refs.container.getDOMNode().style.height = '';
+        this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
+    },
     componentWillMount: function() {
         var me = this;
         uiEvents.on('hide', function() {
@@ -755,16 +789,33 @@ var RobotManagerSideMenu = React.createClass({
             me.showMenu();
             manager.refresh();
         });
+        uiEvents.on('show-dongle-update', function(data) {
+            // Eventually we can use the data passed in to set the message.
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware';
+        });
+        uiEvents.on('hide-dongle-update', function() {
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware ljs-hidden';
+        });
+        window.addEventListener('resize', this.handleResize);
+    },
+    componentWillUnmount: function() {
+        window.removeEventListener('resize', this.handleResize);
     },
     hideMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-right';
         this.refs.container.getDOMNode().className = '';
-        document.body.style.marginLeft = '';
+        removeClass(document.body, 'ljs-body-open');
+        //document.body.style.marginLeft = '';
+        this.refs.container.getDOMNode().style.height = '';
+        this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
     },
     showMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-left';
         this.refs.container.getDOMNode().className = 'ljs-open';
-        document.body.style.marginLeft = '300px';
+        addClass(document.body, 'ljs-body-open');
+        //document.body.style.marginLeft = '300px';
+        this.refs.container.getDOMNode().style.height = '';
+        this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
     },
     handleSlide: function(e) {
         e.preventDefault();
@@ -778,25 +829,29 @@ var RobotManagerSideMenu = React.createClass({
         }
     },
     handleFirmwareUpdate: function(e) {
+        var me = this;
         e.preventDefault();
         uiEvents.trigger('show-full-spinner');
         setTimeout(function() {
             linkbotLib.startFirmwareUpdate();
             uiEvents.trigger('hide-full-spinner');
+            me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware ljs-hidden';
         }, 500);
     },
     render: function() {
+        var style = { height: (document.body.scrollHeight - 75) + "px"};
         return (
-            <div id="ljs-left-menu-container" ref="container">
+            <div id="ljs-left-menu-container" style={style} ref="container">
                 <div className="ljs-handle">
                     <span onClick={this.handleSlide} className="ljs-handlebtn ljs-handlebtn-right" ref="slideBtn"></span>
                 </div>
                 <div className="ljs-content">
                     <AddRobotForm />
-                    {this.props.children}
-                    <div className="ljs-firmware-update">
-                        <button onClick={this.handleFirmwareUpdate} className="ljs-btn">Start Firmware Updater</button>
+                    <div className="ljs-dongle-firmware ljs-hidden" ref="dongleUpdate">
+                        <span className="button" onClick={this.handleFirmwareUpdate}></span>
+                        <p>Z-Link Dongle</p>
                     </div>
+                    {this.props.children}
                 </div>
             </div>
         );
@@ -916,13 +971,20 @@ var ControlPanel = React.createClass({
             this.state.linkbot.unregister(false);
         }
 
-        if (linkbot.status == "offline") {
+        if (linkbot.status == "offline" || linkbot.status == "update") {
             uiEvents.trigger('hide-control-panel');
             return;
         }
 
         this.refs.overlay.getDOMNode().style.display = 'block';
         this.refs.controlPanel.getDOMNode().style.display = 'block';
+        if (window.innerHeight <= 675) {
+            this.refs.controlPanel.getDOMNode().style.top = document.body.scrollTop + "px";
+        } else if (document.body.scrollTop > 75) {
+            this.refs.controlPanel.getDOMNode().style.top = document.body.scrollTop + "px";
+        } else {
+            this.refs.controlPanel.getDOMNode().style.top = 75 + "px";
+        }
         direction = [0, 0, 0];
         linkbot.getFormFactor(function(data) {
             if (linkbot.enums.FormFactor.I == data) {
@@ -1536,6 +1598,17 @@ var HelpDialog = React.createClass({
             });
         });
     },
+    handleFirmware: function(e) {
+        e.stopPropagation();
+        this.setState({
+            show: false
+        });
+        uiEvents.trigger('show-full-spinner');
+        setTimeout(function() {
+            linkbotLib.startFirmwareUpdate();
+            uiEvents.trigger('hide-full-spinner');
+        }, 500);
+    },
     handleClick: function(e) {
         e.stopPropagation();
     },
@@ -1570,6 +1643,7 @@ var HelpDialog = React.createClass({
                                     <li><a href="http://wiki.linkbotlabs.com/wiki/Troubleshooting">FAQ / Wiki</a></li>
                                     <li><a href="http://www.barobo.com/forums/forum/troubleshootinghelp/">Help / Forums</a></li>
                                     <li><a href="https://docs.google.com/forms/d/1rnqRu8XBHxDqLS257afRNH8nUycVUAbLaD7iOP4EyMg/viewform?usp=send_form">Bug Report</a></li>
+                                    <li><a href="javascript:;" onClick={this.handleFirmware}>Start Firmware Updater</a></li>
                                     <li><a href="http://dev.linkbotlabs.com">Linkbot Labs Development Site</a></li>
                                 </ul>
                             </div>

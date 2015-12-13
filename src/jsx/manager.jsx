@@ -2,7 +2,9 @@
 
 var botlib = require('./linkbot.jsx');
 var eventlib = require('./event.jsx');
+var managerUi = require('./manager-ui.jsx');
 var storageLib = require('./storage.jsx');
+var config = require('./config.jsx');
 
 var robots = [];
 var pingRobots = [];
@@ -25,6 +27,26 @@ function findRobot(id) {
     return undefined;
 }
 
+function readRobotsFromConfig() {
+    var robots = config.get('robots');
+    if (typeof robots !== 'undefined') {
+        return robots.map(function (id) { return new botlib.AsyncLinkbot(id); });
+    }
+    else {
+        return [];
+    }
+}
+
+function writeRobotsToConfig(bots) {
+    if (Array.isArray(bots)) {
+        if (!config.set('robots', bots.map(function (b) { return b.id; }))) {
+            console.warn("Unable to write robots array to configuration");
+        }
+    } else {
+        console.warn("Invalid robots array not writing to configuration");
+    }
+}
+
 function disconnectAll() {
     for (var i = 0; i < robots.length; i++) {
         robots[i].disconnect();
@@ -32,23 +54,26 @@ function disconnectAll() {
 }
 
 module.exports.moveRobot = function(from, to) {
+    robots.splice(to, 0, robots.splice(from, 1)[0]);
+    writeRobotsToConfig(robots);
+    events.trigger('changed', 3);
     storageLib.changePosition(from, to, function(success){
-        if (success) {
-            robots.splice(to, 0, robots.splice(from, 1)[0]);
-            events.trigger('changed', 3);
+        if (!success) {
+            console.warn("Unable to write to HTML5 storage");
         }
     });
     
 };
 
 module.exports.addRobot = function(id) {
-    if (typeof id == 'undefined' || id == null || id.length < 3) {
+    if (typeof id == 'undefined' || id == null || id.length < 3 || /[a|e|i|o|u|0]/gi.test(id)) {
         return;
     }
     var identifier = id.toUpperCase();
     var robot = findRobot(identifier);
     if (!robot) {
         robots.push(new botlib.AsyncLinkbot(identifier));
+        writeRobotsToConfig(robots);
         storageLib.add(identifier, 0);
         events.trigger('changed', 1);
         asyncBaroboBridge.sendRobotPing([identifier], botlib.addGenericCallback());
@@ -105,6 +130,7 @@ module.exports.removeRobot = function(id) {
         robot.disconnect();
         index = robots.indexOf(robot);
         robots.splice(index, 1);
+        writeRobotsToConfig(robots);
         storageLib.remove(id, function(success) {
            if (success) {
                storageLib.updateOrder();
@@ -197,51 +223,42 @@ module.exports.setNavigationItems = function(items) {
     }
     events.trigger('navigation-changed', 1);
 };
-storageLib.getAll(function(bots) {
-    for (var i = 0; i < bots.length; i++) {
-        robots.push(new botlib.AsyncLinkbot(bots[i].name));
-    }
-    if (bots.length > 0) {
+/**
+ * Load Robots from Configuration or HTML5 Storage.
+ * setTimeout is used to execute the code after all the modules have loaded.
+ */
+setTimeout(function() {
+    robots = readRobotsFromConfig();
+    if (!robots || robots.length == 0) {
+        robots = [];
+        storageLib.getAll(function (bots) {
+            for (var i = 0; i < bots.length; i++) {
+                robots.push(new botlib.AsyncLinkbot(bots[i].name));
+            }
+            if (bots.length > 0) {
+                writeRobotsToConfig(robots);
+                refresh();
+                events.trigger('changed', 1);
+            }
+        });
+    } else {
         refresh();
         events.trigger('changed', 1);
     }
-});
+}, 1);
 
-// Dongle events of the same value may occur consecutively (i.e., two
-// dongleDowns in a row), so track the state and only perform actions on state
-// changes.
-
-var dongle = null;
 
 events.on('dongleUp', function() {
-    if (!dongle || dongle === 'down') {
-        dongle = 'up';
-        refresh();
-    }
+    refresh();
+    managerUi.uiEvents.trigger('hide-dongle-update');
 });
 
 events.on('dongleDown', function() {
-    if (!dongle || dongle === 'up') {
-        dongle = 'down';
-        disconnectAll();
-    }
+    disconnectAll();
+    managerUi.uiEvents.trigger('hide-dongle-update');
 });
-
-
-asyncBaroboBridge.robotEvent.connect(function(error, id, firmwareVersion) {
-    console.log('robot event triggered with ID: ' + id + ' and version: ', firmwareVersion);
-    var robot = findRobot(id);
-    if (robot) {
-        if (error.code == 0) {
-            // TODO: check firmwareVersion, call robot.connect() if it matches.
-            // If the firmware should be updated, prompt the user.
-            robot.connect();
-        }
-        else {
-            // TODO: prompt the user to update firmware, if error is RPC_VERSION_MISMATCH?
-            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
-        }
-    }
+events.on('dongleUpdate', function(data) {
+    managerUi.uiEvents.trigger('show-dongle-update', data);
 });
 
 asyncBaroboBridge.connectionTerminated.connect(function(id, timestamp) {

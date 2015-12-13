@@ -19,6 +19,9 @@ input[type=color] {
     clip: rect(0 0 0 0);
     border: 0;
 }
+.ljs-body-open {
+    margin-left: 300px;
+}
 /**
  * Left Menu Container.
  */
@@ -26,11 +29,11 @@ input[type=color] {
     z-index: 1000;
     background-color: transparent;
     width: 296px;
-    height: 100%;
     font-size: 14px;
     float: left;
-    position: fixed;
+    position: absolute;
     top: 75px;
+    bottom: 0;
     line-height: 1.42857143;
     left: -265px;
     -webkit-transition: left .5s ease;
@@ -49,22 +52,21 @@ input[type=color] {
 }
 #ljs-left-menu-container .ljs-content {
     background: #393939 url('img/robomgr-background.png') repeat-y right top;
-    height: 100%;
     width: 270px;
+    min-height: 100%;
 }
 /**
  * Left Menu Handle.
  */
 #ljs-left-menu-container .ljs-handle {
     float: right;
-    position: relative;
-    top: 30%;
-    right: 0;
     height: 161px;
     width: 31px;
     background-color: transparent;
     padding: 0;
-    margin: 0;
+    position: absolute;
+    top: 30%;
+    left: 270px;
 }
 
 #ljs-left-menu-container .ljs-handlebtn {
@@ -136,11 +138,9 @@ input[type=color] {
  */
 #ljs-left-menu-container ol {
     padding-left: 0;
-    margin-bottom: 20px;
+    margin-bottom: 0;
     margin-top: 0;
     width: 265px;
-    min-height: 230px;
-    height: 75%;
 }
 #ljs-left-menu-container ol li {
     position: relative;
@@ -192,7 +192,7 @@ input[type=color] {
 }
 #ljs-left-menu-container .ljs-remove-btn, #ljs-left-menu-container .ljs-beep-btn, #ljs-left-menu-container .ljs-connect-btn,
     #ljs-left-menu-container .ljs-color-btn, #ljs-control-panel .ljs-remove-btn,
-    #ljs-control-panel .ljs-beep-btn, #ljs-control-panel .ljs-color-btn {
+    #ljs-control-panel .ljs-beep-btn, #ljs-control-panel .ljs-color-btn, #ljs-left-menu-container .ljs-update-btn {
     display: inline-block;
     padding-top: 40px;
     width: 30px;
@@ -204,6 +204,9 @@ input[type=color] {
 }
 #ljs-left-menu-container .ljs-connect-btn {
     background: transparent url('img/connect.png') no-repeat 6px 10px;
+}
+#ljs-left-menu-container .ljs-update-btn {
+    background: transparent url('img/update.png') no-repeat 6px 10px;
 }
 #ljs-left-menu-container .ljs-beep-btn, #ljs-control-panel .ljs-beep-btn {
     background: transparent url('img/beep.png') no-repeat 6px 10px;
@@ -218,7 +221,8 @@ input[type=color] {
     margin: -7px 30px 0 0;
     float: right;
 }
-#ljs-left-menu-container .ljs-slide-element .ljs-connect-btn {
+#ljs-left-menu-container .ljs-slide-element .ljs-connect-btn,
+#ljs-left-menu-container .ljs-slide-element .ljs-update-btn {
     margin: -7px 33px 0 0;
     float: right;
 }
@@ -365,7 +369,7 @@ span.ljs-margin-left {
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 
 #ljs-control-panel {
-    position: fixed;
+    position: absolute;
     top: 75px;
     left: 270px;
     width: 600px;
@@ -501,9 +505,9 @@ span.ljs-margin-left {
     right: 0;
     left: 0;
     background-color: #2d2c2c;
-    color: #2da7ca;
+    color: #26aee8;
     height: 75px;
-    z-index: 100;
+    z-index: 1001;
 }
 
 #ljs-top-navigation .ljs-top-nav-info {
@@ -563,11 +567,29 @@ span.ljs-margin-left {
 #ljs-top-navigation .ljs-top-nav-breadcrumbs {
     margin: 10px 0 0 0;
 }
-
-.ljs-firmware-update {
-    bottom: 100px;
-    position: absolute;
-    left: 45px;
+.ljs-dongle-firmware {
+    background-color: #f0ad4e;
+    border-radius: 15px;
+    border: 1px solid #eea236;
+    padding: 5px 5px 6px 10px;
+    margin: 0 5px 10px 0;
+}
+.ljs-hidden {
+    display: none;
+}
+.ljs-dongle-firmware p {
+    margin: 0 0 0 18px;
+    color: white;
+    font-size: 20px;
+}
+.ljs-dongle-firmware span.button {
+    float: right;
+    cursor: pointer;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: transparent url('img/update.png') no-repeat 0 0;
+    margin-top: 2px;
 }
 ul.ljs-top-nav-breadcrumbs {
     list-style: none;

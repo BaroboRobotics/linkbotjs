@@ -2,9 +2,9 @@
 
 var eventlib = require('./event.jsx');
 var manager = require('./manager.jsx');
+var firmware = require('./firmware.jsx');
+var Version = require('./version.jsx');
 
-
-var firmwareVersions = asyncBaroboBridge.availableFirmwareVersions();
 var enumConstants = asyncBaroboBridge.enumerationConstants();
 var requestId = 0;
 var callbacks = {};
@@ -39,22 +39,87 @@ asyncBaroboBridge.requestComplete.connect(
         }
     }
 );
+
+// Dongle events of the same value may occur consecutively (i.e., two
+// dongleDowns in a row), so track the state and only perform actions on state
+// changes.
+var dongleEventFilter = (function () {
+    var lastStatus = null;
+    return function (status, data) {
+        if (!lastStatus || lastStatus !== status) {
+            lastStatus = status;
+            manager.event.trigger(status, data);
+        }
+    };
+})();
+
+// This function might be better inside the AsyncLinkbot object? Unsure.
+function showRobotUpdateButton (explanation, bot) {
+    bot.status = "update";
+    bot.event.trigger('changed');
+    window.console.log(explanation);
+}
+
+// True if the error object e represents a particular error, given the error's
+// category and code in string form.
+function errorEq(e, category, code) {
+    return e.category === category
+        && e.code === enumConstants.ErrorCategories[category][code];
+}
+
 asyncBaroboBridge.dongleEvent.connect(
     function (error, firmwareVersion) {
         if (error.code == 0) {
-            // TODO: Check firmwareVersion, trigger dongleUp if it matches. If
-            // the firmware should be updated, prompt the user.
-            window.console.log('Dongle firmware version ', firmwareVersion);
-            manager.event.trigger('dongleUp');
+            var version = Version.fromTriplet(firmwareVersion);
+            if (version.eq(firmware.latestVersion())) {
+                window.console.log('Dongle firmware version ', firmwareVersion);
+                dongleEventFilter('dongleUp');
+            }
+            else {
+                dongleEventFilter('dongleUpdate', "The dongle's firmware must be updated.");
+            }
         } else {
-            // TODO: Prompt user to update firmware on certain errors. Note that
-            // we'll need to move the only-fire-dongleDown-once logic from manager.jsx
-            // to here.
-            manager.event.trigger('dongleDown');
-            window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            if (errorEq(error, 'baromesh', 'STRANGE_DONGLE')) {
+                dongleEventFilter('dongleUpdate', "A dongle is plugged in, but we are unable "
+                    + "to communicate with it. "
+                    + "You may need to update its firmware.");
+            }
+            else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
+                dongleEventFilter('dongleUpdate', "The dongle's firmware must be updated.");
+            }
+            else {
+                dongleEventFilter('dongleDown');
+                window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            }
         }
     }
 );
+
+asyncBaroboBridge.robotEvent.connect(
+    function(error, id, firmwareVersion) {
+        console.log('robot event triggered with ID: ' + id + ' and version: ', firmwareVersion);
+        var robot = manager.getRobot(id);
+        if (robot) {
+            if (error.code == 0) {
+                var version = Version.fromTriplet(firmwareVersion);
+                robot.version = version;
+                if (version.eq(firmware.latestVersion())) {
+                    robot.connect();
+                }
+                else {
+                    showRobotUpdateButton(id + "'s firmware must be updated.", robot);
+                }
+            }
+            else if (errorEq(error, 'baromesh', 'INCOMPATIBLE_FIRMWARE')) {
+                showRobotUpdateButton(id + "'s firmware must be updated.", robot);
+            }
+            else {
+                window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
+            }
+        }
+    }
+);
+
 asyncBaroboBridge.buttonEvent.connect(
     function(id, buttonNumber, eventType, timestamp) {
         // TODO implement this.
@@ -143,21 +208,21 @@ function colorToHex(color) {
 }
 
 module.exports.startFirmwareUpdate = function() {
-    asyncBaroboBridge.firmwareUpdate();
+    firmware.startUpdater();
 };
 
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var bot = this;
-    var statuses = {0:"offline", 1:"ready", 2:"acquired"};
+    var statuses = {0:"offline", 1:"ready", 2:"acquired", 3:"update"};
     var status = 0;
     var id = _id;
     var wheelRadius = 1.75;
     var joinDirection = [0, 0, 0];
     var driveToValue = null;
     var driveToCalled = false;
+    var version = null;
     
     bot.enums = enumConstants;
-    bot.firmwareVerions = firmwareVersions;
 
     function driveToCallback(error) {
         driveToCalled = false;
@@ -174,18 +239,15 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     
     function checkVersions(error, data) {
         if (0 === error.code) {
-            var valid = false, i = 0, version = "0.0.0";
-            version = 'v' + data.major + '.' + data.minor + '.' + data.patch;
+            var version = Version.fromTriplet(data);
+            var robot = manager.getRobot(id);
+            robot.version = version;
             window.console.log('checking version: ' + version);
-            for (i = 0; i < firmwareVersions.length; i++) {
-                if (version === firmwareVersions[i]) {
-                    window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
-                    valid = true;
-                    break;
-                }
+            if (version.eq(firmware.latestVersion())) {
+                window.console.log('Using firmware version: ' + version + ' for bot: ' + id);
             }
-            if (!valid && window.location.pathname != '/LinkbotUpdateApp/html/index.html') {
-                document.location = "http://zrg6.linkbotlabs.com/LinkbotUpdateApp/html/index.html?badRobot=" + encodeURIComponent(id);
+            else {
+                showRobotUpdateButton(id + "'s firmware must be updated.", robot);
             }
         } else {
             window.console.warn('error occurred checking firmware version [' + error.category + '] :: ' + error.message);
@@ -204,6 +266,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.__defineGetter__("status", function(){
         return statuses[status];
     });
+    bot.__defineSetter__("version", function(value) {
+        version = value;
+    });
+    bot.__defineGetter__("version", function() {
+        return version;
+    });
     bot.__defineSetter__("status", function(val) {
         if (val === "ready") {
             status = 1;
@@ -211,6 +279,8 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             status = 0;
         } else if (val === "acquired") {
             status = 2;
+        } else if (val === "update") {
+            status = 3;
         }
         bot.event.trigger('changed');
     });
@@ -242,7 +312,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         
     };
     bot.color = function(r, g, b) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.setLedColor(id, token, r, g, b);
             bot.event.trigger('changed');
@@ -255,28 +325,28 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         if (s3 === null) {
             s3 = s1;
         }
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.setJointSpeeds(id, token, 7, s1, s2, s3);
         }
     };
 
     bot.move = function(r1, r2, r3) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.move(id, token, 7, r1, r2, r3);
         }
     };
 
     bot.moveTo = function(r1, r2, r3) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveTo(id, token, 7, r1, r2, r3);
         }
     };
 
     bot.moveToOneMotor = function(joint, position) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             var mask = 0;
             if (joint === 0) {
@@ -291,14 +361,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.drive = function(r1, r2, r3) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.drive(id, token, 7, r1, r2, r3);
         }
     };
 
     bot.driveTo = function(r1, r2, r3) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             if (driveToCalled) {
                 driveToValue = [r1, r2, r3];
             } else {
@@ -312,7 +382,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.moveForward = function() {
         joinDirection[0] = 1;
         joinDirection[2] = -1;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
@@ -320,7 +390,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.moveBackward = function() {
         joinDirection[0] = -1;
         joinDirection[2] = 1;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
@@ -328,7 +398,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.moveLeft = function() {
         joinDirection[0] = -1;
         joinDirection[2] = -1;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
@@ -336,7 +406,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.moveRight = function() {
         joinDirection[0] = 1;
         joinDirection[2] = 1;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
@@ -355,7 +425,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                 asyncBaroboBridge.stop(id, token, (1 << joint));
                 return true;
             }
-            if (status != 0) {
+            if (status != 0 && status != 3) {
                 token = addGenericCallback();
                 if (joint === 0) {
                     mask = 1;
@@ -371,7 +441,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         return false;
     };
     bot.wheelPositions = function(callback) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addCallback(function(error, data) {
                 if (error.code == 0) {
                     callback(data);
@@ -385,7 +455,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.getJointSpeeds = function(callback) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addCallback(function(error, data) {
                 if (error.code == 0) {
                     callback(data);
@@ -400,14 +470,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.stop = function() {
         joinDirection[0] = 0;
         joinDirection[2] = 0;
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.stop(id, token);
         }
     };
 
     bot.buzzerFrequency = function(freq) {
-        if (status != 0) {
+        if (status != 0 && status != 3) {
             var token = addGenericCallback();
             asyncBaroboBridge.setBuzzerFrequency(id, token, freq);
         }
@@ -431,7 +501,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     bot.getFormFactor = function(callback) {
-        if (status != 0 && callback) {
+        if (status != 0 && status != 3  && callback) {
             var token = addCallback(function(error, data) {
                 if (error.code == 0) {
                     callback(data);
@@ -465,7 +535,17 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
                                  ? "acquired" : "ready";
                     bot.event.trigger('changed');
                     asyncBaroboBridge.getVersions(id, addCallback(checkVersions));
-                } else {
+                }
+                else if (errorEq(error, 'rpc', 'DECODING_FAILURE')
+                         || errorEq(error, 'rpc', 'PROTOCOL_ERROR')
+                         || errorEq(error, 'rpc', 'INTERFACE_ERROR')) {
+                    showRobotUpdateButton("We are unable to communicate with " + id
+                        + ". It may need a firmware update.", bot);
+                }
+                else if (errorEq(error, 'rpc', 'VERSION_MISMATCH')) {
+                    showRobotUpdateButton(id + "'s firmware must be updated.", bot);
+                }
+                else {
                     window.console.warn('error occurred [' + error.category + '] :: ' + error.message);
                 }
                 if (callback) {
@@ -490,7 +570,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     // This is a deprecated method.
     bot.register = function(connections) {
         var obj, token;
-        if (status == 0 || typeof(connections) == 'undefined') {
+        if (status == 0 || status == 3 || typeof(connections) == 'undefined') {
             return;
         }
         if (connections.hasOwnProperty('button')) {
