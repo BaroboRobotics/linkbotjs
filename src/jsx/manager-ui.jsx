@@ -774,8 +774,14 @@ var Robots = React.createClass({
 
 var RobotManagerSideMenu = React.createClass({
     handleResize: function() {
-        this.refs.container.getDOMNode().style.height = '';
         this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
+    },
+    onScroll: function() {
+        var documentHeight = document.body.scrollHeight - 75;
+        var myHeight = this.refs.container.getDOMNode().scrollHeight;
+        if (documentHeight != myHeight) {
+            this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
+        }
     },
     componentWillMount: function() {
         var me = this;
@@ -797,9 +803,11 @@ var RobotManagerSideMenu = React.createClass({
             me.refs.dongleUpdate.getDOMNode().className = 'ljs-dongle-firmware ljs-hidden';
         });
         window.addEventListener('resize', this.handleResize);
+        window.addEventListener('scroll', this.onScroll);
     },
     componentWillUnmount: function() {
         window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener('scroll', this.onScroll);
     },
     hideMenu: function() {
         this.refs.slideBtn.getDOMNode().className = 'ljs-handlebtn ljs-handlebtn-right';
