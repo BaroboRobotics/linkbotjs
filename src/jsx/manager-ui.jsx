@@ -842,8 +842,10 @@ var RobotManagerSideMenu = React.createClass({
         var style = { height: (document.body.scrollHeight - 75) + "px"};
         return (
             <div id="ljs-left-menu-container" style={style} ref="container">
-                <div className="ljs-handle">
-                    <span onClick={this.handleSlide} className="ljs-handlebtn ljs-handlebtn-right" ref="slideBtn"></span>
+                <div className="ljs-handle-wrapper">
+                    <div className="ljs-handle">
+                        <span onClick={this.handleSlide} className="ljs-handlebtn ljs-handlebtn-right" ref="slideBtn"></span>
+                    </div>
                 </div>
                 <div className="ljs-content">
                     <AddRobotForm />

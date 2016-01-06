@@ -58,15 +58,33 @@ input[type=color] {
 /**
  * Left Menu Handle.
  */
+#ljs-left-menu-container .ljs-handle-wrapper {
+    float: right;
+    height: 161px;
+    width: 31px;
+    background-color: transparent;
+    padding: 0;
+    position: fixed;
+    top: 50%;
+    left: 5px;
+    -webkit-transition: left .5s ease;
+    -moz-transition: left .5s ease;
+    -o-transition: left .5s ease;
+    -ms-transition: left .5s ease;
+    transition: left .5s ease;
+}
+#ljs-left-menu-container.ljs-open .ljs-handle-wrapper {
+    left: 270px;
+}
 #ljs-left-menu-container .ljs-handle {
     float: right;
     height: 161px;
     width: 31px;
     background-color: transparent;
     padding: 0;
-    position: absolute;
-    top: 30%;
-    left: 270px;
+    position: relative;
+    top: -50%;
+    left: 0;
 }
 
 #ljs-left-menu-container .ljs-handlebtn {

@@ -20310,8 +20310,10 @@ var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu
         var style = { height: (document.body.scrollHeight - 75) + "px"};
         return (
             React.createElement("div", {id: "ljs-left-menu-container", style: style, ref: "container"}, 
-                React.createElement("div", {className: "ljs-handle"}, 
-                    React.createElement("span", {onClick: this.handleSlide, className: "ljs-handlebtn ljs-handlebtn-right", ref: "slideBtn"})
+                React.createElement("div", {className: "ljs-handle-wrapper"}, 
+                    React.createElement("div", {className: "ljs-handle"}, 
+                        React.createElement("span", {onClick: this.handleSlide, className: "ljs-handlebtn ljs-handlebtn-right", ref: "slideBtn"})
+                    )
                 ), 
                 React.createElement("div", {className: "ljs-content"}, 
                     React.createElement(AddRobotForm, null), 
