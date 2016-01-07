@@ -20242,12 +20242,14 @@ var Robots = React.createClass({displayName: "Robots",
 
 var RobotManagerSideMenu = React.createClass({displayName: "RobotManagerSideMenu",
     handleResize: function() {
+        this.refs.container.getDOMNode().style.height = '';
         this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
     },
     onScroll: function() {
         var documentHeight = document.body.scrollHeight - 75;
         var myHeight = this.refs.container.getDOMNode().scrollHeight;
         if (documentHeight != myHeight) {
+            this.refs.container.getDOMNode().style.height = '';
             this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
         }
     },

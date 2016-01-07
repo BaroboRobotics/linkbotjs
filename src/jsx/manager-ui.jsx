@@ -774,12 +774,14 @@ var Robots = React.createClass({
 
 var RobotManagerSideMenu = React.createClass({
     handleResize: function() {
+        this.refs.container.getDOMNode().style.height = '';
         this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
     },
     onScroll: function() {
         var documentHeight = document.body.scrollHeight - 75;
         var myHeight = this.refs.container.getDOMNode().scrollHeight;
         if (documentHeight != myHeight) {
+            this.refs.container.getDOMNode().style.height = '';
             this.refs.container.getDOMNode().style.height = (document.body.scrollHeight - 75) + "px";
         }
     },
