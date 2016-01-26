@@ -18922,7 +18922,16 @@ function colorToHex(color) {
 module.exports.startFirmwareUpdate = function() {
     firmware.startUpdater();
 };
-
+/**
+ * Linkbot.
+ * @class AsyncLinkbot
+ * @param _id {string} The id of the linkbot.
+ * @constructor
+ * @property _wheelRadius {number} The wheel radius.
+ * @property status {string} The status of the linkbot.
+ * @property version {string} The firmware version.
+ * @property id {string} The robot id.
+ */
 module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var bot = this;
     var statuses = {0:"offline", 1:"ready", 2:"acquired", 3:"update"};
@@ -18933,7 +18942,10 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var driveToValue = null;
     var driveToCalled = false;
     var version = null;
-    
+    /**
+     * Enumeration constants.
+     * @type {{Button, ButtonState, FormFactor, JointState}}
+     */
     bot.enums = enumConstants;
 
     function driveToCallback(error) {
@@ -18965,7 +18977,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             window.console.warn('error occurred checking firmware version [' + error.category + '] :: ' + error.message);
         }
     }
-    
+
     bot._wheelPositions = [0, 0, 0];
     // Public
     bot.__defineGetter__("_wheelRadius", function(){
@@ -19003,7 +19015,33 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     bot.__defineGetter__("_id", function() {
         return id;
     });
-    
+    /**
+     * Color value.
+     * @typedef ColorType
+     * @property {number} red Value between 0 to 255 representing the red color value.
+     * @property {number} green Value between 0 to 255 representing the red color value.
+     * @property {number} blue Value between 0 to 255 representing the red color value.
+     */
+
+    /**
+     * Color Callback.
+     *
+     * @callback robotColorCallback
+     * @param {ColorType} color The color values.
+     */
+
+    /**
+     * Hex Color Callback.
+     * @callback robotHexColorCallback
+     * @param {string} hexColor A hex string representing the LED color value.
+     */
+
+    /**
+     * Returns the robot LED color in a callback.
+     * @function getColor
+     * @memberOf AsyncLinkbot
+     * @param {robotColorCallback} callback The color callback.
+     */
     bot.getColor = function(callback) {
         asyncBaroboBridge.getLedColor(id, addCallback(function(error, data) {
             if (0 == error.code) {
@@ -19013,6 +19051,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             }
         }));
     };
+    /**
+     * Returns the robot LED color in a callback.
+     * @function getHexColor
+     * @memberOf AsyncLinkbot
+     * @param {robotHexColorCallback} callback The color callback.
+     */
     bot.getHexColor = function(callback) {
         asyncBaroboBridge.getLedColor(id, addCallback(function(error, data) {
             if (0 == error.code) {
@@ -19023,6 +19067,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }));
         
     };
+    /**
+     * Sets the robots LED value.
+     * @function color
+     * @memberOf AsyncLinkbot
+     * @param r {number} The red value between 0 and 255.
+     * @param g {number} The green value between 0 and 255.
+     * @param b {number} The blue value between 0 and 255.
+     */
     bot.color = function(r, g, b) {
         if (status != 0 && status != 3) {
             var token = addGenericCallback();
@@ -19030,6 +19082,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             bot.event.trigger('changed');
         }
     };
+    /**
+     * Sets the motor angular speed.
+     * @function angularSpeed
+     * @memberOf AsyncLinkbot
+     * @param s1 {number} The angular speed value for motor 1.
+     * @param s2 {number} The angular speed value for motor 2.
+     * @param s3 {number} The angular speed value for motor 3.
+     */
     bot.angularSpeed = function(s1, s2, s3) {
         if (s2 === null) {
             s2 = s1;
@@ -19376,44 +19436,127 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
 var manager = require('./manager.jsx');
 var uimanager = require('./manager-ui.jsx');
 var config = require('./config.jsx');
-
+/**
+ * Linkbots API interface.
+ * @namespace Linkbots
+ */
 window.Linkbots = (function(){
     var mod = {};
     var startOpen = false;
 
+    /**
+     * Adds a Robot to the robot manager.
+     * @function addRobot
+     * @memberOf Linkbots
+     * @param id {string} The robot id to add.
+     */
     mod.addRobot = function(id) {
+
         manager.addRobot(id);
     };
+    /**
+     * @function removeRobot
+     * @memberOf Linkbots
+     * @desc Removes a Robot from the robot manager.
+     * @param id {string} The robot id to remove.
+     */
     mod.removeRobot = function(id) {
         manager.removeRobot(id);
     };
+    /**
+     * Opens the robot manager side menu.
+     * @function openSideMenu
+     * @memberOf Linkbots
+     */
     mod.openSideMenu = function() {
         uimanager.uiEvents.trigger('show-menu');
     };
+    /**
+     * Closes the robot manager side menu.
+     * @function closeSideMenu
+     * @memberOf Linkbots
+     */
     mod.closeSideMenu = function() {
         uimanager.uiEvents.trigger('hide-menu');
     };
+
+    /**
+     * @typedef AquiredLinkbots
+     * @type Object
+     * @property {Array.<AsyncLinkbot>} robots An array of robots.
+     * @property {number} registered The total number of registered robots.
+     * @property {number} ready The total number of robots in the ready state.
+     */
+
+    /**
+     * Acquires available robots from the robot manager and marks them as acquired.
+     * @function acquire
+     * @memberOf Linkbots
+     * @param count {int} The number of robots you wish to acquire.
+     * @return {AquiredLinkbots}
+     */
     mod.acquire = function(count) {
         return manager.acquire(count);
     };
+    /**
+     * Relinquishes the robot back to the robot manager.  It's the opposite of acquire.
+     * @function relinquish
+     * @memberOf Linkbots
+     * @param {AsyncLinkbot} bot The linkbot that you no longer are using and wish to make available.
+     */
     mod.relinquish = function(bot) {
         return manager.relinquish(bot);
     };
+    /**
+     * Scans for linkbots.
+     * @function scan
+     * @memberOf Linkbots
+     */
     mod.scan = function() {
         return baroboBridge.scan();
     };
+    /**
+     * If True is passed in the robot manager menu starts open.
+     * @function startOpen
+     * @memberOf Linkbots
+     * @param value {boolean}.
+     */
     mod.startOpen = function(value) {
         startOpen = value;
     };
+    /**
+     * Sets the title in the top navigation.
+     * @function setNavigationTitle
+     * @memberOf Linkbots
+     * @param title {string} The title to set.
+     */
     mod.setNavigationTitle = function(title) {
         manager.setNavigationTitle(title);
     };
+    /**
+     * Adds a breadcrumb to the top navigation.
+     * @function addNavigationItem
+     * @memberOf Linkbots
+     * @param navItemObject {object} An object containing a url and a title.
+     */
     mod.addNavigationItem = function(navItemObject) {
         manager.addNavigationItem(navItemObject);
     };
+    /**
+     * Sets the breadcrumbs to the array of navigation items.  Replacing the existing breadcrumbs.
+     * @function setNavigationItems
+     * @memberOf Linkbots
+     * @param navItemArray {array} An array of navigation objects.  A navigation object contains a url and title.
+     */
     mod.setNavigationItems = function(navItemArray) {
         manager.setNavigationItems(navItemArray);
     };
+    /**
+     * Adds an array of breadcrumbs to the top navigation.
+     * @function addNavigationItems
+     * @memberOf Linkbots
+     * @param navItemArray {array} An array of navigation objects.  A navigation object contains a url and title.
+     */
     mod.addNavigationItems = function(navItemArray) {
         manager.addNavigationItems(navItemArray);
     };
@@ -19432,7 +19575,14 @@ window.Linkbots = (function(){
         }
         return pathways;
     };
+    /**
+     * TODO: document manager events.
+     */
     mod.managerEvents = manager.event;
+    /**
+     * TODO document ui events.
+     * @type {*|uiEvents|l}
+     */
     mod.uiEvents = uimanager.uiEvents;
 
     if(window.attachEvent) {

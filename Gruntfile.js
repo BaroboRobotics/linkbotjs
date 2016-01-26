@@ -37,6 +37,18 @@ module.exports = function(grunt) {
 
       }
     },
+    jsdoc: {
+      dist: {
+        src: ['src/jsx/*.jsx'],
+        plugins: ["jsdoc-jsx"],
+        jsx: {
+          extensions: ["jsx", "js"]
+        },
+        options: {
+          destination: 'doc'
+        }
+      }
+    },
     copy: {
       main: {
         files: [
@@ -72,9 +84,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-jsdoc');
 
   grunt.registerTask('test', ['jshint', 'qunit']);
-
+  grunt.registerTask('doc', ['jsdoc']);
   grunt.registerTask('default', ['browserify:dev', 'jshint', 'copy', 'concat', 'uglify']);
   grunt.registerTask('build', ['browserify:prod', 'jshint', 'copy', 'concat', 'uglify']);
 
