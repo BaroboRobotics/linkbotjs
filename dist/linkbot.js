@@ -19103,6 +19103,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * TODO description here.
+     * @function move
+     * @memberOf AsyncLinkbot
+     * @param r1 {number}
+     * @param r2 {number}
+     * @param r3 {number}
+     */
     bot.move = function(r1, r2, r3) {
         if (status != 0 && status != 3) {
             var token = addGenericCallback();
@@ -19110,6 +19118,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * TODO description here.
+     * @function moveTo
+     * @memberOf AsyncLinkbot
+     * @param r1 {number}
+     * @param r2 {number}
+     * @param r3 {number}
+     */
     bot.moveTo = function(r1, r2, r3) {
         if (status != 0 && status != 3) {
             var token = addGenericCallback();
@@ -19117,6 +19133,13 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * TODO description here.
+     * @function moveToOneMotor
+     * @memberOf AsyncLinkbot
+     * @param joint {number}
+     * @param position {number}
+     */
     bot.moveToOneMotor = function(joint, position) {
         if (status != 0 && status != 3) {
             var token = addGenericCallback();
@@ -19132,6 +19155,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * TODO description here.
+     * @function drive
+     * @memberOf AsyncLinkbot
+     * @param r1 {number}
+     * @param r2 {number}
+     * @param r3 {number}
+     */
     bot.drive = function(r1, r2, r3) {
         if (status != 0 && status != 3) {
             var token = addGenericCallback();
@@ -19139,6 +19170,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * TODO description here.
+     * @function driveTo
+     * @memberOf AsyncLinkbot
+     * @param r1 {number}
+     * @param r2 {number}
+     * @param r3 {number}
+     */
     bot.driveTo = function(r1, r2, r3) {
         if (status != 0 && status != 3) {
             if (driveToCalled) {
@@ -19151,6 +19190,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * Moves an I-Linkbot in the forward direction.
+     * @function moveForward
+     * @memberOf AsyncLinkbot
+     */
     bot.moveForward = function() {
         joinDirection[0] = 1;
         joinDirection[2] = -1;
@@ -19159,6 +19203,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
+
+    /**
+     * Moves an I-Linkbot in the backwards direction.
+     * @function moveBackward
+     * @memberOf AsyncLinkbot
+     */
     bot.moveBackward = function() {
         joinDirection[0] = -1;
         joinDirection[2] = 1;
@@ -19167,6 +19217,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
+
+    /**
+     * Moves an I-Linkbot to the left.
+     * @function moveBackward
+     * @memberOf AsyncLinkbot
+     */
     bot.moveLeft = function() {
         joinDirection[0] = -1;
         joinDirection[2] = -1;
@@ -19175,6 +19231,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
+
+    /**
+     * Moves an I-Linkbot to the right.
+     * @function moveBackward
+     * @memberOf AsyncLinkbot
+     */
     bot.moveRight = function() {
         joinDirection[0] = 1;
         joinDirection[2] = 1;
@@ -19183,6 +19245,15 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
+
+    /**
+     * Moves a Joint continuously in a specific direction.
+     * @function moveJointContinuous
+     * @memberOf AsyncLinkbot
+     * @param joint {number} The robot motor number to move.
+     * @param direction {number} (1,0, or -1) Positive numbers move the robot motor in the positive direction, zero stops and -1 moves the motor in the negative direction.
+     * @return {boolean} True if the input was valid and sent to the robot.
+     */
     bot.moveJointContinuous = function(joint, direction) {
         var token, mask = 0;
         if (joint >= 0 && joint <= 2) {
@@ -19212,6 +19283,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
         return false;
     };
+    /**
+     * TODO describe the callback.
+     * @function wheelPositions
+     * @memberOf AsyncLinkbot
+     * @param callback
+     */
     bot.wheelPositions = function(callback) {
         if (status != 0 && status != 3) {
             var token = addCallback(function(error, data) {
@@ -19226,6 +19303,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * TODO describe the joint speed callback
+     * @function getJointSpeeds
+     * @memberOf AsyncLinkbot
+     * @param callback
+     */
     bot.getJointSpeeds = function(callback) {
         if (status != 0 && status != 3) {
             var token = addCallback(function(error, data) {
@@ -19239,6 +19322,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * Stops all motors on the robot.
+     * @function stop
+     * @memberOf AsyncLinkbot
+     */
     bot.stop = function() {
         joinDirection[0] = 0;
         joinDirection[2] = 0;
@@ -19248,6 +19336,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * Sets the buzzer frequency for the robot.  This is how you make it make sounds.
+     * @function buzzerFrequency
+     * @memberOf AsyncLinkbot
+     * @param freq {number} The frequency value.
+     */
     bot.buzzerFrequency = function(freq) {
         if (status != 0 && status != 3) {
             var token = addGenericCallback();
@@ -19255,6 +19349,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * Moves all the Linkbot motors to the zero position.
+     * @function zero
+     * @memberOf AsyncLinkbot
+     */
     bot.zero = function() {
       if (asyncBaroboBridge.resetEncoderRevs) {
           var token = addCallback(function(error) {
@@ -19272,6 +19371,10 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
       }
     };
 
+    /**
+     * Returns the Linkbot form factor.  TODO describe the callback.
+     * @param callback
+     */
     bot.getFormFactor = function(callback) {
         if (status != 0 && status != 3  && callback) {
             var token = addCallback(function(error, data) {
@@ -19285,6 +19388,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
 
+    /**
+     * Disconnects from the Linkbot.  It also calls the stop() and unregister methods before disconnecting.
+     * @function disconnect
+     * @memberOf AsyncLinkbot
+     * @return {string} The Linkbot id.
+     */
     bot.disconnect = function() {
         bot.stop();
         bot.unregister();
@@ -19296,6 +19405,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         return id;
     };
 
+    /**
+     * TODO describe the connect callback.
+     * @function connect
+     * @memberOf AsyncLinkbot
+     * @param callback
+     */
     bot.connect = function(callback) {
         var token;
         if (status == 0) {
@@ -19339,7 +19454,13 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.getLedColor(id, token);
         }
     };
-    // This is a deprecated method.
+    /**
+     * Registers for Linkbot events.
+     * @function register
+     * @memberOf AsyncLinkbot
+     * @deprecated
+     * @param connections
+     */
     bot.register = function(connections) {
         var obj, token;
         if (status == 0 || status == 3 || typeof(connections) == 'undefined') {
@@ -19400,7 +19521,12 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.enableAccelerometerEvents(id, token, true);
         }
     };
-    // This is a deprecated method.
+    /**
+     * Unregisters from Linkbot events.
+     * @function unregister
+     * @memberOf AsyncLinkbot
+     * @deprecated
+     */
     bot.unregister = function() {
         var token;
         if (buttonEventCallbacks.hasOwnProperty(id) && buttonEventCallbacks[id].length > 0) {
@@ -19629,7 +19755,7 @@ var direction = [0, 0, 0];
 var secondMotor = 2;
 var knob1Timer = null;
 var knob2Timer = null;
-var syncKnobsWithMotors = true;
+var syncKnobsWithMotors = false;
 
 /* hasClass, addClass and removeClass from http://www.openjs.com/scripts/dom/class_manipulation.php */
 function hasClass(ele,cls) {
@@ -19865,6 +19991,7 @@ var KnobControl = React.createClass({displayName: "KnobControl",
     getDefaultProps: function() {
         return {
             value: 0,
+            motorValue: 0,
             hasChanged: function() {},
             mouseUp: function() {},
             mouseClicked: function() {}

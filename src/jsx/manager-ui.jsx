@@ -11,7 +11,7 @@ var direction = [0, 0, 0];
 var secondMotor = 2;
 var knob1Timer = null;
 var knob2Timer = null;
-var syncKnobsWithMotors = true;
+var syncKnobsWithMotors = false;
 
 /* hasClass, addClass and removeClass from http://www.openjs.com/scripts/dom/class_manipulation.php */
 function hasClass(ele,cls) {
@@ -247,6 +247,7 @@ var KnobControl = React.createClass({
     getDefaultProps: function() {
         return {
             value: 0,
+            motorValue: 0,
             hasChanged: function() {},
             mouseUp: function() {},
             mouseClicked: function() {}
