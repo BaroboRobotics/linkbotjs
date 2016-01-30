@@ -39,13 +39,15 @@ module.exports = function(grunt) {
     },
     jsdoc: {
       dist: {
-        src: ['src/jsx/*.jsx'],
+        src: ['src/jsx/*.jsx', 'src/doc/*.md', 'src/js/*.js'],
         plugins: ["jsdoc-jsx"],
         jsx: {
-          extensions: ["jsx", "js"]
+          extensions: ["jsx", "js", "md"]
         },
         options: {
-          destination: 'doc'
+          destination: 'doc',
+          template : "node_modules/ink-docstrap/template",
+          configure : "node_modules/ink-docstrap/template/jsdoc.conf.json"
         }
       }
     },
