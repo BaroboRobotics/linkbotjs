@@ -233,8 +233,155 @@
         <dl>
                 
 <hr>
-<dt class="name" id="AquiredLinkbots">
-    <h4>AquiredLinkbots</h4>
+<dt class="name" id="AccelConnectionType">
+    <h4>AccelConnectionType</h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Acceleration connection type.</p>
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The function to be called back for acceleration events.<br>function(robot, data, event) - The data is what you set when you registered.  The event is an object with x, y, z<br>values.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional the data you want returned on callback.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-792">line 792</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+            
+                
+<hr>
+<dt class="name" id="AcquiredType">
+    <h4>AcquiredType</h4>
 
     
 </dt>
@@ -392,6 +539,129 @@
 			<li>
 				<a href="jsx_main.jsx.html">jsx/main.jsx</a>,
 				 <a href="jsx_main.jsx.html#sunlight-1-line-50">line 50</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+            
+                
+<hr>
+<dt class="name" id="ButtonConnectionType">
+    <h4>ButtonConnectionType</h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Button connection type.</p>
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>0</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The button number to register for as an object. See enums for button numbers.<br>ex.<br>{<br>    0: {<br>         callback: function(robot, data, event) { ... }<br>         data: ...<br>       }<br>}</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-801">line 801</a>
 			</li>
 		</ul>
 	</dd>
@@ -582,6 +852,344 @@
             
                 
 <hr>
+<dt class="name" id="ConnectionsType">
+    <h4>ConnectionsType</h4>
+
+    
+</dt>
+<dd>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>accel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#AccelConnectionType">AccelConnectionType</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional object that contains accel callback and data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>button</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#ButtonConnectionType">ButtonConnectionType</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional object that contains button callback and data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>wheel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#WheelConnectionType">WheelConnectionType</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional object that contains wheel callback and data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>joint</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#JointConnectionType">JointConnectionType</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Option object that contains joint callback and data.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-837">line 837</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+            
+                
+<hr>
+<dt class="name" id="JointConnectionType">
+    <h4>JointConnectionType</h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Joint connection type.</p>
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The function to be called back for acceleration events.<br>function(robot, data, event) - The data is what you set when you registered.  The event is an object with x, y, z<br>values.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional the data you want returned on callback.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-828">line 828</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+            
+                
+<hr>
 <dt>
     <h4 class="name" id="robotColorCallback"><span class="type-signature"></span>robotColorCallback(color)</h4>
     
@@ -721,6 +1329,144 @@
                 
 <hr>
 <dt>
+    <h4 class="name" id="robotFormFactorCallback"><span class="type-signature"></span>robotFormFactorCallback(FormFactor)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Form Factor Callback.<br>ex.<br>linkbot.getFormFactor(function(data) {<br>      if (linkbot.enums.FormFactor.I == data) {<br>          // The linkbot is an I-Linkbot.<br>      }<br>});</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>FormFactor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">enum</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the form factor is returned and should be checked against the enums.FormFactor.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-694">line 694</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+            
+                
+<hr>
+<dt>
     <h4 class="name" id="robotHexColorCallback"><span class="type-signature"></span>robotHexColorCallback(hexColor)</h4>
     
     
@@ -826,7 +1572,7 @@
 		<ul class="dummy">
 			<li>
 				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
-				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-321">line 321</a>
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-337">line 337</a>
 			</li>
 		</ul>
 	</dd>
@@ -851,6 +1597,552 @@
     
 
     
+
+    
+</dd>
+
+            
+                
+<hr>
+<dt>
+    <h4 class="name" id="robotJointSpeedsCallback"><span class="type-signature"></span>robotJointSpeedsCallback(An)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Joint Speeds Callback.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>An</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>array of joint speeds.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-617">line 617</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+            
+                
+<hr>
+<dt>
+    <h4 class="name" id="robotWheelPositionsCallback"><span class="type-signature"></span>robotWheelPositionsCallback(color)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Wheel Positions Callback.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>color</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#WheelPositionsType">WheelPositionsType</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The color values.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-591">line 591</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+            
+                
+<hr>
+<dt class="name" id="WheelConnectionType">
+    <h4>WheelConnectionType</h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Wheel connection type.</p>
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>0</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The motor number (starts at zero) to register for as an object.<br>ex.<br>{<br>    0: {<br>         callback: function(robot, data, event) { ... }<br>         data: ...<br>         distance: (this is optional and specifies the granularity).<br>       }<br>}</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-814">line 814</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+            
+                
+<hr>
+<dt class="name" id="WheelPositionsType">
+    <h4>WheelPositionsType</h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Wheel Positions type.</p>
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>values</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the wheel positions.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>timestamp</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A timestamp of when representing the time the wheels were at that position.<br>if there was an error the timestamp will be set to -1.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source method-doc-label method-doc-details-label">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="jsx_linkbot.jsx.html">jsx/linkbot.jsx</a>,
+				 <a href="jsx_linkbot.jsx.html#sunlight-1-line-583">line 583</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
 
     
 </dd>
@@ -905,7 +2197,7 @@
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on Sat Jan 30th 2016
+		on Mon Feb 1st 2016
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

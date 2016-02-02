@@ -48,7 +48,7 @@ window.Linkbots = (function(){
     };
 
     /**
-     * @typedef AquiredLinkbots
+     * @typedef AcquiredType
      * @type Object
      * @property {Array.<AsyncLinkbot>} robots An array of robots.
      * @property {number} registered The total number of registered robots.
@@ -60,7 +60,7 @@ window.Linkbots = (function(){
      * @function acquire
      * @memberOf Linkbots
      * @param count {int} The number of robots you wish to acquire.
-     * @return {AquiredLinkbots}
+     * @return {AcquiredType}
      */
     mod.acquire = function(count) {
         return manager.acquire(count);

@@ -319,16 +319,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      */
 
     /**
-     * Hex Color Callback.
-     * @callback robotHexColorCallback
-     * @param {string} hexColor A hex string representing the LED color value.
-     */
-
-    /**
      * Returns the robot LED color in a callback.
      * @function getColor
      * @memberOf AsyncLinkbot
      * @param {robotColorCallback} callback The color callback.
+     * @instance
      */
     bot.getColor = function(callback) {
         asyncBaroboBridge.getLedColor(id, addCallback(function(error, data) {
@@ -340,10 +335,17 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }));
     };
     /**
+     * Hex Color Callback.
+     * @callback robotHexColorCallback
+     * @param {string} hexColor A hex string representing the LED color value.
+     */
+
+    /**
      * Returns the robot LED color in a callback.
      * @function getHexColor
      * @memberOf AsyncLinkbot
      * @param {robotHexColorCallback} callback The color callback.
+     * @instance
      */
     bot.getHexColor = function(callback) {
         asyncBaroboBridge.getLedColor(id, addCallback(function(error, data) {
@@ -362,6 +364,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      * @param r {number} The red value between 0 and 255.
      * @param g {number} The green value between 0 and 255.
      * @param b {number} The blue value between 0 and 255.
+     * @instance
      */
     bot.color = function(r, g, b) {
         if (status != 0 && status != 3) {
@@ -377,6 +380,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      * @param s1 {number} The angular speed value for motor 1.
      * @param s2 {number} The angular speed value for motor 2.
      * @param s3 {number} The angular speed value for motor 3.
+     * @instance
      */
     bot.angularSpeed = function(s1, s2, s3) {
         if (s2 === null) {
@@ -390,14 +394,15 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.setJointSpeeds(id, token, 7, s1, s2, s3);
         }
     };
-
     /**
-     * TODO description here.
+     * Runs the motors the specified number of degrees.  Positive values move
+     * the wheel clockwise.
      * @function move
      * @memberOf AsyncLinkbot
-     * @param r1 {number}
-     * @param r2 {number}
-     * @param r3 {number}
+     * @param r1 {number} value to move motor 1 to.
+     * @param r2 {number} value to move motor 2 to.
+     * @param r3 {number} value to move motor 3 to.
+     * @instance
      */
     bot.move = function(r1, r2, r3) {
         if (status != 0 && status != 3) {
@@ -405,14 +410,15 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.move(id, token, 7, r1, r2, r3);
         }
     };
-
     /**
-     * TODO description here.
+     * Moves the motors to a particular absolute position. The Linkbot has an
+     * internal sense of zero that it uses for this method.
      * @function moveTo
      * @memberOf AsyncLinkbot
-     * @param r1 {number}
-     * @param r2 {number}
-     * @param r3 {number}
+     * @param r1 {number} value to move motor 1 to.
+     * @param r2 {number} value to move motor 2 to.
+     * @param r3 {number} value to move motor 3 to.
+     * @instance
      */
     bot.moveTo = function(r1, r2, r3) {
         if (status != 0 && status != 3) {
@@ -420,13 +426,14 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveTo(id, token, 7, r1, r2, r3);
         }
     };
-
     /**
-     * TODO description here.
+     * Moves a single motor to a particular absolute position.
      * @function moveToOneMotor
+     * @see AsyncLinkbot.moveTo
      * @memberOf AsyncLinkbot
-     * @param joint {number}
-     * @param position {number}
+     * @param joint {number} The motor joint to move (0, 1, or 2).
+     * @param position {number} The position to move the motor to.
+     * @instance
      */
     bot.moveToOneMotor = function(joint, position) {
         if (status != 0 && status != 3) {
@@ -442,14 +449,15 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveTo(id, token, mask, position, position, position);
         }
     };
-
     /**
-     * TODO description here.
+     * Drives the motors the specified number of degrees.  Positive values move
+     * the wheel clockwise.
      * @function drive
      * @memberOf AsyncLinkbot
-     * @param r1 {number}
-     * @param r2 {number}
-     * @param r3 {number}
+     * @param r1 {number} value to drive motor 1 to.
+     * @param r2 {number} value to drive motor 2 to.
+     * @param r3 {number} value to drive motor 3 to.
+     * @instance
      */
     bot.drive = function(r1, r2, r3) {
         if (status != 0 && status != 3) {
@@ -457,14 +465,15 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.drive(id, token, 7, r1, r2, r3);
         }
     };
-
     /**
-     * TODO description here.
+     * Drives the motors to a particular absolute position. The Linkbot has an
+     * internal sense of zero that it uses for this method.
      * @function driveTo
      * @memberOf AsyncLinkbot
-     * @param r1 {number}
-     * @param r2 {number}
-     * @param r3 {number}
+     * @param r1 {number} value to drive motor 1 to.
+     * @param r2 {number} value to drive motor 2 to.
+     * @param r3 {number} value to drive motor 3 to.
+     * @instance
      */
     bot.driveTo = function(r1, r2, r3) {
         if (status != 0 && status != 3) {
@@ -477,11 +486,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             }
         }
     };
-
     /**
      * Moves an I-Linkbot in the forward direction.
      * @function moveForward
      * @memberOf AsyncLinkbot
+     * @instance
      */
     bot.moveForward = function() {
         joinDirection[0] = 1;
@@ -491,11 +500,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
-
     /**
      * Moves an I-Linkbot in the backwards direction.
      * @function moveBackward
      * @memberOf AsyncLinkbot
+     * @instance
      */
     bot.moveBackward = function() {
         joinDirection[0] = -1;
@@ -505,11 +514,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
-
     /**
      * Moves an I-Linkbot to the left.
      * @function moveBackward
      * @memberOf AsyncLinkbot
+     * @instance
      */
     bot.moveLeft = function() {
         joinDirection[0] = -1;
@@ -519,11 +528,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
-
     /**
      * Moves an I-Linkbot to the right.
      * @function moveBackward
      * @memberOf AsyncLinkbot
+     * @instance
      */
     bot.moveRight = function() {
         joinDirection[0] = 1;
@@ -533,7 +542,6 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.moveContinuous(id, token, 7, joinDirection[0], joinDirection[1], joinDirection[2]);
         }
     };
-
     /**
      * Moves a Joint continuously in a specific direction.
      * @function moveJointContinuous
@@ -541,6 +549,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      * @param joint {number} The robot motor number to move.
      * @param direction {number} (1,0, or -1) Positive numbers move the robot motor in the positive direction, zero stops and -1 moves the motor in the negative direction.
      * @return {boolean} True if the input was valid and sent to the robot.
+     * @instance
      */
     bot.moveJointContinuous = function(joint, direction) {
         var token, mask = 0;
@@ -572,10 +581,25 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         return false;
     };
     /**
-     * TODO describe the callback.
+     * Wheel Positions type.
+     * @typedef WheelPositionsType
+     * @property {Array.number} values An array containing the wheel positions.
+     * @property {number} timestamp A timestamp of when representing the time the wheels were at that position.
+     * if there was an error the timestamp will be set to -1.
+     */
+
+    /**
+     * Wheel Positions Callback.
+     * @callback robotWheelPositionsCallback
+     * @param {WheelPositionsType} positions The wheel position values.
+     */
+
+    /**
+     * Call to get the wheel positions of the Linkbot.
      * @function wheelPositions
      * @memberOf AsyncLinkbot
-     * @param callback
+     * @param callback {robotWheelPositionsCallback} A callback that returns the wheel positions.
+     * @instance
      */
     bot.wheelPositions = function(callback) {
         if (status != 0 && status != 3) {
@@ -590,12 +614,18 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.getJointAngles (id, token);
         }
     };
+    /**
+     * Joint Speeds Callback.
+     * @callback robotJointSpeedsCallback
+     * @param {Array.number} speeds An array of joint speeds.
+     */
 
     /**
-     * TODO describe the joint speed callback
+     * Call to get the joint speeds of the Linkbot.
      * @function getJointSpeeds
      * @memberOf AsyncLinkbot
-     * @param callback
+     * @param callback {robotJointSpeedsCallback} The joint speeds returned as a callback.
+     * @instance
      */
     bot.getJointSpeeds = function(callback) {
         if (status != 0 && status != 3) {
@@ -614,6 +644,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      * Stops all motors on the robot.
      * @function stop
      * @memberOf AsyncLinkbot
+     * @instance
      */
     bot.stop = function() {
         joinDirection[0] = 0;
@@ -629,6 +660,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      * @function buzzerFrequency
      * @memberOf AsyncLinkbot
      * @param freq {number} The frequency value.
+     * @instance
      */
     bot.buzzerFrequency = function(freq) {
         if (status != 0 && status != 3) {
@@ -641,6 +673,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      * Moves all the Linkbot motors to the zero position.
      * @function zero
      * @memberOf AsyncLinkbot
+     * @instance
      */
     bot.zero = function() {
       if (asyncBaroboBridge.resetEncoderRevs) {
@@ -658,10 +691,22 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
           bot.moveTo(0, 0, 0);
       }
     };
+    /**
+     * Form Factor Callback.
+     * ex.
+     * linkbot.getFormFactor(function(data) {
+     *       if (linkbot.enums.FormFactor.I == data) {
+     *           // The linkbot is an I-Linkbot.
+     *       }
+     * });
+     * @callback robotFormFactorCallback
+     * @param {enum} FormFactor the form factor is returned and should be checked against the enums.FormFactor.
+     */
 
     /**
-     * Returns the Linkbot form factor.  TODO describe the callback.
-     * @param callback
+     * Returns the Linkbot form factor.
+     * @param callback {robotFormFactorCallback} The form factor as a callback.
+     * @instance
      */
     bot.getFormFactor = function(callback) {
         if (status != 0 && status != 3  && callback) {
@@ -681,6 +726,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      * @function disconnect
      * @memberOf AsyncLinkbot
      * @return {string} The Linkbot id.
+     * @instance
      */
     bot.disconnect = function() {
         bot.stop();
@@ -694,10 +740,11 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     };
 
     /**
-     * TODO describe the connect callback.
+     * Connects to a Linkbot.
      * @function connect
      * @memberOf AsyncLinkbot
-     * @param callback
+     * @param callback {Object} the callback is called if there was an error.  The error object is returned.
+     * @instance
      */
     bot.connect = function(callback) {
         var token;
@@ -743,11 +790,64 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
         }
     };
     /**
+     * Acceleration connection type.
+     * @typedef  AccelConnectionType
+     * @property callback {function} The function to be called back for acceleration events.
+     * function(robot, data, event) - The data is what you set when you registered.  The event is an object with x, y, z
+     * values.
+     * @property data {Object} Optional the data you want returned on callback.
+     */
+
+    /**
+     * Button connection type.
+     * @typedef  ButtonConnectionType
+     * @property {Object} 0 The button number to register for as an object. See enums for button numbers.
+     * ex.
+     * {
+     *     0: {
+     *          callback: function(robot, data, event) { ... }
+     *          data: ...
+     *        }
+     * }
+     */
+
+    /**
+     * Wheel connection type.
+     * @typedef  WheelConnectionType
+     * @property {Object} 0 The motor number (starts at zero) to register for as an object.
+     * ex.
+     * {
+     *     0: {
+     *          callback: function(robot, data, event) { ... }
+     *          data: ...
+     *          distance: (this is optional and specifies the granularity).
+     *        }
+     * }
+     */
+
+    /**
+     * Joint connection type.
+     * @typedef  JointConnectionType
+     * @property callback {function} The function to be called back for acceleration events.
+     * function(robot, data, event) - The data is what you set when you registered.  The event is an object with x, y, z
+     * values.
+     * @property data {Object} Optional the data you want returned on callback.
+     */
+
+    /**
+     * @typedef ConnectionsType
+     * @property accel {AccelConnectionType} Optional object that contains accel callback and data.
+     * @property button {ButtonConnectionType} Optional object that contains button callback and data.
+     * @property wheel {WheelConnectionType} Optional object that contains wheel callback and data.
+     * @property joint {JointConnectionType} Option object that contains joint callback and data.
+     */
+
+    /**
      * Registers for Linkbot events.
      * @function register
      * @memberOf AsyncLinkbot
-     * @deprecated
-     * @param connections
+     * @param connections {ConnectionsType} an object containing callbacks and data you want to register for.
+     * @instance
      */
     bot.register = function(connections) {
         var obj, token;
@@ -813,7 +913,7 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      * Unregisters from Linkbot events.
      * @function unregister
      * @memberOf AsyncLinkbot
-     * @deprecated
+     * @instance
      */
     bot.unregister = function() {
         var token;
