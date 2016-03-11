@@ -21757,8 +21757,8 @@ module.exports.relinquishAll = function() {
     for (var i = 0; i < robots.length; i++) {
         var robot = robots[i];
         if (robot.status === "acquired") {
-            robots[idx].status = "ready";
-            robots[idx].unregister();
+            robot.status = "ready";
+            robot.unregister();
         }
     }
 };
