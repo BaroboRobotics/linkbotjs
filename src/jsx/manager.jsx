@@ -168,9 +168,20 @@ module.exports.relinquish = function(bot) {
     }).indexOf(bot.id);
     if (idx >= 0 && robots[idx].status === "acquired") {
         robots[idx].status = "ready";
+        robots[idx].unregister();
         return robots[idx].status;
     } else {
         return false;
+    }
+};
+
+module.exports.relinquishAll = function() {
+    for (var i = 0; i < robots.length; i++) {
+        var robot = robots[i];
+        if (robot.status === "acquired") {
+            robots[idx].status = "ready";
+            robots[idx].unregister();
+        }
     }
 };
 
