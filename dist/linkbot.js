@@ -19766,6 +19766,9 @@ window.Linkbots = (function(){
     mod.relinquish = function(bot) {
         return manager.relinquish(bot);
     };
+    mod.relinquishAll = function() {
+        return manager.relinquishAll();
+    };
     /**
      * Scans for linkbots.
      * @function scan
