@@ -3,6 +3,7 @@
 var manager = require('./manager.jsx');
 var uimanager = require('./manager-ui.jsx');
 var config = require('./config.jsx');
+var botlib = require('./linkbot.jsx');
 /**
  * Linkbots API interface.
  * @namespace Linkbots
@@ -154,6 +155,9 @@ window.Linkbots = (function(){
      * @type {*|uiEvents|l}
      */
     mod.uiEvents = uimanager.uiEvents;
+    mod.model = {
+        AsyncLinkbot : botlib.AsyncLinkbot
+    };
 
     if(window.attachEvent) {
         window.attachEvent('onload', function() {
