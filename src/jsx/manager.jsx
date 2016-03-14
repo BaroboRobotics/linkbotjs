@@ -72,7 +72,7 @@ module.exports.addRobot = function(id) {
     var identifier = id.toUpperCase();
     var robot = findRobot(identifier);
     if (!robot) {
-        robots.push(new botlib.AsyncLinkbot(identifier));
+        robots.unshift(new botlib.AsyncLinkbot(identifier));
         writeRobotsToConfig(robots);
         storageLib.add(identifier, 0);
         events.trigger('changed', 1);
