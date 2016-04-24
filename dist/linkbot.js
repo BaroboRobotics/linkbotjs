@@ -18724,6 +18724,7 @@ var buttonEventCallbacks = {};
 var encoderEventCallbacks = {};
 var accelerometerEventCallbacks = {};
 var jointEventCallbacks = {};
+var robotEvents = [];
 
 function addCallback (func) {
     var token = requestId++;
@@ -18844,6 +18845,9 @@ asyncBaroboBridge.buttonEvent.connect(
                 }
             }
         }
+        robotEvents.forEach(function(event) {
+            event(id, 'buttonEvent', buttonNumber, eventType, timestamp);
+        });
     }
 );
 asyncBaroboBridge.encoderEvent.connect(
@@ -18859,6 +18863,9 @@ asyncBaroboBridge.encoderEvent.connect(
                 }
             }
         }
+        robotEvents.forEach(function(event) {
+            event(id, 'encoderEvent', jointNumber, anglePosition, timestamp);
+        });
     }
 );
 asyncBaroboBridge.jointEvent.connect(
@@ -18868,6 +18875,9 @@ asyncBaroboBridge.jointEvent.connect(
             var obj = objs[i];
             obj.callback(obj.robot, obj.data, {jointNumber: jointNumber, eventType: eventType, timestamp: timestamp});
         }
+        robotEvents.forEach(function(event) {
+            event(id, 'jointEvent', jointNumber, eventType, timestamp);
+        });
     }
 );
 asyncBaroboBridge.accelerometerEvent.connect(
@@ -18879,6 +18889,9 @@ asyncBaroboBridge.accelerometerEvent.connect(
                 obj.callback(obj.robot, obj.data, {x: x, y: y, z: z, timestamp: timestamp});
             }
         }
+        robotEvents.forEach(function(event) {
+            event(id, 'accelerometerEvent', x, y, z, timestamp);
+        });
     }
 );
 
@@ -18895,6 +18908,16 @@ asyncBaroboBridge.relinquish.connect(
         manager.relinquish(manager.getRobot(id));
     }
 );
+
+function logError(error) {
+    if (console) {
+        if (console.error) {
+            console.error(error);
+        } else if (console.log) {
+            console.log(error);
+        }
+    }
+}
 
 function rgbToHex(value) {
     if (!value || value === null || value === "undefined") {
@@ -18942,11 +18965,83 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
     var driveToValue = null;
     var driveToCalled = false;
     var version = null;
+    var events = {};
+    robotEvents.push(eventHandler);
     /**
      * Enumeration constants.
      * @type {{Button, ButtonState, FormFactor, JointState}}
      */
     bot.enums = enumConstants;
+
+    function eventHandler(identifier, eventName, a, b, c, d) {
+        if (id !== identifier) {
+            return;
+        }
+        if (eventName === 'buttonEvent') {
+            buttonEvent(a, b, c);
+        }
+        if (eventName === 'encoderEvent') {
+            encoderEvent(a, b, c);
+        }
+        if (eventName === 'accelerometerEvent') {
+            accelerometerEvent(a, b, c, d);
+        }
+        if (eventName === 'jointEvent') {
+            jointEvent(a, b, c);
+        }
+    }
+
+    function buttonEvent(button, state, timestamp) {
+        var buttonEvents = events['buttonEvent'];
+        if (buttonEvents && Array.isArray(buttonEvents)) {
+            buttonEvents.forEach(function(event) {
+                try {
+                    event(button, state, timestamp);
+                } catch(err) {
+                    logError(err);
+                }
+            });
+        }
+    }
+
+    function encoderEvent(encoder, angle, timestamp) {
+        var encoderEvents = events['encoderEvent'];
+        if (encoderEvents &&  Array.isArray(encoderEvents)) {
+            encoderEvents.forEach(function(event) {
+                try {
+                    event(encoder, angle, timestamp);
+                } catch(err) {
+                    logError(err);
+                }
+            });
+        }
+    }
+
+    function accelerometerEvent(x, y, z, timestamp) {
+        var accelerometerEvents = events['accelerometerEvent'];
+        if (accelerometerEvents && Array.isArray(accelerometerEvents)) {
+            accelerometerEvents.forEach(function(event) {
+                try {
+                    event(x, y, z, timestamp);
+                } catch(err) {
+                    logError(err);
+                }
+            });
+        }
+    }
+
+    function jointEvent(joint, state, timestamp) {
+        var jointEvents = events['jointEvent'];
+        if (jointEvents && Array.isArray(jointEvents)) {
+            jointEvents.forEach(function(event) {
+                try {
+                    event(joint, state, timestamp);
+                } catch (err) {
+                    logError(err);
+                }
+            });
+        }
+    }
 
     function driveToCallback(error) {
         driveToCalled = false;
@@ -19501,6 +19596,29 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
             asyncBaroboBridge.getLedColor(id, token);
         }
     };
+    bot.on = function(eventName, callback) {
+        if (eventName === 'jointEvent' || eventName === 'buttonEvent' || eventName === 'accelerometerEvent' || eventName === 'encoderEvent') {
+            // Ignore any other event name.
+            var callbacks = events[eventName];
+            if (callbacks && Array.isArray(callbacks)) {
+                callbacks.push(callback);
+            } else {
+                callbacks = [];
+                callbacks.push(callback);
+                events[eventName] = callbacks;
+                var token = addGenericCallback();
+                if (eventName === 'buttonEvent') {
+                    asyncBaroboBridge.enableButtonEvents(id, token, true);
+                } else if (eventName === 'jointEvent') {
+                    asyncBaroboBridge.enableJointEvents(id, token, true);
+                } else if (eventName === 'accelerometerEvent') {
+                    asyncBaroboBridge.enableAccelerometerEvents(id, token, true);
+                } else if (eventName === 'encoderEvent') {
+                    asyncBaroboBridge.enableEncoderEvents(id, token, 1, true);
+                }
+            }
+        }
+    };
     /**
      * Acceleration connection type.
      * @typedef  AccelConnectionType
@@ -19629,22 +19747,15 @@ module.exports.AsyncLinkbot = function AsyncLinkbot(_id) {
      */
     bot.unregister = function() {
         var token;
-        if (buttonEventCallbacks.hasOwnProperty(id) && buttonEventCallbacks[id].length > 0) {
-            token = addGenericCallback();
-            asyncBaroboBridge.enableButtonEvents (id, token, false);
-        }
-        if (encoderEventCallbacks.hasOwnProperty(id) && encoderEventCallbacks[id].length > 0) {
-            token = addGenericCallback();
-            asyncBaroboBridge.enableEncoderEvents(id, token, 5.0, false);
-        }
-        if (accelerometerEventCallbacks.hasOwnProperty(id) && accelerometerEventCallbacks[id].length > 0) {
-            token = addGenericCallback();
-            asyncBaroboBridge.enableAccelerometerEvents(id, token, false);
-        }
-        if (jointEventCallbacks.hasOwnProperty(id) && jointEventCallbacks[id].length > 0) {
-            token = addGenericCallback();
-            asyncBaroboBridge.enableJointEvents(id, token, false);
-        }
+        token = addGenericCallback();
+        asyncBaroboBridge.enableButtonEvents (id, token, false);
+        token = addGenericCallback();
+        asyncBaroboBridge.enableEncoderEvents(id, token, 5.0, false);
+        token = addGenericCallback();
+        asyncBaroboBridge.enableAccelerometerEvents(id, token, false);
+        token = addGenericCallback();
+        asyncBaroboBridge.enableJointEvents(id, token, false);
+        events = {};
     };
     bot.event = eventlib.Events.extend({});
     /**
